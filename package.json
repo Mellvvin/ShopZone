@@ -1,0 +1,17 @@
+{
+  "name": "ecommerce-platform",
+  "version": "1.0.0",
+  "description": "ShopZone E-Commerce Platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "server": "cd backend && npx nodemon server.js",
+    "client": "npm run dev --prefix frontend",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "concurrently": "^8.0.0"
+  },
+  "author": "Melvin Waweru Munyua",
+  "license": "ISC"
+}

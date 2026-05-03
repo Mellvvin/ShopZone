@@ -1,0 +1,296 @@
+/* ── VARIABLES ────────────────────────────────────────────── */
+:root {
+  --oxford-blue: #002147;
+  --tan:         #D2B48C;
+  --tan-light:   #EDD9C0;
+  --tan-dark:    #B8956A;
+  --bg:          #FAF8F5;
+  --white:       #FFFFFF;
+  --text-dark:   #1A1A1A;
+  --text-muted:  #6B6B6B;
+  --shadow:      0 2px 12px rgba(0, 33, 71, 0.10);
+}
+
+/* ── BASE ─────────────────────────────────────────────────── */
+body {
+  background-color: var(--bg);
+  color: var(--text-dark);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+a {
+  color: var(--oxford-blue);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--tan-dark);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--oxford-blue);
+  font-weight: 600;
+}
+
+/* ── NAVBAR ───────────────────────────────────────────────── */
+.navbar {
+  background-color: var(--oxford-blue) !important;
+  box-shadow: var(--shadow);
+  padding: 1rem 0;
+}
+
+.navbar-brand {
+  color: var(--tan) !important;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: color 0.2s ease;
+}
+
+.navbar-brand:hover {
+  color: var(--tan-light) !important;
+}
+
+.navbar .nav-link {
+  color: var(--tan) !important;
+  font-weight: 500;
+  margin-left: 1rem;
+  transition: color 0.2s ease;
+}
+
+.navbar .nav-link:hover {
+  color: var(--white) !important;
+}
+
+.navbar-toggler {
+  border-color: var(--tan) !important;
+}
+
+.navbar-toggler-icon {
+  filter: invert(75%) sepia(30%) saturate(400%) hue-rotate(5deg);
+}
+
+/* ── BUTTONS ──────────────────────────────────────────────── */
+.btn-dark,
+.btn-primary {
+  background-color: var(--oxford-blue) !important;
+  border-color: var(--oxford-blue) !important;
+  color: var(--tan) !important;
+  font-weight: 600;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-dark:hover,
+.btn-primary:hover {
+  background-color: #003170 !important;
+  border-color: #003170 !important;
+  color: var(--tan-light) !important;
+}
+
+.btn-light {
+  background-color: var(--tan-light) !important;
+  border-color: var(--tan) !important;
+  color: var(--oxford-blue) !important;
+  font-weight: 500;
+}
+
+.btn-light:hover {
+  background-color: var(--tan) !important;
+  color: var(--oxford-blue) !important;
+}
+
+.btn:disabled {
+  background-color: #CCCCCC !important;
+  border-color: #CCCCCC !important;
+  color: #888888 !important;
+}
+
+/* ── CARDS ────────────────────────────────────────────────── */
+.card {
+  background-color: var(--white);
+  border: 1px solid #EAE0D5;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 33, 71, 0.15);
+}
+
+/* ── FORMS ────────────────────────────────────────────────── */
+.form-control {
+  border: 1px solid #D4C9BA;
+  border-radius: 6px;
+  background-color: var(--white);
+  color: var(--text-dark);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--tan);
+  box-shadow: 0 0 0 0.2rem rgba(210, 180, 140, 0.35);
+  background-color: var(--white);
+}
+
+.form-label {
+  color: var(--oxford-blue);
+  font-weight: 500;
+}
+
+/* ── LIST GROUPS ──────────────────────────────────────────── */
+.list-group-item {
+  background-color: var(--white);
+  border-color: #EAE0D5;
+  color: var(--text-dark);
+}
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+footer {
+  background-color: var(--oxford-blue);
+  color: var(--tan);
+  padding: 1.2rem 0;
+  margin-top: auto;
+}
+
+footer p {
+  margin: 0;
+  color: var(--tan);
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+/* ── ALERTS ───────────────────────────────────────────────── */
+.alert-danger {
+  background-color: #FDE8E8;
+  border-color: #F5C6C6;
+  color: #8B0000;
+  border-radius: 6px;
+}
+
+/* ── PRODUCT GRID ─────────────────────────────────────────── */
+.product-card-title {
+  color: var(--oxford-blue);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.product-card-price {
+  color: var(--tan-dark);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* ── PAGE HEADINGS ────────────────────────────────────────── */
+h1.page-title {
+  color: var(--oxford-blue);
+  border-bottom: 3px solid var(--tan);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+}
+
+/* ── UTILITY ──────────────────────────────────────────────── */
+.text-tan {
+  color: var(--tan) !important;
+}
+
+.text-oxford {
+  color: var(--oxford-blue) !important;
+}
+
+.bg-oxford {
+  background-color: var(--oxford-blue) !important;
+}
+
+.bg-tan {
+  background-color: var(--tan) !important;
+}
+
+/* ── PRODUCT CARD ─────────────────────────────────────────── */
+.product-card {
+  border: 1px solid #EAE0D5;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 33, 71, 0.15);
+}
+
+.product-card-img {
+  height: 220px;
+  object-fit: cover;
+  border-bottom: 2px solid var(--tan-light);
+  transition: opacity 0.2s ease;
+}
+
+.product-card-img:hover {
+  opacity: 0.92;
+}
+
+.product-card-stars {
+  color: var(--tan-dark);
+  font-size: 1rem;
+  letter-spacing: 2px;
+}
+
+.product-card-reviews {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ── QUANTITY CONTROLS ────────────────────────────────────── */
+.qty-btn {
+  background-color: var(--tan-light) !important;
+  border: 1px solid var(--tan) !important;
+  color: var(--oxford-blue) !important;
+  font-weight: 700;
+  font-size: 1.1rem;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.qty-btn:hover {
+  background-color: var(--tan) !important;
+  color: var(--oxford-blue) !important;
+}
+
+.qty-input {
+  width: 65px !important;
+  text-align: center;
+  border: 1px solid var(--tan) !important;
+  border-radius: 6px !important;
+  color: var(--oxford-blue) !important;
+  font-weight: 600;
+  padding: 4px 8px;
+}
+
+.qty-input:focus {
+  border-color: var(--oxford-blue) !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 33, 71, 0.15) !important;
+}
+
+.qty-input::-webkit-inner-spin-button,
+.qty-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
