@@ -302,14 +302,70 @@ h1.page-title {
 }
 
 /* ── SEARCH BAR ───────────────────────────────────────────── */
-.search-input::placeholder {
-  color: var(--tan-light) !important;
-  opacity: 0.7;
+/* ── SEARCH BAR ───────────────────────────────────────────── */
+.search-input-white {
+  background-color: white !important;
+  border: 2px solid var(--tan) !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+  color: var(--text-dark) !important;
+  font-size: 0.95rem;
 }
 
-.search-input:focus {
-  background-color: #1a3a5c !important;
+.search-input-white::placeholder {
+  color: #999999 !important;
+  opacity: 1;
+}
+
+.search-input-white:focus {
+  background-color: white !important;
   border-color: var(--tan) !important;
-  color: var(--tan) !important;
-  box-shadow: 0 0 0 0.2rem rgba(210, 180, 140, 0.25) !important;
+  box-shadow: none !important;
+  color: var(--text-dark) !important;
+}
+
+.search-clear-btn {
+  background-color: white !important;
+  border: 2px solid var(--tan) !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+  color: var(--text-muted) !important;
+  padding: 0 10px !important;
+  transition: color 0.2s ease;
+}
+
+.search-clear-btn:hover {
+  color: var(--oxford-blue) !important;
+  background-color: var(--tan-light) !important;
+}
+
+.search-submit-btn {
+  background-color: var(--tan) !important;
+  border: 2px solid var(--tan) !important;
+  color: var(--oxford-blue) !important;
+  font-weight: 600 !important;
+  padding: 6px 16px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.search-submit-btn:hover {
+  background-color: var(--tan-dark) !important;
+  border-color: var(--tan-dark) !important;
+  color: var(--white) !important;
+}
+
+/* ── OFFCANVAS DRAWER ─────────────────────────────────────── */
+.drawer-link {
+  color: var(--text-dark) !important;
+  padding: 0.85rem 1.2rem !important;
+  border-bottom: 1px solid #EAE0D5 !important;
+  font-size: 0.95rem;
+  transition: background-color 0.15s ease;
+}
+
+.drawer-link:hover {
+  background-color: var(--tan-light) !important;
+  color: var(--oxford-blue) !important;
 }

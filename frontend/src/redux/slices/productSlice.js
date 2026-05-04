@@ -36,14 +36,62 @@ export const listProductDetails = createAsyncThunk(
   }
 );
 
+export const createProductReview = createAsyncThunk(
+  'products/createProductReview',
+  async ({ id, rating, comment }, { getState, rejectWithValue }) => {
+    try {
+      const { auth: { userInfo } } = getState();
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization:  `Bearer ${userInfo.token}`,
+        },
+      };
+      await axios.post(
+        `/api/products/${id}/reviews`,
+        { rating, comment },
+        config
+      );
+      return true;
+    } catch (error) {
+      return rejectWithValue(
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : error.message
+      );
+    }
+  }
+);
+
 // ── SLICE ──────────────────────────────────────────────────
 const productSlice = createSlice({
   name: 'products',
   initialState: {
-    productList:    { products: [], loading: false, error: null },
-    productDetails: { product: {}, loading: false, error: null },
+    productList: {
+      products: [],
+      loading:  false,
+      error:    null,
+    },
+    productDetails: {
+      product: {},
+      loading: false,
+      error:   null,
+    },
+    productReview: {
+      loading: false,
+      error:   null,
+      success: false,
+    },
   },
-  reducers: {},
+  reducers: {
+    resetProductReview: (state) => {
+      state.productReview = {
+        loading: false,
+        error:   null,
+        success: false,
+      };
+    },
+  },
   extraReducers: (builder) => {
 
     // List all products
@@ -75,7 +123,24 @@ const productSlice = createSlice({
         state.productDetails.loading = false;
         state.productDetails.error   = action.payload;
       });
+
+    // Create product review
+    builder
+      .addCase(createProductReview.pending, (state) => {
+        state.productReview.loading = true;
+        state.productReview.error   = null;
+        state.productReview.success = false;
+      })
+      .addCase(createProductReview.fulfilled, (state) => {
+        state.productReview.loading = false;
+        state.productReview.success = true;
+      })
+      .addCase(createProductReview.rejected, (state, action) => {
+        state.productReview.loading = false;
+        state.productReview.error   = action.payload;
+      });
   },
 });
 
+export const { resetProductReview } = productSlice.actions;
 export default productSlice.reducer;

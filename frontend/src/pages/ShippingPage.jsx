@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Button, Card } from 'react-bootstrap';
+import { Form, Button, Card, Alert } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveShippingAddress } from '../redux/slices/cartSlice';
 
@@ -8,10 +8,12 @@ const ShippingPage = () => {
   const { shippingAddress } = useSelector((state) => state.cart);
   const { userInfo }        = useSelector((state) => state.auth);
 
-  const [address, setAddress]   = useState(shippingAddress?.address  || '');
-  const [city, setCity]         = useState(shippingAddress?.city     || '');
-  const [postalCode, setPostalCode] = useState(shippingAddress?.postalCode || '');
-  const [country, setCountry]   = useState(shippingAddress?.country  || '');
+  const isPreFilled = shippingAddress?.address ? true : false;
+
+  const [address, setAddress]         = useState(shippingAddress?.address     || '');
+  const [city, setCity]               = useState(shippingAddress?.city        || '');
+  const [postalCode, setPostalCode]   = useState(shippingAddress?.postalCode  || '');
+  const [country, setCountry]         = useState(shippingAddress?.country     || '');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -30,8 +32,10 @@ const ShippingPage = () => {
 
   return (
     <div className='d-flex justify-content-center mt-5'>
-      <Card className='p-4 shadow-sm' style={{ width: '100%', maxWidth: '500px' }}>
-
+      <Card
+        className='p-4 shadow-sm'
+        style={{ width: '100%', maxWidth: '500px' }}
+      >
         {/* ── Progress Indicator ── */}
         <div className='d-flex justify-content-between mb-4'>
           {['Shipping', 'Payment', 'Place Order'].map((step, index) => (
@@ -40,8 +44,12 @@ const ShippingPage = () => {
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
-                backgroundColor: index === 0 ? 'var(--oxford-blue)' : 'var(--tan-light)',
-                color: index === 0 ? 'var(--tan)' : 'var(--text-muted)',
+                backgroundColor: index === 0
+                  ? 'var(--oxford-blue)'
+                  : 'var(--tan-light)',
+                color: index === 0
+                  ? 'var(--tan)'
+                  : 'var(--text-muted)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -52,7 +60,9 @@ const ShippingPage = () => {
                 {index + 1}
               </div>
               <small style={{
-                color: index === 0 ? 'var(--oxford-blue)' : 'var(--text-muted)',
+                color: index === 0
+                  ? 'var(--oxford-blue)'
+                  : 'var(--text-muted)',
                 fontWeight: index === 0 ? '600' : '400',
               }}>
                 {step}
@@ -61,9 +71,26 @@ const ShippingPage = () => {
           ))}
         </div>
 
-        <h2 className='text-center mb-4' style={{ color: 'var(--oxford-blue)' }}>
+        <h2
+          className='text-center mb-3'
+          style={{ color: 'var(--oxford-blue)' }}
+        >
           Shipping Address
         </h2>
+
+        {/* ── Pre-fill Notice ── */}
+        {isPreFilled && (
+          <Alert style={{
+            backgroundColor: 'var(--tan-light)',
+            borderColor: 'var(--tan)',
+            color: 'var(--oxford-blue)',
+            fontSize: '0.88rem',
+            marginBottom: '1.2rem',
+          }}>
+            📦 We remembered your last address. Feel free to update it
+            if needed.
+          </Alert>
+        )}
 
         <Form onSubmit={submitHandler}>
           <Form.Group controlId='address' className='mb-3'>
