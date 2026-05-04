@@ -9,6 +9,10 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ShippingPage from './pages/ShippingPage';
 import PaymentPage from './pages/PaymentPage';
+import PlaceOrderPage from './pages/PlaceOrderPage';
+import OrderPage from './pages/OrderPage';
+import ProfilePage from './pages/ProfilePage';
+import NotFoundPage from './pages/NotFoundPage';
 
 const App = () => {
   return (
@@ -24,6 +28,10 @@ const App = () => {
             <Route path='/register' element={<RegisterPage />} />
             <Route path='/shipping' element={<ShippingPage />} />
             <Route path='/payment' element={<PaymentPage />} />
+            <Route path='/placeorder' element={<PlaceOrderPage />} />
+            <Route path='/order/:id' element={<OrderPage />} />
+            <Route path='/profile' element={<ProfilePage />} />
+            <Route path='*' element={<NotFoundPage />} />
           </Routes>
         </Container>
       </main>

@@ -21,12 +21,16 @@ export const addToCart = createAsyncThunk(
       );
       if (existItem) {
         return {
+          type: 'increment',
           cartItems: cart.cartItems.map((x) =>
-            x.product === existItem.product ? item : x
+            x.product === existItem.product
+              ? { ...x, qty: x.qty + item.qty }
+              : x
           ),
         };
       } else {
         return {
+          type: 'new',
           cartItems: [...cart.cartItems, item],
         };
       }
@@ -49,11 +53,9 @@ const updateCartPrices = (state) => {
   state.itemsPrice = addDecimals(
     state.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
   );
-  state.shippingPrice = addDecimals(
-    Number(state.itemsPrice) > 100 ? 0 : 10
-  );
+  state.shippingPrice = addDecimals(10);
   state.taxPrice = addDecimals(
-    Number((0.15 * Number(state.itemsPrice)).toFixed(2))
+    Number((0.16 * Number(state.itemsPrice)).toFixed(2))
   );
   state.totalPrice = addDecimals(
     Number(state.itemsPrice) +
@@ -67,13 +69,13 @@ const updateCartPrices = (state) => {
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
-    cartItems:      localStorage.getItem('cartItems')
+    cartItems: localStorage.getItem('cartItems')
       ? JSON.parse(localStorage.getItem('cartItems'))
       : [],
     shippingAddress: localStorage.getItem('shippingAddress')
       ? JSON.parse(localStorage.getItem('shippingAddress'))
       : {},
-    paymentMethod:  localStorage.getItem('paymentMethod')
+    paymentMethod: localStorage.getItem('paymentMethod')
       ? localStorage.getItem('paymentMethod')
       : 'PayPal',
     itemsPrice:    '0.00',
@@ -84,6 +86,13 @@ const cartSlice = createSlice({
     error:         null,
   },
   reducers: {
+    updateCartQty: (state, action) => {
+      const { id, qty } = action.payload;
+      state.cartItems = state.cartItems.map((x) =>
+        x.product === id ? { ...x, qty } : x
+      );
+      updateCartPrices(state);
+    },
     removeFromCart: (state, action) => {
       state.cartItems = state.cartItems.filter(
         (x) => x.product !== action.payload
@@ -126,6 +135,7 @@ const cartSlice = createSlice({
 });
 
 export const {
+  updateCartQty,
   removeFromCart,
   saveShippingAddress,
   savePaymentMethod,

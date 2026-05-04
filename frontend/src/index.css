@@ -21,6 +21,12 @@ body {
   flex-direction: column;
 }
 
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 main {
   flex: 1;
 }
@@ -293,4 +299,17 @@ h1.page-title {
 .qty-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* ── SEARCH BAR ───────────────────────────────────────────── */
+.search-input::placeholder {
+  color: var(--tan-light) !important;
+  opacity: 0.7;
+}
+
+.search-input:focus {
+  background-color: #1a3a5c !important;
+  border-color: var(--tan) !important;
+  color: var(--tan) !important;
+  box-shadow: 0 0 0 0.2rem rgba(210, 180, 140, 0.25) !important;
 }

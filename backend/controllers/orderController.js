@@ -111,6 +111,42 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+const cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Check order belongs to the logged in user
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorised' });
+    }
+
+    // Cannot cancel if already paid or delivered
+    if (order.isPaid) {
+      return res.status(400).json({ message: 'Cannot cancel a paid order' });
+    }
+
+    if (order.isDelivered) {
+      return res.status(400).json({ message: 'Cannot cancel a delivered order' });
+    }
+
+    // Cannot cancel if already cancelled
+    if (order.status === 'cancelled') {
+      return res.status(400).json({ message: 'Order is already cancelled' });
+    }
+
+    order.status = 'cancelled';
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrderById,
@@ -118,4 +154,5 @@ module.exports = {
   updateOrderToDelivered,
   getMyOrders,
   getAllOrders,
+  cancelOrder,
 };

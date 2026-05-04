@@ -4,9 +4,11 @@ import axios from 'axios';
 // ── ASYNC ACTIONS ──────────────────────────────────────────
 export const listProducts = createAsyncThunk(
   'products/listProducts',
-  async (_, { rejectWithValue }) => {
+  async (keyword = '', { rejectWithValue }) => {
     try {
-      const { data } = await axios.get('/api/products');
+      const { data } = await axios.get(
+        `/api/products?keyword=${keyword}`
+      );
       return data;
     } catch (error) {
       return rejectWithValue(

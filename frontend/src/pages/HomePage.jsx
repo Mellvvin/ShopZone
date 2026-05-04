@@ -12,7 +12,7 @@ const HomePage = () => {
   );
 
   useEffect(() => {
-    dispatch(listProducts());
+    dispatch(listProducts(''));
   }, [dispatch]);
 
   return (
@@ -27,6 +27,14 @@ const HomePage = () => {
         </div>
       ) : error ? (
         <Alert variant='danger'>{error}</Alert>
+      ) : products.length === 0 ? (
+        <Alert style={{
+          backgroundColor: 'var(--tan-light)',
+          borderColor: 'var(--tan)',
+          color: 'var(--oxford-blue)',
+        }}>
+          No products found matching your search.
+        </Alert>
       ) : (
         <Row>
           {products.map((product) => (

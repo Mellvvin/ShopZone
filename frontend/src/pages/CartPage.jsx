@@ -4,7 +4,7 @@ import {
   Row, Col, ListGroup, Image,
   Button, Card, Form, Alert
 } from 'react-bootstrap';
-import { addToCart, removeFromCart } from '../redux/slices/cartSlice';
+import { updateCartQty, removeFromCart } from '../redux/slices/cartSlice';
 
 const CartPage = () => {
   const dispatch = useDispatch();
@@ -17,12 +17,12 @@ const CartPage = () => {
     dispatch(removeFromCart(id));
   };
 
-  const handleQtyChange = (item, value) => {
-    const parsed = parseInt(value);
-    if (value === '' || isNaN(parsed)) return;
-    const newQty = Math.max(1, parsed);
-    dispatch(addToCart({ id: item.product, qty: newQty }));
-  };
+ const handleQtyChange = (item, value) => {
+  const parsed = parseInt(value);
+  if (value === '' || isNaN(parsed)) return;
+  const newQty = Math.max(1, parsed);
+  dispatch(updateCartQty({ id: item.product, qty: newQty }));
+};
 
   const checkoutHandler = () => {
     if (!userInfo) {
