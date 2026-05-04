@@ -70,6 +70,19 @@ const productSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  unit: {
+  type:    String,
+  default: 'Per Unit',
+  enum: [
+    'Per Unit',
+    'Per Bale',
+    'Per Carton',
+    'Per Dozen',
+    'Per Kg',
+    'Per Box',
+    'Per Sack',
+  ],
+},
 },
 {
   timestamps: true,

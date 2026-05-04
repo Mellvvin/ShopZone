@@ -35,13 +35,14 @@ const getProductById = async (req, res) => {
 const createProduct = async (req, res) => {
   try {
     const product = new Product({
-      user: req.user._id,
-      name: req.body.name,
-      image: req.body.image,
-      category: req.body.category,
-      description: req.body.description,
-      price: req.body.price,
+      user:         req.user._id,
+      name:         req.body.name,
+      image:        req.body.image,
+      category:     req.body.category,
+      description:  req.body.description,
+      price:        req.body.price,
       countInStock: req.body.countInStock,
+      unit:         req.body.unit || 'Per Unit',
     });
 
     const createdProduct = await product.save();
@@ -56,12 +57,13 @@ const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
 
     if (product) {
-      product.name = req.body.name || product.name;
-      product.image = req.body.image || product.image;
-      product.category = req.body.category || product.category;
-      product.description = req.body.description || product.description;
-      product.price = req.body.price || product.price;
+      product.name         = req.body.name         || product.name;
+      product.image        = req.body.image        || product.image;
+      product.category     = req.body.category     || product.category;
+      product.description  = req.body.description  || product.description;
+      product.price        = req.body.price        || product.price;
       product.countInStock = req.body.countInStock || product.countInStock;
+      product.unit         = req.body.unit         || product.unit;
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);
@@ -102,9 +104,9 @@ const createProductReview = async (req, res) => {
       }
 
       const review = {
-        user: req.user._id,
-        name: req.user.name,
-        rating: Number(req.body.rating),
+        user:    req.user._id,
+        name:    req.user.name,
+        rating:  Number(req.body.rating),
         comment: req.body.comment,
       };
 
