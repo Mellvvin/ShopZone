@@ -9,3 +9,7 @@ frontend/dist
 # Root
 node_modules
 .env
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -13,6 +13,7 @@ import PlaceOrderPage from './pages/PlaceOrderPage';
 import OrderPage from './pages/OrderPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
+import ChatWidget from './components/ChatWidget';
 
 const App = () => {
   return (
@@ -32,10 +33,12 @@ const App = () => {
             <Route path='/order/:id' element={<OrderPage />} />
             <Route path='/profile' element={<ProfilePage />} />
             <Route path='*' element={<NotFoundPage />} />
+
           </Routes>
         </Container>
       </main>
       <Footer />
+      <ChatWidget />
     </Router>
   );
 };
