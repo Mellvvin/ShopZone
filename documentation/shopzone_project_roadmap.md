@@ -44,6 +44,12 @@ The main missing pieces are supplier privacy rules, seller onboarding, seller po
 
 ## Phase 1: Clean Up And Stabilize
 
+Execution gate:
+
+- This phase now covers suggested steps 1 to 6.
+- Do not move past this phase until secure order access, central error handling, and the first admin pages all work cleanly.
+- Existing tasks in later admin phases are still planned; this phase pulls the first usable admin screens forward so the platform has a stable operating base.
+
 ### Task: Fix Corrupted Frontend Characters
 
 Priority: High
@@ -106,7 +112,93 @@ Acceptance criteria:
 - Server errors return consistent JSON
 - Existing API behavior remains intact
 
+### Task: Foundation Admin Pages
+
+Priority: High
+
+These are the first admin screens needed before expanding product, seller, and order workflows.
+
+Suggested step mapping:
+
+- Step 3: Admin Product List Page
+- Step 4: Admin Product Edit Page
+- Step 5: Admin Order List Page
+- Step 6: Admin User List Page
+
+Checklist:
+
+- Build or finish admin product list page
+- Allow admin to view all products
+- Allow admin to create new products from the browser
+- Allow admin to delete or archive products safely
+- Build or finish admin product edit page
+- Connect browser image upload to product create/edit
+- Build admin order list page
+- Allow admin to view all orders
+- Allow admin to mark orders as delivered where appropriate
+- Build admin user list page
+- Allow admin to view all users
+- Allow admin to assign roles and manage accounts
+- Keep backend admin middleware as the real security layer
+
+Acceptance criteria:
+
+- Admin can manage products without Postman
+- Admin can view and update orders from the browser
+- Admin can view users and manage roles
+- Non-admin users cannot access these pages or APIs
+
+## Polish Session After Phase 1: Icons And Brand
+
+Execution note:
+
+- This session covers suggested steps 7 and 8.
+- Do these together after the foundation admin pages work cleanly and before the product/homepage upgrade.
+
+### Task: Replace Emojis With React Icons
+
+Priority: Medium
+
+Use one consistent icon system across the app instead of mixed emoji characters.
+
+Checklist:
+
+- Find emoji usage in visible UI
+- Replace navigation, buttons, status labels, and decorative UI emoji with React Icons
+- Keep text labels where icons alone would be unclear
+- Check header, footer, product cards, cart, checkout, profile, admin pages, and support links
+- Run frontend lint/build after replacement
+
+Acceptance criteria:
+
+- Visible UI no longer depends on emoji characters
+- Icons render consistently across browsers and devices
+
+### Task: Add ShopZone Logo
+
+Priority: Medium
+
+Create and use a proper ShopZone logo in the navbar and footer.
+
+Checklist:
+
+- Design or add a ShopZone logo asset
+- Add logo to navbar
+- Add logo to footer
+- Keep logo legible on desktop and mobile
+- Preserve accessible text for screen readers
+
+Acceptance criteria:
+
+- Navbar and footer use the same ShopZone brand mark
+- Logo does not break layout on small screens
+
 ## Phase 2: Bulk Commerce Foundations
+
+Execution note:
+
+- This phase now covers the product and homepage upgrade path from suggested steps 9 to 13.
+- Complete these in order because categories, search, homepage sections, and special offers depend on the product model fields.
 
 ### Task: Add Bulk Units And Minimum Order Quantities
 
@@ -138,6 +230,135 @@ Acceptance criteria:
 - Products can be sold by bale, carton, sack, dozen, kg, box, or piece
 - Customers cannot checkout below the minimum order quantity
 - Product pages clearly explain the buying unit
+
+### Task: Update Product Model For Merchandising
+
+Priority: High
+
+Add fields needed for homepage sections, sale views, wholesale logic, and seller/admin product management.
+
+Suggested fields:
+
+- `tags`
+- `isFeatured`
+- `isOnSale`
+- `isClearance`
+- `salePrice`
+
+Checklist:
+
+- Update `backend/models/Product.js`
+- Update product seed data
+- Update product create/update APIs
+- Update admin product forms
+- Validate tags and sale fields
+- Show sale and clearance pricing correctly on customer pages
+
+Acceptance criteria:
+
+- Products can be tagged and promoted
+- Admin can mark products as featured, on sale, or clearance
+- Sale price is handled consistently and never produces invalid pricing
+
+### Task: Expand Product Categories
+
+Priority: High
+
+Use a broader category list that matches ShopZone's wholesale and general merchandise direction.
+
+Categories:
+
+- Electronics
+- Fashion & Apparel
+- Fabric & Textiles
+- Home & Kitchen
+- Food & Grocery
+- Beauty & Personal Care
+- Hardware & Tools
+- Office & Stationery
+- Agriculture & Garden
+- Baby & Kids
+- Sports & Outdoors
+- Health & Wellness
+- General Merchandise
+
+Checklist:
+
+- Update product model/category validation where applicable
+- Update seed data categories
+- Update admin product form category options
+- Update customer category navigation and filters
+
+Acceptance criteria:
+
+- Admin can assign products to the expanded categories
+- Customer category filters match the same source of truth
+
+### Task: Update Search Across Product Fields
+
+Priority: High
+
+Search should match more than the product name.
+
+Checklist:
+
+- Search across product name
+- Search across category
+- Search across description
+- Search across tags
+- Keep search compatible with category and filter query params
+- Add backend validation for search input
+
+Acceptance criteria:
+
+- Customers can find products by name, category, description, or tag
+- Search works together with filters and pagination
+
+### Task: Homepage Product And Category Redesign
+
+Priority: High
+
+The homepage should help customers quickly browse the key buying paths.
+
+Sections:
+
+- Hero banner
+- Category cards
+- Featured products
+- New arrivals
+- Clearance section
+
+Checklist:
+
+- Update homepage layout
+- Add data queries for featured products
+- Add data queries for new arrivals
+- Add data queries for clearance products
+- Keep cards consistent with product pricing, sale, stock, and MOQ display
+
+Acceptance criteria:
+
+- Homepage highlights current buying opportunities
+- Featured, new arrival, and clearance sections are data-driven
+
+### Task: Add Special Offers Page
+
+Priority: Medium
+
+Customers should have a dedicated page for sale and clearance products.
+
+Checklist:
+
+- Add special offers route
+- Filter products where `isOnSale` or `isClearance` is true
+- Show regular price and sale price clearly
+- Add navigation link where appropriate
+- Keep filters and search usable on the offers page
+
+Acceptance criteria:
+
+- Customers can browse sale and clearance products in one place
+- Offers page uses the same product card rules as the rest of the shop
 
 ### Task: Add Tiered Wholesale Pricing
 
@@ -173,6 +394,10 @@ Acceptance criteria:
 - Customers only see ShopZone selling prices
 - Internal cost and margin are visible only to admin
 
+Suggested step mapping:
+
+- Step 23: Tiered wholesale pricing
+
 ### Task: Add Inventory Protection
 
 Priority: High
@@ -193,6 +418,10 @@ Acceptance criteria:
 - Customers cannot buy more than available stock
 - Stock updates correctly after order creation/payment
 - Cancelled unpaid orders restore stock if stock had been reserved
+
+Suggested step mapping:
+
+- Step 24: Inventory protection
 
 ### Task: Add Request Goods And Request Quote Flow
 
@@ -244,7 +473,16 @@ Acceptance criteria:
 - Admin can source privately and send a ShopZone quote
 - Customers never see supplier identity or supplier pricing
 
+Suggested step mapping:
+
+- Step 22: Request goods flow
+
 ## Phase 3: User Profiles And Access Roles
+
+Execution note:
+
+- This phase includes suggested step 14 for seller role/middleware and suggested step 26 for buyer profile enrichment.
+- Manual seller approval through MongoDB can be used as an early temporary workflow before the full admin seller approval UI exists.
 
 ### Task: Add Retailer And Bulk Buyer Profiles
 
@@ -277,6 +515,10 @@ Acceptance criteria:
 - Customers can identify their buyer type
 - Admin can see operational details without exposing internal notes to customers
 
+Suggested step mapping:
+
+- Step 26: Buyer profile enrichment
+
 ### Task: Add Role-Based Access
 
 Priority: High
@@ -293,10 +535,14 @@ Suggested roles:
 Checklist:
 
 - Update user model or add role fields
+- Add `isSeller` field if using the current `isAdmin` style before moving to a richer roles array
+- Add seller approval flag/status if needed
 - Add backend middleware for role checks
+- Add seller middleware
 - Add frontend protected routes
 - Keep admin APIs restricted to admins
 - Keep seller portal restricted to approved sellers
+- Support temporary manual seller approval through MongoDB until the admin approval screen exists
 
 Acceptance criteria:
 
@@ -304,7 +550,16 @@ Acceptance criteria:
 - Sellers cannot access admin-only controls
 - Admin can manage both customers and sellers
 
+Suggested step mapping:
+
+- Step 14: Seller role and middleware
+
 ## Phase 4: Seller Portal And Approval Workflow
+
+Execution note:
+
+- This phase covers suggested steps 15 and 18, while preserving the larger seller privacy and approval workflow already planned.
+- Seller-facing work can run in parallel with content pages after the product model upgrade is complete.
 
 ### Task: Add Seller Application Flow
 
@@ -327,6 +582,7 @@ Seller application fields:
 Checklist:
 
 - Add public "Become a Seller" page
+- Add seller application instructions for manual approval expectations
 - Add seller application API
 - Store applications separately from approved seller accounts
 - Add admin application review page
@@ -339,6 +595,10 @@ Acceptance criteria:
 - Admin can approve or reject sellers
 - Customers cannot see seller applications or seller identities
 
+Suggested step mapping:
+
+- Step 18: Become a seller page
+
 ### Task: Add Seller Portal
 
 Priority: High
@@ -348,6 +608,7 @@ Approved sellers need a private portal to manage what they can supply.
 Seller portal features:
 
 - seller login
+- seller dashboard
 - seller profile
 - product upload
 - product photo upload
@@ -374,9 +635,14 @@ Important rules:
 Acceptance criteria:
 
 - Approved sellers can manage their private catalog
+- Sellers can view and manage their own products and fulfillment requests/orders
 - Seller submissions require admin approval before public display
 - Seller-uploaded photos require admin approval before public display
 - Seller cannot access customer identity/contact information beyond what ShopZone explicitly allows for fulfillment
+
+Suggested step mapping:
+
+- Step 15: Seller dashboard
 
 ### Task: Add Admin Seller Management
 
@@ -581,6 +847,11 @@ Acceptance criteria:
 
 ## Phase 6: Communication, Support, And Privacy
 
+Execution note:
+
+- This phase includes suggested step 17 for the contact support page.
+- Content pages from suggested steps 16 to 20 can be built in parallel with seller workflow once the product model upgrade is complete.
+
 ### Task: Add ShopZone-Mediated Messaging
 
 Priority: High
@@ -608,6 +879,8 @@ Checklist:
 
 - Add support/ticket model
 - Add customer support page
+- Add contact support form
+- Send support form submissions to `support@shopzone.com` or store them for admin review before email delivery is configured
 - Add seller message area
 - Add admin ticket inbox
 - Add internal notes visible only to admin
@@ -618,6 +891,10 @@ Acceptance criteria:
 - Customers communicate with ShopZone only
 - Sellers communicate with ShopZone only
 - Admin can manage both sides from one place
+
+Suggested step mapping:
+
+- Step 17: Contact support page
 
 ### Task: Add Quality Control And Dispute Handling
 
@@ -748,6 +1025,10 @@ Priority: High
 
 M-Pesa is likely the most important real payment method for this project.
 
+Production note:
+
+- Safaricom Daraja production access requires the correct business account setup and a reachable live domain/callback URL.
+
 Checklist:
 
 - Choose Safaricom Daraja sandbox first
@@ -764,6 +1045,10 @@ Acceptance criteria:
 - Backend receives payment result
 - Paid orders update correctly
 - Failed payments do not mark orders as paid
+
+Suggested step mapping:
+
+- Step 27: M-Pesa payment integration
 
 ### Task: Add Deposits And Partial Payments
 
@@ -906,6 +1191,10 @@ Acceptance criteria:
 - Logged-in customers can save products
 - Saved items support repeat bulk buying
 
+Suggested step mapping:
+
+- Step 21: Wishlist / saved items
+
 ### Task: Add FAQ And Support Pages
 
 Priority: Low
@@ -915,10 +1204,16 @@ Navigation currently mentions FAQ and contact support, but those routes are not 
 Checklist:
 
 - Add FAQ page
+- Answer common customer, seller, delivery, payment, return, and bulk-buying questions
+- Wire FAQ navbar link to the actual route
 - Add contact/support page
+- Add support form that sends to `support@shopzone.com` or stores submissions for admin handling
 - Add return/refund policy page
+- Document 7 day return policy and how customers report issues
 - Add shipping policy page
+- Document rates, timelines, county coverage, delivery limits, and pickup options
 - Add seller application information page
+- Explain how to become a seller and how approval works
 - Wire menu links to actual routes
 
 Acceptance criteria:
@@ -926,7 +1221,20 @@ Acceptance criteria:
 - Header links do not lead nowhere
 - Customers and seller applicants can find basic support information
 
+Suggested step mapping:
+
+- Step 16: FAQ page
+- Step 17: Contact support page
+- Step 18: Become a seller page
+- Step 19: Shipping policy page
+- Step 20: Returns policy page
+
 ## Phase 11: Backend Validation And Data Safety
+
+Execution note:
+
+- This phase includes suggested steps 25 and 29.
+- Validation should be added before production deployment and before public seller/customer data grows.
 
 ### Task: Add Request Validation
 
@@ -953,6 +1261,10 @@ Acceptance criteria:
 - Bad input returns clear `400` responses
 - Invalid IDs do not crash or return confusing errors
 - Product/order/seller data in the database stays consistent
+
+Suggested step mapping:
+
+- Step 29: Backend request validation
 
 ### Task: Improve Order And Procurement Statuses
 
@@ -1001,7 +1313,16 @@ Acceptance criteria:
 - Seller fulfillment status remains internal
 - Cancel, pay, source, dispatch, and deliver actions follow valid transitions
 
+Suggested step mapping:
+
+- Step 25: Order status expansion
+
 ## Phase 12: Testing And Quality
+
+Execution note:
+
+- This phase covers suggested steps 30 and 31.
+- Add backend coverage first for auth, orders, products, and seller flows, then add focused React Testing Library coverage for customer and admin flows.
 
 ### Task: Add Backend Tests
 
@@ -1011,7 +1332,7 @@ There are no real tests yet.
 
 Checklist:
 
-- Choose test runner, for example Jest or Vitest
+- Choose Jest or another test runner
 - Add test database setup
 - Test auth registration/login
 - Test protected routes
@@ -1029,6 +1350,10 @@ Acceptance criteria:
 
 - Backend test command runs successfully
 - Critical API behavior is covered
+
+Suggested step mapping:
+
+- Step 30: Backend tests
 
 ### Task: Add Frontend Tests
 
@@ -1052,6 +1377,10 @@ Acceptance criteria:
 - Core customer, admin, and seller flows have basic coverage
 - Components do not regress silently
 
+Suggested step mapping:
+
+- Step 31: Frontend tests
+
 ### Task: Add Lint And Build Checks
 
 Priority: Medium
@@ -1072,6 +1401,11 @@ Acceptance criteria:
 - One command can run lint/tests
 
 ## Phase 13: Production Readiness
+
+Execution note:
+
+- This phase covers suggested steps 28, 32, 33, and 34.
+- Start this phase only when the platform is feature complete enough for real users, real products, and real payment configuration.
 
 ### Task: Improve Environment Configuration
 
@@ -1109,7 +1443,7 @@ Options:
 
 Checklist:
 
-- Choose storage provider
+- Choose storage provider, with Cloudinary as the first suggested option
 - Update upload route
 - Store remote image URLs on products
 - Validate image size/type
@@ -1121,6 +1455,10 @@ Acceptance criteria:
 
 - Product and request images persist reliably in production
 - Uploads are validated
+
+Suggested step mapping:
+
+- Step 28: Cloudinary image storage
 
 ### Task: Deployment Setup
 
@@ -1141,6 +1479,10 @@ Acceptance criteria:
 
 - Frontend and backend work from deployed URLs
 - API calls succeed in production
+
+Suggested step mapping:
+
+- Step 33: Deployment
 
 ### Task: Update README
 
@@ -1167,6 +1509,36 @@ Acceptance criteria:
 - Someone else can run the project from the README alone
 - The business model is clear from the documentation
 
+Suggested step mapping:
+
+- Step 32: README
+
+### Task: Add Frontend Documentation
+
+Priority: Medium
+
+Document the frontend with the same level of clarity as the backend docs.
+
+Checklist:
+
+- Document frontend folder structure
+- Explain every page component
+- Explain every reusable component
+- Explain Redux store and slices
+- Explain routing and protected route behavior
+- Explain API call patterns
+- Explain styling conventions
+- Document how to run, lint, build, and test the frontend
+
+Acceptance criteria:
+
+- A new developer can understand what every frontend file does
+- Frontend documentation matches the style and completeness of the backend docs
+
+Suggested step mapping:
+
+- Step 34: Frontend documentation
+
 ## Suggested Work Order
 
 1. Fix corrupted frontend characters
@@ -1188,6 +1560,74 @@ Acceptance criteria:
 17. Add group buying and repeat orders
 18. Add tests
 19. Prepare environment/deployment documentation
+
+## Suggested 34-Step Execution Order
+
+Use this as the Notion execution checklist. Items that already exist elsewhere in the roadmap should stay where they are and be linked back to the phase/task instead of being deleted.
+
+### Foundation: Finish Before Moving On
+
+1. Secure order access so users cannot view other users' orders
+2. Add central error middleware for consistent API error responses
+3. Build/admin Product List Page to view all products, delete/archive, and create new products
+4. Build/admin Product Edit Page to create and edit products with browser image upload
+5. Build/admin Order List Page to view all orders and mark orders as delivered
+6. Build/admin User List Page to view users, assign roles, and manage accounts
+
+Do not move past step 6 until all admin pages work cleanly.
+
+### Polish Session
+
+7. Replace all emojis with React Icons for a consistent icon system
+8. Design and add the ShopZone logo to the navbar and footer
+
+Do steps 7 and 8 together in one session.
+
+### Product And Homepage Upgrade
+
+9. Update the Product model with `tags`, `isFeatured`, `isOnSale`, `isClearance`, and `salePrice`
+10. Expand categories to Electronics, Fashion & Apparel, Fabric & Textiles, Home & Kitchen, Food & Grocery, Beauty & Personal Care, Hardware & Tools, Office & Stationery, Agriculture & Garden, Baby & Kids, Sports & Outdoors, Health & Wellness, and General Merchandise
+11. Update search to query name, category, description, and tags together
+12. Redesign homepage with hero banner, category cards, featured products, new arrivals, and clearance section
+13. Add Special Offers page for sale and clearance products
+
+Do steps 9 to 13 in order because each one depends on the product model upgrade.
+
+### Seller And Content Pages
+
+14. Add seller role and middleware using `isSeller`, seller middleware, and manual approval through MongoDB until admin approval UI exists
+15. Add seller dashboard so sellers can manage their own products and orders/fulfillment requests
+16. Add FAQ page and wire up the navbar link
+17. Add Contact Support page with a form for `support@shopzone.com` and wire up the navbar link
+18. Add Become a Seller page with information and application instructions
+19. Add Shipping Policy page with rates, timelines, and county coverage
+20. Add Returns Policy page with the 7 day policy and issue reporting flow
+
+Steps 14 to 20 can run in parallel once the product model is updated.
+
+### Advanced Commerce Features
+
+21. Add Wishlist / Saved Items for repeat bulk buying
+22. Add Request Goods flow where customers submit sourcing requests and admin quotes privately
+23. Add tiered wholesale pricing for volume discounts such as 1-2 units, 3-9 units, and 10+ on request
+24. Add inventory protection so stock reduces on order and restores on cancellation where appropriate
+25. Expand order statuses to pending, sourcing, in transit, delivered, refunded, and related internal states
+26. Enrich buyer profiles with buyer type, business name, and preferred categories
+
+Tackle steps 21 to 26 after the platform is stable and populated with real products.
+
+### Production Readiness
+
+27. Integrate M-Pesa payments through Safaricom Daraja when a live domain and business account are ready
+28. Move production image storage to Cloudinary or another cloud storage provider
+29. Add backend request validation for all incoming data
+30. Add backend tests with Jest covering auth, orders, products, and seller flows
+31. Add frontend tests with React Testing Library covering key customer and admin flows
+32. Update README with setup, seed, deploy, and business model documentation
+33. Choose hosting and configure production CORS and environment variables
+34. Add frontend documentation in the same style as backend docs, covering every file and function
+
+Only start steps 27 to 34 when the platform is feature complete enough for production preparation.
 
 ## Notes
 

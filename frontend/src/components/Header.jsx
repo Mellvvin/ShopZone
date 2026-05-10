@@ -242,12 +242,88 @@ const Header = () => {
                       </div>
                     )}
 
-                    {/* Menu Items */}
+                    {/* Admin only item */}
+                    {userInfo && userInfo.isAdmin && (
+                      <div
+                        onClick={() => {
+                          setShowDropdown(false);
+                          navigate('/admin/products');
+                        }}
+                        style={{
+                          padding:      '0.75rem 1.1rem',
+                          borderBottom: '1px solid rgba(210,180,140,0.1)',
+                          color:        'var(--tan)',
+                          cursor:       'pointer',
+                          fontSize:     '0.88rem',
+                          display:      'flex',
+                          alignItems:   'center',
+                          gap:          '0.6rem',
+                          transition:   'background-color 0.15s ease',
+                          backgroundColor: 'rgba(210,180,140,0.05)',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(210,180,140,0.12)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(210,180,140,0.05)';
+                        }}
+                      >
+                        <span>⚙️</span>
+                        <span style={{ fontWeight: '600' }}>Admin Dashboard</span>
+                      </div>
+                    )}
+
+                    {/* Admin orders link */}
+                    {userInfo && userInfo.isAdmin && (
+                      <>
+                        <div
+                          onClick={() => { setShowDropdown(false); navigate('/admin/products'); }}
+                          style={{
+                            padding: '0.75rem 1.1rem',
+                            borderBottom: '1px solid rgba(210,180,140,0.1)',
+                            color: 'var(--tan)',
+                            cursor: 'pointer',
+                            fontSize: '0.88rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.6rem',
+                            transition: 'background-color 0.15s ease',
+                            backgroundColor: 'rgba(210,180,140,0.05)',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(210,180,140,0.12)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(210,180,140,0.05)'; }}
+                        >
+                          <span>⚙️</span>
+                          <span style={{ fontWeight: '600' }}>Products</span>
+                        </div>
+                        <div
+                          onClick={() => { setShowDropdown(false); navigate('/admin/orders'); }}
+                          style={{
+                            padding: '0.75rem 1.1rem',
+                            borderBottom: '1px solid rgba(210,180,140,0.1)',
+                            color: 'var(--tan)',
+                            cursor: 'pointer',
+                            fontSize: '0.88rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.6rem',
+                            transition: 'background-color 0.15s ease',
+                            backgroundColor: 'rgba(210,180,140,0.05)',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(210,180,140,0.12)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(210,180,140,0.05)'; }}
+                        >
+                          <span>📦</span>
+                          <span style={{ fontWeight: '600' }}>Orders</span>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Regular menu items */}
                     {[
-                      { icon: '⚙️', label: 'Admin Dashboard', to: '/admin/products' },
-                      { icon: '📋', label: 'Order History', to: '/profile' },
+                      { icon: '📋', label: 'Order History',   to: '/profile' },
                       { icon: '📧', label: 'Contact Support', to: null, href: 'mailto:support@shopzone.com' },
-                      { icon: '❓', label: 'FAQ', to: null },
+                      { icon: '❓', label: 'FAQ',             to: null },
                       { icon: '🏪', label: 'Become a Seller', to: null },
                     ].map((item, index) => (
                       <div

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import ChatWidget from './components/ChatWidget';
 import HomePage from './pages/HomePage';
 import ProductPage from './pages/ProductPage';
 import CartPage from './pages/CartPage';
@@ -13,8 +14,9 @@ import PlaceOrderPage from './pages/PlaceOrderPage';
 import OrderPage from './pages/OrderPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
-import ChatWidget from './components/ChatWidget';
 import AdminProductListPage from './pages/AdminProductListPage';
+import AdminProductEditPage from './pages/AdminProductEditPage';
+import AdminOrderListPage from './pages/AdminOrderListPage';
 
 const App = () => {
   return (
@@ -23,19 +25,27 @@ const App = () => {
       <main className='py-3'>
         <Container>
           <Routes>
-            <Route path='/' element={<HomePage />} />
-            <Route path='/product/:id' element={<ProductPage />} />
-            <Route path='/cart' element={<CartPage />} />
-            <Route path='/login' element={<LoginPage />} />
-            <Route path='/register' element={<RegisterPage />} />
-            <Route path='/shipping' element={<ShippingPage />} />
-            <Route path='/payment' element={<PaymentPage />} />
-            <Route path='/placeorder' element={<PlaceOrderPage />} />
-            <Route path='/order/:id' element={<OrderPage />} />
-            <Route path='/profile' element={<ProfilePage />} />
-            <Route path='*' element={<NotFoundPage />} />
-            <Route path='/admin/products' element={<AdminProductListPage />} />
+            {/* ── Public Routes ── */}
+            <Route path='/'                          element={<HomePage />} />
+            <Route path='/product/:id'               element={<ProductPage />} />
+            <Route path='/cart'                      element={<CartPage />} />
+            <Route path='/login'                     element={<LoginPage />} />
+            <Route path='/register'                  element={<RegisterPage />} />
 
+            {/* ── Protected Routes ── */}
+            <Route path='/shipping'                  element={<ShippingPage />} />
+            <Route path='/payment'                   element={<PaymentPage />} />
+            <Route path='/placeorder'                element={<PlaceOrderPage />} />
+            <Route path='/order/:id'                 element={<OrderPage />} />
+            <Route path='/profile'                   element={<ProfilePage />} />
+
+            {/* ── Admin Routes ── */}
+            <Route path='/admin/products'            element={<AdminProductListPage />} />
+            <Route path='/admin/product/:id/edit'    element={<AdminProductEditPage />} />
+            <Route path='/admin/orders'              element={<AdminOrderListPage />} />
+
+            {/* ── 404 ── */}
+            <Route path='*'                          element={<NotFoundPage />} />
           </Routes>
         </Container>
       </main>
