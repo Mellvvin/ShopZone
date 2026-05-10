@@ -66,23 +66,23 @@ export const createProductReview = createAsyncThunk(
 // ── SLICE ──────────────────────────────────────────────────
 const productSlice = createSlice({
   name: 'products',
-  initialState: {
-    productList: {
-      products: [],
-      loading:  false,
-      error:    null,
-    },
-    productDetails: {
-      product: {},
-      loading: false,
-      error:   null,
-    },
-    productReview: {
-      loading: false,
-      error:   null,
-      success: false,
-    },
+initialState: {
+  productList: {
+    products: [],
+    loading:  true,   // ← changed from false to true
+    error:    null,
   },
+  productDetails: {
+    product: {},
+    loading: false,
+    error:   null,
+  },
+  productReview: {
+    loading: false,
+    error:   null,
+    success: false,
+  },
+},
   reducers: {
     resetProductReview: (state) => {
       state.productReview = {

@@ -14,6 +14,7 @@ import OrderPage from './pages/OrderPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 import ChatWidget from './components/ChatWidget';
+import AdminProductListPage from './pages/AdminProductListPage';
 
 const App = () => {
   return (
@@ -33,6 +34,7 @@ const App = () => {
             <Route path='/order/:id' element={<OrderPage />} />
             <Route path='/profile' element={<ProfilePage />} />
             <Route path='*' element={<NotFoundPage />} />
+            <Route path='/admin/products' element={<AdminProductListPage />} />
 
           </Routes>
         </Container>

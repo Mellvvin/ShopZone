@@ -11,11 +11,24 @@ const ProductCard = ({ product }) => {
       style={{ cursor: 'pointer' }}
     >
       {/* ── Image ── */}
-      <Card.Img
-  src={product.image}
-  variant='top'
-  className='product-card-img'
-/>
+     <div style={{
+  width:           '100%',
+  height:          '220px',
+  backgroundColor: '#F5F0EB',
+  overflow:        'hidden',
+}}>
+  <Card.Img
+    src={product.image}
+    variant='top'
+    className='product-card-img'
+    loading='lazy'
+    style={{
+      width:      '100%',
+      height:     '220px',
+      objectFit:  'cover',
+    }}
+  />
+</div>
 
       <Card.Body style={{ padding: '1rem' }}>
         {/* Name */}

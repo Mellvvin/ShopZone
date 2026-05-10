@@ -1,8 +1,8 @@
-const express = require('express');
-const path = require('path');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
+const express    = require('express');
+const mongoose   = require('mongoose');
+const cors       = require('cors');
+const dotenv     = require('dotenv');
+const path       = require('path');
 
 dotenv.config();
 
@@ -15,21 +15,26 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.log('MongoDB connection error:', err));
 
-const userRoutes = require('./routes/userRoutes');
+const userRoutes    = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
+const orderRoutes   = require('./routes/orderRoutes');
+const uploadRoutes  = require('./routes/uploadRoutes');
 
-app.use('/api/users', userRoutes);
+const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+
+app.use('/api/users',    userRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/upload', uploadRoutes);
+app.use('/api/orders',   orderRoutes);
+app.use('/api/upload',   uploadRoutes);
 
-// This makes the 'uploads' folder public
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+
 app.get('/', (req, res) => {
   res.send('ShopZone API is running');
 });
+
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

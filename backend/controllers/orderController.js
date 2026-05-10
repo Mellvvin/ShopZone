@@ -41,11 +41,21 @@ const getOrderById = async (req, res) => {
       'name email'
     );
 
-    if (order) {
-      res.json(order);
-    } else {
-      res.status(404).json({ message: 'Order not found' });
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
     }
+
+    // Check if the logged in user owns this order or is an admin
+    if (
+      order.user._id.toString() !== req.user._id.toString() &&
+      !req.user.isAdmin
+    ) {
+      return res.status(401).json({
+        message: 'Not authorised to view this order',
+      });
+    }
+
+    res.json(order);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

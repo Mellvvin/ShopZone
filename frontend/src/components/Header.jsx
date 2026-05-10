@@ -244,6 +244,7 @@ const Header = () => {
 
                     {/* Menu Items */}
                     {[
+                      { icon: '⚙️', label: 'Admin Dashboard', to: '/admin/products' },
                       { icon: '📋', label: 'Order History', to: '/profile' },
                       { icon: '📧', label: 'Contact Support', to: null, href: 'mailto:support@shopzone.com' },
                       { icon: '❓', label: 'FAQ', to: null },

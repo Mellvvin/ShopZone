@@ -238,10 +238,12 @@ h1.page-title {
 }
 
 .product-card-img {
-  height: 220px;
-  object-fit: cover;
-  border-bottom: 2px solid var(--tan-light);
-  transition: opacity 0.2s ease;
+  height:           220px;
+  object-fit:       cover;
+  border-bottom:    2px solid var(--tan-light);
+  transition:       opacity 0.3s ease;
+  background-color: #F5F0EB;
+  width:            100%;
 }
 
 .product-card-img:hover {
@@ -393,4 +395,63 @@ h1.page-title {
 
 .category-link:hover {
   color: var(--tan) !important;
+}
+
+/* ── SKELETON LOADING ─────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
+}
+
+.skeleton-card {
+  border:        1px solid #EAE0D5;
+  border-radius: 10px;
+  overflow:      hidden;
+  height:        100%;
+  background:    white;
+  margin-bottom: 1.5rem;
+}
+
+.skeleton-img {
+  width:       100%;
+  height:      220px;
+  background:  linear-gradient(90deg, #f0ece8 25%, #e8e2dc 50%, #f0ece8 75%);
+  background-size: 800px 100%;
+  animation:   shimmer 1.5s infinite linear;
+}
+
+.skeleton-line {
+  border-radius: 6px;
+  margin-bottom: 0.6rem;
+  background:    linear-gradient(90deg, #f0ece8 25%, #e8e2dc 50%, #f0ece8 75%);
+  background-size: 800px 100%;
+  animation:     shimmer 1.5s infinite linear;
+}
+
+.skeleton-title {
+  height: 16px;
+  width:  85%;
+}
+
+.skeleton-short {
+  height: 12px;
+  width:  55%;
+}
+
+.skeleton-price {
+  height: 18px;
+  width:  40%;
+  margin-top: 0.8rem;
+}
+
+/* ── SCROLL PERFORMANCE ───────────────────────────────────── */
+.product-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 380px;
+}
+
+.col-xl-3,
+.col-lg-4,
+.col-md-6 {
+  contain: layout style;
 }

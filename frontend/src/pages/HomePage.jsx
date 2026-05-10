@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Row, Col, Spinner, Alert } from 'react-bootstrap';
+import { Row, Col, Alert } from 'react-bootstrap';
 import ProductCard from '../components/ProductCard';
+import SkeletonCard from '../components/SkeletonCard';
 import { listProducts } from '../redux/slices/productSlice';
 
 const HomePage = () => {
@@ -19,19 +20,20 @@ const HomePage = () => {
     <>
       <h1 className='page-title'>Latest Products</h1>
       {loading ? (
-        <div className='text-center py-5'>
-          <Spinner
-            animation='border'
-            style={{ color: 'var(--oxford-blue)' }}
-          />
-        </div>
+        <Row>
+          {[...Array(8)].map((_, index) => (
+            <Col key={index} sm={12} md={6} lg={4} xl={3}>
+              <SkeletonCard />
+            </Col>
+          ))}
+        </Row>
       ) : error ? (
         <Alert variant='danger'>{error}</Alert>
       ) : products.length === 0 ? (
         <Alert style={{
           backgroundColor: 'var(--tan-light)',
-          borderColor: 'var(--tan)',
-          color: 'var(--oxford-blue)',
+          borderColor:     'var(--tan)',
+          color:           'var(--oxford-blue)',
         }}>
           No products found matching your search.
         </Alert>
