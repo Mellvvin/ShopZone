@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import ChatWidget from './components/ChatWidget';
+import ChatWidget from './components/ChatWidget/ChatWidget';
 import HomePage from './pages/HomePage';
 import ProductPage from './pages/ProductPage';
 import CartPage from './pages/CartPage';
@@ -17,6 +17,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import AdminProductListPage from './pages/AdminProductListPage';
 import AdminProductEditPage from './pages/AdminProductEditPage';
 import AdminOrderListPage from './pages/AdminOrderListPage';
+import AdminUserListPage from './pages/AdminUserListPage';
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
             <Route path='/admin/products'            element={<AdminProductListPage />} />
             <Route path='/admin/product/:id/edit'    element={<AdminProductEditPage />} />
             <Route path='/admin/orders'              element={<AdminOrderListPage />} />
+            <Route path='/admin/users'               element={<AdminUserListPage />} />
 
             {/* ── 404 ── */}
             <Route path='*'                          element={<NotFoundPage />} />
