@@ -1,17 +1,23 @@
-/* ── VARIABLES ────────────────────────────────────────────── */
+/* src/index.css
+   ─────────────────────────────────────────────────────────────
+   Global styles only.
+   Component styles live in their own component CSS files.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── VARIABLES ──────────────────────────────────────────────── */
 :root {
   --oxford-blue: #002147;
-  --tan:         #D2B48C;
-  --tan-light:   #EDD9C0;
-  --tan-dark:    #B8956A;
-  --bg:          #FAF8F5;
-  --white:       #FFFFFF;
-  --text-dark:   #1A1A1A;
-  --text-muted:  #6B6B6B;
-  --shadow:      0 2px 12px rgba(0, 33, 71, 0.10);
+  --tan: #D2B48C;
+  --tan-light: #EDD9C0;
+  --tan-dark: #B8956A;
+  --bg: #FAF8F5;
+  --white: #FFFFFF;
+  --text-dark: #1A1A1A;
+  --text-muted: #6B6B6B;
+  --shadow: 0 2px 12px rgba(0, 33, 71, 0.10);
 }
 
-/* ── BASE ─────────────────────────────────────────────────── */
+/* ── BASE ───────────────────────────────────────────────────── */
 body {
   background-color: var(--bg);
   color: var(--text-dark);
@@ -41,51 +47,17 @@ a:hover {
   color: var(--tan-dark);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: var(--oxford-blue);
   font-weight: 600;
 }
 
-/* ── NAVBAR ───────────────────────────────────────────────── */
-.navbar {
-  background-color: var(--oxford-blue) !important;
-  box-shadow: var(--shadow);
-  padding: 1rem 0;
-}
-
-.navbar-brand {
-  color: var(--tan) !important;
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  transition: color 0.2s ease;
-}
-
-.navbar-brand:hover {
-  color: var(--tan-light) !important;
-}
-
-.navbar .nav-link {
-  color: var(--tan) !important;
-  font-weight: 500;
-  margin-left: 1rem;
-  transition: color 0.2s ease;
-}
-
-.navbar .nav-link:hover {
-  color: var(--white) !important;
-}
-
-.navbar-toggler {
-  border-color: var(--tan) !important;
-}
-
-.navbar-toggler-icon {
-  filter: invert(75%) sepia(30%) saturate(400%) hue-rotate(5deg);
-}
-
-
-/* ── BUTTONS ──────────────────────────────────────────────── */
+/* ── BUTTONS ────────────────────────────────────────────────── */
 .btn-dark,
 .btn-primary {
   background-color: var(--oxford-blue) !important;
@@ -120,7 +92,37 @@ h1, h2, h3, h4, h5, h6 {
   color: #888888 !important;
 }
 
-/* ── CARDS ────────────────────────────────────────────────── */
+/* ── NAVBAR (Bootstrap override) ───────────────────────────── */
+.navbar {
+  background-color: var(--oxford-blue) !important;
+  box-shadow: var(--shadow);
+  padding: 1rem 0;
+}
+
+.navbar-brand {
+  color: var(--tan) !important;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: color 0.2s ease;
+}
+
+.navbar-brand:hover {
+  color: var(--tan-light) !important;
+}
+
+.navbar .nav-link {
+  color: var(--tan) !important;
+  font-weight: 500;
+  margin-left: 1rem;
+  transition: color 0.2s ease;
+}
+
+.navbar .nav-link:hover {
+  color: var(--white) !important;
+}
+
+/* ── CARDS ──────────────────────────────────────────────────── */
 .card {
   background-color: var(--white);
   border: 1px solid #EAE0D5;
@@ -134,7 +136,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 6px 20px rgba(0, 33, 71, 0.15);
 }
 
-/* ── FORMS ────────────────────────────────────────────────── */
+/* ── FORMS ──────────────────────────────────────────────────── */
 .form-control {
   border: 1px solid #D4C9BA;
   border-radius: 6px;
@@ -154,29 +156,14 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
 }
 
-/* ── LIST GROUPS ──────────────────────────────────────────── */
+/* ── LIST GROUPS ────────────────────────────────────────────── */
 .list-group-item {
   background-color: var(--white);
   border-color: #EAE0D5;
   color: var(--text-dark);
 }
 
-/* ── FOOTER ───────────────────────────────────────────────── */
-footer {
-  background-color: var(--oxford-blue);
-  color: var(--tan);
-  padding: 1.2rem 0;
-  margin-top: auto;
-}
-
-footer p {
-  margin: 0;
-  color: var(--tan);
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
-}
-
-/* ── ALERTS ───────────────────────────────────────────────── */
+/* ── ALERTS ─────────────────────────────────────────────────── */
 .alert-danger {
   background-color: #FDE8E8;
   border-color: #F5C6C6;
@@ -184,7 +171,36 @@ footer p {
   border-radius: 6px;
 }
 
-/* ── PRODUCT GRID ─────────────────────────────────────────── */
+/* ── PRODUCT CARD ───────────────────────────────────────────── */
+.product-card {
+  border: 1px solid #EAE0D5;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1.5rem;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 380px;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 33, 71, 0.15);
+}
+
+.product-card-img {
+  height: 220px;
+  object-fit: cover;
+  border-bottom: 2px solid var(--tan-light);
+  transition: opacity 0.3s ease;
+  background-color: #F5F0EB;
+  width: 100%;
+}
+
+.product-card-img:hover {
+  opacity: 0.92;
+}
+
 .product-card-title {
   color: var(--oxford-blue);
   font-weight: 600;
@@ -195,60 +211,6 @@ footer p {
   color: var(--tan-dark);
   font-weight: 700;
   font-size: 1.1rem;
-}
-
-/* ── PAGE HEADINGS ────────────────────────────────────────── */
-h1.page-title {
-  color: var(--oxford-blue);
-  border-bottom: 3px solid var(--tan);
-  padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
-  display: inline-block;
-}
-
-/* ── UTILITY ──────────────────────────────────────────────── */
-.text-tan {
-  color: var(--tan) !important;
-}
-
-.text-oxford {
-  color: var(--oxford-blue) !important;
-}
-
-.bg-oxford {
-  background-color: var(--oxford-blue) !important;
-}
-
-.bg-tan {
-  background-color: var(--tan) !important;
-}
-
-/* ── PRODUCT CARD ─────────────────────────────────────────── */
-.product-card {
-  border: 1px solid #EAE0D5;
-  border-radius: 10px;
-  overflow: hidden;
-  height: 100%;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-bottom: 1.5rem;
-}
-
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(0, 33, 71, 0.15);
-}
-
-.product-card-img {
-  height:           220px;
-  object-fit:       cover;
-  border-bottom:    2px solid var(--tan-light);
-  transition:       opacity 0.3s ease;
-  background-color: #F5F0EB;
-  width:            100%;
-}
-
-.product-card-img:hover {
-  opacity: 0.92;
 }
 
 .product-card-stars {
@@ -262,7 +224,7 @@ h1.page-title {
   font-size: 0.85rem;
 }
 
-/* ── QUANTITY CONTROLS ────────────────────────────────────── */
+/* ── QUANTITY CONTROLS ──────────────────────────────────────── */
 .qty-btn {
   background-color: var(--tan-light) !important;
   border: 1px solid var(--tan) !important;
@@ -305,1533 +267,98 @@ h1.page-title {
   margin: 0;
 }
 
-/* ── SEARCH BAR ───────────────────────────────────────────── */
-/* ── SEARCH BAR ───────────────────────────────────────────── */
-.search-input-white {
-  background-color: white !important;
-  border: 2px solid var(--tan) !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-radius: 0 !important;
-  color: var(--text-dark) !important;
-  font-size: 0.95rem;
+/* ── PAGE HEADINGS ──────────────────────────────────────────── */
+h1.page-title {
+  color: var(--oxford-blue);
+  border-bottom: 3px solid var(--tan);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
 }
 
-.search-input-white::placeholder {
-  color: #999999 !important;
-  opacity: 1;
+/* ── UTILITY CLASSES ────────────────────────────────────────── */
+.text-tan {
+  color: var(--tan) !important;
 }
 
-.search-input-white:focus {
-  background-color: white !important;
-  border-color: var(--tan) !important;
-  box-shadow: none !important;
-  color: var(--text-dark) !important;
-}
-
-.search-clear-btn {
-  background-color: white !important;
-  border: 2px solid var(--tan) !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-radius: 0 !important;
-  color: var(--text-muted) !important;
-  padding: 0 10px !important;
-  transition: color 0.2s ease;
-}
-
-.search-clear-btn:hover {
+.text-oxford {
   color: var(--oxford-blue) !important;
-  background-color: var(--tan-light) !important;
 }
 
-.search-submit-btn {
+.bg-oxford {
+  background-color: var(--oxford-blue) !important;
+}
+
+.bg-tan {
   background-color: var(--tan) !important;
-  border: 2px solid var(--tan) !important;
-  color: var(--oxford-blue) !important;
-  font-weight: 600 !important;
-  padding: 6px 16px !important;
-  transition: background-color 0.2s ease !important;
 }
 
-.search-submit-btn:hover {
-  background-color: var(--tan-dark) !important;
-  border-color: var(--tan-dark) !important;
-  color: var(--white) !important;
-}
-
-/* ── OFFCANVAS DRAWER ─────────────────────────────────────── */
-.drawer-link {
-  color: var(--text-dark) !important;
-  padding: 0.85rem 1.2rem !important;
-  border-bottom: 1px solid #EAE0D5 !important;
-  font-size: 0.95rem;
-  transition: background-color 0.15s ease;
-}
-
-.drawer-link:hover {
-  background-color: var(--tan-light) !important;
-  color: var(--oxford-blue) !important;
-}
-
-/* ── NAVBAR ICON LINKS ────────────────────────────────────── */
 .nav-icon-link {
+  color: var(--tan);
   transition: opacity 0.2s ease;
   text-decoration: none;
 }
 
 .nav-icon-link:hover {
   opacity: 0.75;
+  color: var(--tan);
 }
 
-/* ── CATEGORY BAR ─────────────────────────────────────────── */
-.category-link {
-  color: rgba(210, 180, 140, 0.8) !important;
-  font-size: 0.82rem !important;
-  font-weight: 500 !important;
-  padding: 0.4rem 0.9rem !important;
-  white-space: nowrap;
-  transition: color 0.15s ease !important;
-}
-
-.category-link:hover {
-  color: var(--tan) !important;
-}
-
-/* ── SKELETON LOADING ─────────────────────────────────────── */
+/* ── SKELETON LOADING ───────────────────────────────────────── */
 @keyframes shimmer {
-  0%   { background-position: -800px 0; }
-  100% { background-position:  800px 0; }
+  0% {
+    background-position: -800px 0;
+  }
+
+  100% {
+    background-position: 800px 0;
+  }
 }
 
 .skeleton-card {
-  border:        1px solid #EAE0D5;
+  border: 1px solid #EAE0D5;
   border-radius: 10px;
-  overflow:      hidden;
-  height:        100%;
-  background:    white;
+  overflow: hidden;
+  height: 100%;
+  background: white;
   margin-bottom: 1.5rem;
 }
 
 .skeleton-img {
-  width:       100%;
-  height:      220px;
-  background:  linear-gradient(90deg, #f0ece8 25%, #e8e2dc 50%, #f0ece8 75%);
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(90deg, #f0ece8 25%, #e8e2dc 50%, #f0ece8 75%);
   background-size: 800px 100%;
-  animation:   shimmer 1.5s infinite linear;
+  animation: shimmer 1.5s infinite linear;
 }
 
 .skeleton-line {
   border-radius: 6px;
   margin-bottom: 0.6rem;
-  background:    linear-gradient(90deg, #f0ece8 25%, #e8e2dc 50%, #f0ece8 75%);
+  background: linear-gradient(90deg, #f0ece8 25%, #e8e2dc 50%, #f0ece8 75%);
   background-size: 800px 100%;
-  animation:     shimmer 1.5s infinite linear;
+  animation: shimmer 1.5s infinite linear;
 }
 
 .skeleton-title {
   height: 16px;
-  width:  85%;
+  width: 85%;
 }
 
 .skeleton-short {
   height: 12px;
-  width:  55%;
+  width: 55%;
 }
 
 .skeleton-price {
   height: 18px;
-  width:  40%;
+  width: 40%;
   margin-top: 0.8rem;
 }
 
-/* ── SCROLL PERFORMANCE ───────────────────────────────────── */
-.product-card {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 380px;
-}
-
+/* ── SCROLL PERFORMANCE ─────────────────────────────────────── */
 .col-xl-3,
 .col-lg-4,
 .col-md-6 {
   contain: layout style;
-}
-
-/* ── ShopZone Logo hover animation ──────────────────────────────────────── */
-.shopzone-logo-link:hover .shopzone-logo-icon {
-  transform: scale(1.18) translateY(-2px);
-}
-
-/* Suppress underline on the logo link in all states */
-.shopzone-logo-link,
-.shopzone-logo-link:hover,
-.shopzone-logo-link:focus {
-  text-decoration: none !important;
-  outline: none;
-}
-
-/* ════════════════════════════════════════════════════════════════════════════
-   SITE HEADER
-   Two-bar sticky header. Oxford Blue top bar, slightly darker nav bar.
-════════════════════════════════════════════════════════════════════════════ */
-
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 12px rgba(0, 33, 71, 0.15);
-}
-
-/* Shared container — max-width centred, horizontal padding */
-.header-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* ── Top bar ────────────────────────────────────────────────────────────── */
-.header-top-bar {
-  background: #ffffff;
-  border-bottom: 1px solid #e8e4dd;
-  padding: 0.6rem 0;
-}
-
-/* Logo area */
-.header-logo {
-  flex-shrink: 0;
-}
-
-/* ── Search bar ─────────────────────────────────────────────────────────── */
-.header-search {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  border: 2px solid #002147;
-  border-radius: 6px;
-  overflow: hidden;
-  max-width: 560px;
-  background: #fff;
-}
-
-.header-search input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.9rem;
-  background: transparent;
-  color: #002147;
-}
-
-.header-search input::placeholder {
-  color: #a09880;
-}
-
-/* Clear (×) button inside search */
-.search-clear-btn {
-  background: none;
-  border: none;
-  color: #a09880;
-  padding: 0 0.5rem;
-  cursor: pointer;
-  font-size: 0.8rem;
-  line-height: 1;
-}
-
-.search-clear-btn:hover { color: #002147; }
-
-/* Submit (search icon) button */
-.search-submit-btn {
-  background: #002147;
-  border: none;
-  color: #D2B48C;
-  padding: 0.45rem 0.85rem;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background 0.2s;
-}
-
-.search-submit-btn:hover { background: #003a7a; }
-
-/* ── Icon buttons (cart, profile, etc.) ─────────────────────────────────── */
-.header-icons {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  flex-shrink: 0;
-}
-
-.header-icon-btn {
-  background: none;
-  border: none;
-  color: #002147;
-  font-size: 1.15rem;
-  padding: 0.45rem;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  text-decoration: none;
-  transition: background 0.15s, color 0.15s;
-  position: relative;
-}
-
-.header-icon-btn:hover {
-  background: #f0ece5;
-  color: #003a7a;
-}
-
-/* Cart badge — red pill over cart icon */
-.cart-icon-btn { position: relative; }
-
-.cart-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: #c0392b;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  min-width: 17px;
-  height: 17px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 3px;
-  pointer-events: none;
-}
-
-/* ── Profile dropdown ───────────────────────────────────────────────────── */
-.profile-dropdown-wrapper {
-  position: relative;
-}
-
-.profile-toggle {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Animated chevron */
-.profile-chevron {
-  font-size: 0.6rem;
-  transition: transform 0.2s;
-}
-.profile-chevron.open { transform: rotate(180deg); }
-
-/* Dropdown panel */
-.profile-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  background: #fff;
-  border: 1px solid #e0dbd2;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 33, 71, 0.12);
-  min-width: 200px;
-  z-index: 1100;
-  overflow: hidden;
-  animation: dropFadeIn 0.15s ease;
-}
-
-.profile-dropdown-header {
-  padding: 0.75rem 1rem 0.6rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.profile-dropdown-name {
-  font-weight: 700;
-  font-size: 0.92rem;
-  color: #002147;
-}
-
-.profile-dropdown-email {
-  font-size: 0.78rem;
-  color: #7a7060;
-}
-
-.dropdown-divider {
-  margin: 0;
-  border: none;
-  border-top: 1px solid #f0ece5;
-}
-
-.dropdown-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.55rem 1rem;
-  font-size: 0.88rem;
-  color: #002147;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.15s;
-}
-
-.dropdown-item:hover { background: #f7f4ef; }
-
-.admin-item { color: #7a5c00; font-weight: 600; }
-.admin-item:hover { background: #fffbf0; }
-
-.logout-item {
-  color: #c0392b;
-  display: flex;
-  align-items: center;
-}
-.logout-item:hover { background: #fff5f5; }
-
-/* ── Navigation bar (second bar) ────────────────────────────────────────── */
-.header-nav-bar {
-  background: #002147;
-  padding: 0;
-}
-
-.main-nav {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-/* Base nav link / trigger */
-.nav-link,
-.nav-dropdown-trigger {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0.65rem 1.05rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #e8e0d0;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  border-bottom: 3px solid transparent;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.nav-link:hover,
-.nav-dropdown-trigger:hover,
-.nav-dropdown-trigger.active {
-  color: #D2B48C;
-  border-bottom-color: #D2B48C;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* Animated nav chevrons */
-.nav-chevron {
-  font-size: 0.6rem;
-  transition: transform 0.2s;
-}
-.nav-chevron.open { transform: rotate(180deg); }
-
-/* ── Nav dropdown wrappers ──────────────────────────────────────────────── */
-.nav-dropdown-wrapper {
-  position: relative;
-}
-
-/* ── Mega-menu (Categories) ─────────────────────────────────────────────── */
-.mega-menu {
-  position: absolute;
-  top: calc(100% + 1px);
-  left: 0;
-  background: #fff;
-  border: 1px solid #e0dbd2;
-  border-radius: 0 0 10px 10px;
-  box-shadow: 0 12px 36px rgba(0, 33, 71, 0.14);
-  min-width: 680px;
-  z-index: 1100;
-  padding: 1.25rem 1.25rem 0.75rem;
-  animation: dropFadeIn 0.18s ease;
-}
-
-/* 4-column grid — so 13 items wrap into roughly 3–4 rows */
-.mega-menu-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.25rem;
-}
-
-.mega-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.7rem;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  text-align: left;
-  color: #002147;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.mega-menu-item:hover {
-  background: #f0ece5;
-  color: #003a7a;
-}
-
-/* Category icon — small Oxford Blue circle */
-.mega-menu-icon {
-  width: 30px;
-  height: 30px;
-  background: #002147;
-  color: #D2B48C;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  flex-shrink: 0;
-}
-
-.mega-menu-label {
-  line-height: 1.2;
-}
-
-/* Footer bar of the mega-menu */
-.mega-menu-footer {
-  border-top: 1px solid #f0ece5;
-  margin-top: 0.75rem;
-  padding-top: 0.6rem;
-  text-align: right;
-}
-
-.mega-menu-view-all {
-  background: none;
-  border: none;
-  color: #002147;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.35rem 0.6rem;
-  border-radius: 5px;
-  transition: background 0.15s;
-}
-
-.mega-menu-view-all:hover { background: #f0ece5; }
-
-/* ── Simple dropdown (More) ─────────────────────────────────────────────── */
-.simple-dropdown {
-  position: absolute;
-  top: calc(100% + 1px);
-  left: 0;
-  background: #fff;
-  border: 1px solid #e0dbd2;
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 8px 24px rgba(0, 33, 71, 0.12);
-  min-width: 190px;
-  z-index: 1100;
-  overflow: hidden;
-  animation: dropFadeIn 0.15s ease;
-}
-
-.simple-dropdown-item {
-  display: block;
-  padding: 0.6rem 1rem;
-  font-size: 0.875rem;
-  color: #002147;
-  text-decoration: none;
-  transition: background 0.15s;
-}
-
-.simple-dropdown-item:hover { background: #f7f4ef; color: #003a7a; }
-
-/* ── Dropdown fade-in animation ─────────────────────────────────────────── */
-@keyframes dropFadeIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0);    }
-}
-
-/* ════════════════════════════════════════════════════════════════════════════
-   MOBILE OFFCANVAS DRAWER
-════════════════════════════════════════════════════════════════════════════ */
-
-/* Dim overlay behind the drawer */
-.header-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 33, 71, 0.45);
-  z-index: 1199;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* Drawer panel */
-.offcanvas-drawer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100dvh;
-  width: 300px;
-  max-width: 85vw;
-  background: #fff;
-  z-index: 1200;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  transform: translateX(-100%);
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 4px 0 24px rgba(0, 33, 71, 0.18);
-}
-
-.offcanvas-drawer.open {
-  transform: translateX(0);
-}
-
-/* Close (×) button — top right of drawer */
-.offcanvas-close {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: #f0ece5;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #002147;
-  font-size: 0.9rem;
-  transition: background 0.15s;
-}
-.offcanvas-close:hover { background: #e2ddd5; }
-
-/* ── Logged-in user info block ──────────────────────────────────────────── */
-.offcanvas-user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 1rem 0.85rem;
-  background: #002147;
-  color: #fff;
-  margin-top: 0; /* drawer starts from top */
-}
-
-/* Avatar circle — first letter of name */
-.offcanvas-user-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #D2B48C;
-  color: #002147;
-  font-weight: 800;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.offcanvas-user-name {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #fff;
-}
-
-.offcanvas-user-email {
-  font-size: 0.78rem;
-  color: #b0c4d8;
-  word-break: break-all;
-}
-
-/* Auth links when not logged in */
-.offcanvas-auth-links {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1.25rem 1rem 0.75rem;
-}
-
-.offcanvas-auth-btn {
-  flex: 1;
-  padding: 0.5rem;
-  border-radius: 6px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.88rem;
-  text-decoration: none;
-  border: 2px solid #002147;
-  transition: background 0.15s, color 0.15s;
-}
-
-.offcanvas-auth-btn.primary  { background: #002147; color: #fff; }
-.offcanvas-auth-btn.outline  { background: transparent; color: #002147; }
-.offcanvas-auth-btn.primary:hover { background: #003a7a; }
-.offcanvas-auth-btn.outline:hover { background: #f0ece5; }
-
-/* Divider */
-.offcanvas-divider {
-  border: none;
-  border-top: 1px solid #f0ece5;
-  margin: 0.25rem 0;
-}
-
-/* Section title */
-.offcanvas-section-title {
-  padding: 0.5rem 1rem 0.25rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #a09880;
-}
-
-/* Nav links in drawer */
-.offcanvas-nav {
-  display: flex;
-  flex-direction: column;
-}
-
-.offcanvas-nav-link {
-  display: flex;
-  align-items: center;
-  padding: 0.65rem 1rem;
-  font-size: 0.9rem;
-  color: #002147;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s;
-  gap: 0;
-}
-
-.offcanvas-nav-link:hover { background: #f7f4ef; }
-
-/* Category buttons in drawer — icon + label */
-.offcanvas-cat-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.87rem;
-}
-
-.offcanvas-cat-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 5px;
-  background: #002147;
-  color: #D2B48C;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  flex-shrink: 0;
-}
-
-/* ── Logout button — pinned at the bottom of the drawer ─────────────────── */
-/* Previously invisible. Now uses margin-top: auto to push to the bottom,   */
-/* with a strong Oxford Blue background so it is always clearly visible.     */
-.offcanvas-logout-wrapper {
-  margin-top: auto;
-  padding: 1rem;
-  border-top: 1px solid #f0ece5;
-}
-
-.offcanvas-logout-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.7rem;
-  background: #002147;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.offcanvas-logout-btn:hover { background: #c0392b; }
-
-/* ════════════════════════════════════════════════════════════════════════════
-   RESPONSIVE — show/hide desktop vs mobile elements
-════════════════════════════════════════════════════════════════════════════ */
-
-/* Desktop search and icons — visible on large screens */
-.desktop-search { display: flex; }
-.desktop-icons  { display: flex; }
-.mobile-icons   { display: none; }
-
-/* Nav bar — hidden on mobile */
-@media (max-width: 768px) {
-  .desktop-search { display: none; }
-  .desktop-icons  { display: none; }
-  .mobile-icons   { display: flex; }
-  .header-nav-bar { display: none; } /* offcanvas drawer handles mobile nav */
-
-  /* Tighten top bar padding on mobile */
-  .header-top-bar { padding: 0.5rem 0; }
-
-  /* Logo — on very small screens keep only icon, hide wordmark text */
-  @media (max-width: 360px) {
-    .shopzone-logo-link span:last-child { display: none; }
-  }
-
-  /* Mega-menu not needed on mobile (handled by drawer) */
-  .mega-menu,
-  .simple-dropdown { display: none !important; }
-}
-/*shopzone logo animation*/
-/* ── ShopZone Logo hover animation ──────────────────────────────────────── */
-.shopzone-logo-link:hover .shopzone-logo-icon {
-  transform: scale(1.18) translateY(-2px);
-}
-
-.shopzone-logo-link,
-.shopzone-logo-link:hover,
-.shopzone-logo-link:focus {
-  text-decoration: none !important;
-  outline: none;
-}
-
-/* ════════════════════════════════════════════════════════════════════════════
-   SITE HEADER
-   Two-bar sticky header. Oxford Blue top bar, slightly darker nav bar.
-════════════════════════════════════════════════════════════════════════════ */
-
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 12px rgba(0, 33, 71, 0.15);
-}
-
-/* Shared container — max-width centred, horizontal padding */
-.header-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* ── Top bar ────────────────────────────────────────────────────────────── */
-.header-top-bar {
-  background: #ffffff;
-  border-bottom: 1px solid #e8e4dd;
-  padding: 0.6rem 0;
-}
-
-/* Logo area */
-.header-logo {
-  flex-shrink: 0;
-}
-
-/* ── Search bar ─────────────────────────────────────────────────────────── */
-.header-search {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  border: 2px solid #002147;
-  border-radius: 6px;
-  overflow: hidden;
-  max-width: 560px;
-  background: #fff;
-}
-
-.header-search input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.9rem;
-  background: transparent;
-  color: #002147;
-}
-
-.header-search input::placeholder {
-  color: #a09880;
-}
-
-/* Clear (×) button inside search */
-.search-clear-btn {
-  background: none;
-  border: none;
-  color: #a09880;
-  padding: 0 0.5rem;
-  cursor: pointer;
-  font-size: 0.8rem;
-  line-height: 1;
-}
-
-.search-clear-btn:hover {
-  color: #002147;
-}
-
-/* Submit (search icon) button */
-.search-submit-btn {
-  background: #002147;
-  border: none;
-  color: #D2B48C;
-  padding: 0.45rem 0.85rem;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background 0.2s;
-}
-
-.search-submit-btn:hover {
-  background: #003a7a;
-}
-
-/* ── Icon buttons (cart, profile, etc.) ─────────────────────────────────── */
-.header-icons {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  flex-shrink: 0;
-}
-
-.header-icon-btn {
-  background: none;
-  border: none;
-  color: #002147;
-  font-size: 1.15rem;
-  padding: 0.45rem;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  text-decoration: none;
-  transition: background 0.15s, color 0.15s;
-  position: relative;
-}
-
-.header-icon-btn:hover {
-  background: #f0ece5;
-  color: #003a7a;
-}
-
-/* Cart badge — red pill over cart icon */
-.cart-icon-btn {
-  position: relative;
-}
-
-.cart-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: #c0392b;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  min-width: 17px;
-  height: 17px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 3px;
-  pointer-events: none;
-}
-
-/* ── Profile dropdown ───────────────────────────────────────────────────── */
-.profile-dropdown-wrapper {
-  position: relative;
-}
-
-.profile-toggle {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Animated chevron */
-.profile-chevron {
-  font-size: 0.6rem;
-  transition: transform 0.2s;
-}
-
-.profile-chevron.open {
-  transform: rotate(180deg);
-}
-
-/* Dropdown panel */
-.profile-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  background: #fff;
-  border: 1px solid #e0dbd2;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 33, 71, 0.12);
-  min-width: 200px;
-  z-index: 1100;
-  overflow: hidden;
-  animation: dropFadeIn 0.15s ease;
-}
-
-.profile-dropdown-header {
-  padding: 0.75rem 1rem 0.6rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.profile-dropdown-name {
-  font-weight: 700;
-  font-size: 0.92rem;
-  color: #002147;
-}
-
-.profile-dropdown-email {
-  font-size: 0.78rem;
-  color: #7a7060;
-}
-
-.dropdown-divider {
-  margin: 0;
-  border: none;
-  border-top: 1px solid #f0ece5;
-}
-
-.dropdown-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.55rem 1rem;
-  font-size: 0.88rem;
-  color: #002147;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.15s;
-}
-
-.dropdown-item:hover {
-  background: #f7f4ef;
-}
-
-.admin-item {
-  color: #7a5c00;
-  font-weight: 600;
-}
-
-.admin-item:hover {
-  background: #fffbf0;
-}
-
-.logout-item {
-  color: #c0392b;
-  display: flex;
-  align-items: center;
-}
-
-.logout-item:hover {
-  background: #fff5f5;
-}
-
-/* ── Navigation bar (second bar) ────────────────────────────────────────── */
-.header-nav-bar {
-  background: #002147;
-  padding: 0;
-}
-
-.main-nav {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-/* Base nav link / trigger */
-.nav-link,
-.nav-dropdown-trigger {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0.65rem 1.05rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #e8e0d0;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  border-bottom: 3px solid transparent;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.nav-link:hover,
-.nav-dropdown-trigger:hover,
-.nav-dropdown-trigger.active {
-  color: #D2B48C;
-  border-bottom-color: #D2B48C;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* Animated nav chevrons */
-.nav-chevron {
-  font-size: 0.6rem;
-  transition: transform 0.2s;
-}
-
-.nav-chevron.open {
-  transform: rotate(180deg);
-}
-
-/* ── Nav dropdown wrappers ──────────────────────────────────────────────── */
-.nav-dropdown-wrapper {
-  position: relative;
-}
-
-/* ── Mega-menu (Categories) ─────────────────────────────────────────────── */
-.mega-menu {
-  position: absolute;
-  top: calc(100% + 1px);
-  left: 0;
-  background: #fff;
-  border: 1px solid #e0dbd2;
-  border-radius: 0 0 10px 10px;
-  box-shadow: 0 12px 36px rgba(0, 33, 71, 0.14);
-  min-width: 680px;
-  z-index: 1100;
-  padding: 1.25rem 1.25rem 0.75rem;
-  animation: dropFadeIn 0.18s ease;
-}
-
-/* 4-column grid — so 13 items wrap into roughly 3–4 rows */
-.mega-menu-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.25rem;
-}
-
-.mega-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.7rem;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  text-align: left;
-  color: #002147;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.mega-menu-item:hover {
-  background: #f0ece5;
-  color: #003a7a;
-}
-
-/* Category icon — small Oxford Blue circle */
-.mega-menu-icon {
-  width: 30px;
-  height: 30px;
-  background: #002147;
-  color: #D2B48C;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  flex-shrink: 0;
-}
-
-.mega-menu-label {
-  line-height: 1.2;
-}
-
-/* Footer bar of the mega-menu */
-.mega-menu-footer {
-  border-top: 1px solid #f0ece5;
-  margin-top: 0.75rem;
-  padding-top: 0.6rem;
-  text-align: right;
-}
-
-.mega-menu-view-all {
-  background: none;
-  border: none;
-  color: #002147;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.35rem 0.6rem;
-  border-radius: 5px;
-  transition: background 0.15s;
-}
-
-.mega-menu-view-all:hover {
-  background: #f0ece5;
-}
-
-/* ── Simple dropdown (More) ─────────────────────────────────────────────── */
-.simple-dropdown {
-  position: absolute;
-  top: calc(100% + 1px);
-  left: 0;
-  background: #fff;
-  border: 1px solid #e0dbd2;
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 8px 24px rgba(0, 33, 71, 0.12);
-  min-width: 190px;
-  z-index: 1100;
-  overflow: hidden;
-  animation: dropFadeIn 0.15s ease;
-}
-
-.simple-dropdown-item {
-  display: block;
-  padding: 0.6rem 1rem;
-  font-size: 0.875rem;
-  color: #002147;
-  text-decoration: none;
-  transition: background 0.15s;
-}
-
-.simple-dropdown-item:hover {
-  background: #f7f4ef;
-  color: #003a7a;
-}
-
-/* ── Dropdown fade-in animation ─────────────────────────────────────────── */
-@keyframes dropFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ════════════════════════════════════════════════════════════════════════════
-   MOBILE OFFCANVAS DRAWER
-════════════════════════════════════════════════════════════════════════════ */
-
-/* Dim overlay behind the drawer */
-.header-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 33, 71, 0.45);
-  z-index: 1199;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-/* Drawer panel */
-.offcanvas-drawer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100dvh;
-  width: 300px;
-  max-width: 85vw;
-  background: #fff;
-  z-index: 1200;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  transform: translateX(-100%);
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 4px 0 24px rgba(0, 33, 71, 0.18);
-}
-
-.offcanvas-drawer.open {
-  transform: translateX(0);
-}
-
-/* Close (×) button — top right of drawer */
-.offcanvas-close {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: #f0ece5;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #002147;
-  font-size: 0.9rem;
-  transition: background 0.15s;
-}
-
-.offcanvas-close:hover {
-  background: #e2ddd5;
-}
-
-/* ── Logged-in user info block ──────────────────────────────────────────── */
-.offcanvas-user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem 1rem 0.85rem;
-  background: #002147;
-  color: #fff;
-  margin-top: 0;
-  /* drawer starts from top */
-}
-
-/* Avatar circle — first letter of name */
-.offcanvas-user-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #D2B48C;
-  color: #002147;
-  font-weight: 800;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.offcanvas-user-name {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #fff;
-}
-
-.offcanvas-user-email {
-  font-size: 0.78rem;
-  color: #b0c4d8;
-  word-break: break-all;
-}
-
-/* Auth links when not logged in */
-.offcanvas-auth-links {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1.25rem 1rem 0.75rem;
-}
-
-.offcanvas-auth-btn {
-  flex: 1;
-  padding: 0.5rem;
-  border-radius: 6px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.88rem;
-  text-decoration: none;
-  border: 2px solid #002147;
-  transition: background 0.15s, color 0.15s;
-}
-
-.offcanvas-auth-btn.primary {
-  background: #002147;
-  color: #fff;
-}
-
-.offcanvas-auth-btn.outline {
-  background: transparent;
-  color: #002147;
-}
-
-.offcanvas-auth-btn.primary:hover {
-  background: #003a7a;
-}
-
-.offcanvas-auth-btn.outline:hover {
-  background: #f0ece5;
-}
-
-/* Divider */
-.offcanvas-divider {
-  border: none;
-  border-top: 1px solid #f0ece5;
-  margin: 0.25rem 0;
-}
-
-/* Section title */
-.offcanvas-section-title {
-  padding: 0.5rem 1rem 0.25rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #a09880;
-}
-
-/* Nav links in drawer */
-.offcanvas-nav {
-  display: flex;
-  flex-direction: column;
-}
-
-.offcanvas-nav-link {
-  display: flex;
-  align-items: center;
-  padding: 0.65rem 1rem;
-  font-size: 0.9rem;
-  color: #002147;
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s;
-  gap: 0;
-}
-
-.offcanvas-nav-link:hover {
-  background: #f7f4ef;
-}
-
-/* Category buttons in drawer — icon + label */
-.offcanvas-cat-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.87rem;
-}
-
-.offcanvas-cat-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 5px;
-  background: #002147;
-  color: #D2B48C;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  flex-shrink: 0;
-}
-
-/* ── Logout button — pinned at the bottom of the drawer ─────────────────── */
-/* Previously invisible. Now uses margin-top: auto to push to the bottom,   */
-/* with a strong Oxford Blue background so it is always clearly visible.     */
-.offcanvas-logout-wrapper {
-  margin-top: auto;
-  padding: 1rem;
-  border-top: 1px solid #f0ece5;
-}
-
-.offcanvas-logout-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.7rem;
-  background: #002147;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.offcanvas-logout-btn:hover {
-  background: #c0392b;
-}
-
-/* ════════════════════════════════════════════════════════════════════════════
-   RESPONSIVE — show/hide desktop vs mobile elements
-════════════════════════════════════════════════════════════════════════════ */
-
-/* Desktop search and icons — visible on large screens */
-.desktop-search {
-  display: flex;
-}
-
-.desktop-icons {
-  display: flex;
-}
-
-.mobile-icons {
-  display: none;
-}
-
-/* Nav bar — hidden on mobile */
-@media (max-width: 768px) {
-  .desktop-search {
-    display: none;
-  }
-
-  .desktop-icons {
-    display: none;
-  }
-
-  .mobile-icons {
-    display: flex;
-  }
-
-  .header-nav-bar {
-    display: none;
-  }
-
-  /* offcanvas drawer handles mobile nav */
-
-  /* Tighten top bar padding on mobile */
-  .header-top-bar {
-    padding: 0.5rem 0;
-  }
-
-  /* Logo — on very small screens keep only icon, hide wordmark text */
-  @media (max-width: 360px) {
-    .shopzone-logo-link span:last-child {
-      display: none;
-    }
-  }
-
-  /* Mega-menu not needed on mobile (handled by drawer) */
-  .mega-menu,
-  .simple-dropdown {
-    display: none !important;
-  }
-}
-
-/* ── ShopZone Logo hover animation ──────────────────────────────────────── */
-.shopzone-logo-link:hover .shopzone-logo-icon {
-  transform: scale(1.18) translateY(-2px);
-}
-
-.shopzone-logo-link,
-.shopzone-logo-link:hover,
-.shopzone-logo-link:focus {
-  text-decoration: none !important;
-  outline: none;
 }

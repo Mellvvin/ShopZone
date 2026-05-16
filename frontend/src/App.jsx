@@ -1,8 +1,16 @@
+// src/App.jsx
+// ─────────────────────────────────────────────────────────────
+// Root app component. Updated imports to match new folder structure.
+// ─────────────────────────────────────────────────────────────
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
-import Header from './components/Header';
-import Footer from './components/Footer';
+
+// ── Components — updated paths to match new subfolder structure ──
+import Header from './components/Header/Header';
+import Footer from './components/Footer/Footer';
 import ChatWidget from './components/ChatWidget/ChatWidget';
+
+// ── Pages ────────────────────────────────────────────────────────
 import HomePage from './pages/HomePage';
 import ProductPage from './pages/ProductPage';
 import CartPage from './pages/CartPage';
@@ -27,27 +35,27 @@ const App = () => {
         <Container>
           <Routes>
             {/* ── Public Routes ── */}
-            <Route path='/'                          element={<HomePage />} />
-            <Route path='/product/:id'               element={<ProductPage />} />
-            <Route path='/cart'                      element={<CartPage />} />
-            <Route path='/login'                     element={<LoginPage />} />
-            <Route path='/register'                  element={<RegisterPage />} />
+            <Route path='/' element={<HomePage />} />
+            <Route path='/product/:id' element={<ProductPage />} />
+            <Route path='/cart' element={<CartPage />} />
+            <Route path='/login' element={<LoginPage />} />
+            <Route path='/register' element={<RegisterPage />} />
 
             {/* ── Protected Routes ── */}
-            <Route path='/shipping'                  element={<ShippingPage />} />
-            <Route path='/payment'                   element={<PaymentPage />} />
-            <Route path='/placeorder'                element={<PlaceOrderPage />} />
-            <Route path='/order/:id'                 element={<OrderPage />} />
-            <Route path='/profile'                   element={<ProfilePage />} />
+            <Route path='/shipping' element={<ShippingPage />} />
+            <Route path='/payment' element={<PaymentPage />} />
+            <Route path='/placeorder' element={<PlaceOrderPage />} />
+            <Route path='/order/:id' element={<OrderPage />} />
+            <Route path='/profile' element={<ProfilePage />} />
 
             {/* ── Admin Routes ── */}
-            <Route path='/admin/products'            element={<AdminProductListPage />} />
-            <Route path='/admin/product/:id/edit'    element={<AdminProductEditPage />} />
-            <Route path='/admin/orders'              element={<AdminOrderListPage />} />
-            <Route path='/admin/users'               element={<AdminUserListPage />} />
+            <Route path='/admin/products' element={<AdminProductListPage />} />
+            <Route path='/admin/product/:id/edit' element={<AdminProductEditPage />} />
+            <Route path='/admin/orders' element={<AdminOrderListPage />} />
+            <Route path='/admin/users' element={<AdminUserListPage />} />
 
             {/* ── 404 ── */}
-            <Route path='*'                          element={<NotFoundPage />} />
+            <Route path='*' element={<NotFoundPage />} />
           </Routes>
         </Container>
       </main>

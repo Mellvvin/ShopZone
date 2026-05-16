@@ -1,0 +1,94 @@
+/* src/components/SearchBar/SearchBar.css
+   ────────────────────────────────────────
+   Styles for the SearchBar component only.
+   ──────────────────────────────────────── */
+
+/* ── Form wrapper ───────────────────────────────── */
+.searchbar-form {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 2rem;
+}
+
+/* ── Left icon adornment ────────────────────────── */
+.searchbar-icon-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border: 2px solid var(--tan);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    padding: 0 0.6rem;
+    height: 38px;
+    /* matches input height */
+    color: var(--oxford-blue);
+    font-size: 0.875rem;
+}
+
+/* ── Text input ─────────────────────────────────── */
+.searchbar-input {
+    flex: 1;
+    background-color: white;
+    border: 2px solid var(--tan);
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    height: 38px;
+    padding: 0 0.5rem;
+    outline: none;
+}
+
+.searchbar-input::placeholder {
+    color: #999;
+    opacity: 1;
+}
+
+.searchbar-input:focus {
+    background-color: white;
+    border-color: var(--tan);
+    box-shadow: none;
+}
+
+/* ── Clear button ───────────────────────────────── */
+.searchbar-clear-btn {
+    background-color: white;
+    border: 2px solid var(--tan);
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    color: var(--text-muted);
+    padding: 0 10px;
+    height: 38px;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.searchbar-clear-btn:hover {
+    color: var(--oxford-blue);
+    background-color: var(--tan-light);
+}
+
+/* ── Submit button ──────────────────────────────── */
+.searchbar-submit-btn {
+    background-color: var(--tan);
+    border: 2px solid var(--tan);
+    border-radius: 0 8px 8px 0;
+    color: var(--oxford-blue);
+    font-weight: 600;
+    padding: 0 16px;
+    height: 38px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.searchbar-submit-btn:hover {
+    background-color: var(--tan-dark);
+    border-color: var(--tan-dark);
+    color: var(--white);
+}

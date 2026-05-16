@@ -1,17 +1,57 @@
 const Product = require('../models/Product');
 
+// @desc    Fetch all products with optional filters
+// @route   GET /api/products
+// @access  Public
 const getProducts = async (req, res) => {
   try {
-    const keyword = req.query.keyword
-      ? {
-          name: {
-            $regex:   req.query.keyword,
-            $options: 'i',
-          },
-        }
-      : {};
+    // ── Build filter object from query params ──────────────
+    // Start with an empty filter — we add conditions based on
+    // what query params were sent with the request.
+    const filter = {};
 
-    const products = await Product.find({ ...keyword });
+    // Keyword search — matches against product name (case-insensitive)
+    // Example: GET /api/products?keyword=samsung
+    if (req.query.keyword) {
+      filter.name = {
+        $regex: req.query.keyword,
+        $options: 'i',           // i = case insensitive
+      };
+    }
+
+    // Category filter — exact match on category field
+    // Example: GET /api/products?category=Electronics
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+
+    // Featured filter — only products where isFeatured is true
+    // Example: GET /api/products?featured=true
+    if (req.query.featured === 'true') {
+      filter.isFeatured = true;
+    }
+
+    // Deals filter — only products where isOnSale is true
+    // Example: GET /api/products?deals=true
+    if (req.query.deals === 'true') {
+      filter.isOnSale = true;
+    }
+
+    // Clearance filter — only products where isClearance is true
+    // Example: GET /api/products?clearance=true
+    if (req.query.clearance === 'true') {
+      filter.isClearance = true;
+    }
+
+    // Tag filter — matches any product that has this tag in its tags array
+    // Example: GET /api/products?tag=bulk
+    if (req.query.tag) {
+      filter.tags = { $in: [req.query.tag.toLowerCase()] };
+    }
+
+    // ── Fetch products matching the filter ─────────────────
+    const products = await Product.find(filter);
+
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -32,17 +72,28 @@ const getProductById = async (req, res) => {
   }
 };
 
+// @desc    Create a new product (admin only)
+// @route   POST /api/products
+// @access  Private/Admin
 const createProduct = async (req, res) => {
   try {
+    // Create a placeholder product with all fields so the admin
+    // can immediately see and edit every field in the edit form
     const product = new Product({
-      user:         req.user._id,
-      name:         req.body.name,
-      image:        req.body.image,
-      category:     req.body.category,
-      description:  req.body.description,
-      price:        req.body.price,
-      countInStock: req.body.countInStock,
-      unit:         req.body.unit || 'Per Unit',
+      name: 'Sample Product Name',
+      price: 0,
+      salePrice: null,           // no discount by default
+      user: req.user._id,
+      image: '/images/sample.jpg',
+      category: 'General Merchandise',
+      countInStock: 0,
+      unit: 'Per Unit',
+      numReviews: 0,
+      description: 'Sample description',
+      tags: [],             // no tags by default
+      isFeatured: false,          // not featured by default
+      isOnSale: false,          // not on sale by default
+      isClearance: false,          // not clearance by default
     });
 
     const createdProduct = await product.save();
@@ -52,24 +103,44 @@ const createProduct = async (req, res) => {
   }
 };
 
+// @desc    Update a product (admin only)
+// @route   PUT /api/products/:id
+// @access  Private/Admin
 const updateProduct = async (req, res) => {
   try {
+    const {
+      name, price, salePrice,
+      description, image, category,
+      countInStock, unit,
+      tags, isFeatured, isOnSale, isClearance,
+    } = req.body;
+
     const product = await Product.findById(req.params.id);
 
-    if (product) {
-      product.name         = req.body.name         || product.name;
-      product.image        = req.body.image        || product.image;
-      product.category     = req.body.category     || product.category;
-      product.description  = req.body.description  || product.description;
-      product.price        = req.body.price        || product.price;
-      product.countInStock = req.body.countInStock || product.countInStock;
-      product.unit         = req.body.unit         || product.unit;
-
-      const updatedProduct = await product.save();
-      res.json(updatedProduct);
-    } else {
-      res.status(404).json({ message: 'Product not found' });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
     }
+
+    // ── Update all fields ──────────────────────────────────
+    product.name = name;
+    product.price = price;
+    // salePrice can be null (no discount) or a number
+    product.salePrice = salePrice ?? null;
+    product.description = description;
+    product.image = image;
+    product.category = category;
+    product.countInStock = countInStock;
+    product.unit = unit;
+    // tags — store as lowercase for consistent matching
+    product.tags = tags
+      ? tags.map((t) => t.toLowerCase().trim())
+      : [];
+    product.isFeatured = isFeatured ?? false;
+    product.isOnSale = isOnSale ?? false;
+    product.isClearance = isClearance ?? false;
+
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

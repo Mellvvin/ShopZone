@@ -1,0 +1,140 @@
+/* src/components/Header/Header.css
+   ────────────────────────────────────────────────────────────
+   Styles scoped to the Header orchestrator shell only.
+   Sub-component styles live in their own CSS files.
+   ──────────────────────────────────────────────────────────── */
+
+/* ── Sticky wrapper ───────────────────────────────────────── */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    box-shadow: var(--shadow);
+}
+
+/* ── Top bar — Oxford Blue background ────────────────────── */
+.header-top-bar {
+    background-color: var(--oxford-blue);
+}
+
+/* ── Shared inner container ──────────────────────────────── */
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+}
+
+/* ── Desktop search wrapper ──────────────────────────────── */
+/* Flex: 1 lets it fill the space between logo and icons     */
+.header-desktop-search {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* ── Desktop icon group ──────────────────────────────────── */
+.header-desktop-icons {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* ── Desktop hamburger dropdown wrapper ──────────────────── */
+.header-dropdown-wrapper {
+    position: relative;
+}
+
+.header-hamburger-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+/* ── Cart icon + badge ───────────────────────────────────── */
+.header-icon-cart {
+    position: relative;
+    line-height: 1;
+}
+
+.header-cart-badge {
+    background-color: var(--tan) !important;
+    color: var(--oxford-blue) !important;
+    font-weight: 700 !important;
+    font-size: 0.65rem !important;
+    position: absolute !important;
+    top: -8px !important;
+    right: -10px !important;
+    border-radius: 50% !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 4px !important;
+}
+
+/* ── Mobile icons — hidden on desktop ───────────────────── */
+.header-mobile-icons {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-mobile-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+/* ── Mobile search slide-down panel ─────────────────────── */
+.header-mobile-search-panel {
+    background-color: #001835;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(210, 180, 140, 0.2);
+}
+
+/* ── Responsive breakpoint ───────────────────────────────── */
+@media (max-width: 991px) {
+
+    /* Hide desktop elements */
+    .header-desktop-search {
+        display: none;
+    }
+
+    .header-desktop-icons {
+        display: none;
+    }
+
+    /* Show mobile elements */
+    .header-mobile-icons {
+        display: flex;
+    }
+}
+
+/* ── Icon labels — text sits to the right of the icon ───────── */
+.header-icon-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--tan);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* Profile link needs flex to align icon + label */
+.header-icon-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Cart already has position:relative — just add the gap */
+.header-icon-cart {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}

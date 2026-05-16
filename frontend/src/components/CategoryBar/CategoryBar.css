@@ -1,0 +1,207 @@
+/* src/components/CategoryBar/CategoryBar.css
+   ────────────────────────────────────────────
+   Styles for the second navbar bar, mega-menu,
+   and the More simple dropdown.
+   ──────────────────────────────────────────── */
+
+/* ── Bar wrapper ────────────────────────────────── */
+.category-bar {
+    background-color: var(--oxford-blue);
+    border-top: 1px solid rgba(210, 180, 140, 0.15);
+    border-bottom: 1px solid rgba(210, 180, 140, 0.15);
+}
+
+/* Hidden on mobile — drawer handles categories there */
+@media (max-width: 991px) {
+    .category-bar {
+        display: none;
+    }
+}
+
+/* ── Inner container ────────────────────────────── */
+.category-bar-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+}
+
+/* ── Flex nav row ───────────────────────────────── */
+.category-bar-nav {
+    display: flex;
+    align-items: stretch;
+}
+
+/* ── Base link / button ─────────────────────────── */
+.catbar-link,
+.catbar-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.55rem 1.05rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(210, 180, 140, 0.85);
+    text-decoration: none;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.catbar-link:hover,
+.catbar-trigger:hover,
+.catbar-trigger.active {
+    color: var(--tan);
+    border-bottom-color: var(--tan);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ── Animated chevron ───────────────────────────── */
+.catbar-chevron {
+    font-size: 0.6rem;
+    transition: transform 0.2s ease;
+}
+
+.catbar-chevron.open {
+    transform: rotate(180deg);
+}
+
+/* ── Dropdown wrapper ───────────────────────────── */
+.catbar-dropdown-wrapper {
+    position: relative;
+}
+
+/* ══ MEGA-MENU ══════════════════════════════════════ */
+.mega-menu {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    background: #fff;
+    border: 1px solid #e0dbd2;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 12px 36px rgba(0, 33, 71, 0.14);
+    min-width: 680px;
+    z-index: 1100;
+    padding: 1.25rem 1.25rem 0.75rem;
+    animation: dropFadeIn 0.18s ease;
+}
+
+/* 4-column grid */
+.mega-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+}
+
+/* Each category cell */
+.mega-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.7rem;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--oxford-blue);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+    white-space: nowrap;
+}
+
+.mega-menu-item:hover {
+    background-color: #f0ece5;
+    color: #003a7a;
+}
+
+/* Icon box — Oxford Blue bg, Tan icon */
+.mega-menu-icon {
+    width: 30px;
+    height: 30px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+/* Category name */
+.mega-menu-label {
+    line-height: 1.2;
+}
+
+/* Footer row inside mega-menu */
+.mega-menu-footer {
+    border-top: 1px solid #f0ece5;
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+    text-align: right;
+}
+
+.mega-menu-view-all {
+    background: none;
+    border: none;
+    color: var(--oxford-blue);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 5px;
+    transition: background-color 0.15s ease;
+}
+
+.mega-menu-view-all:hover {
+    background-color: #f0ece5;
+}
+
+/* ══ SIMPLE DROPDOWN (More) ════════════════════════ */
+.simple-dropdown {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 0;
+    background: #fff;
+    border: 1px solid #e0dbd2;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 8px 24px rgba(0, 33, 71, 0.12);
+    min-width: 190px;
+    z-index: 1100;
+    overflow: hidden;
+    animation: dropFadeIn 0.15s ease;
+}
+
+.simple-dropdown-item {
+    display: block;
+    padding: 0.6rem 1rem;
+    font-size: 0.875rem;
+    color: var(--oxford-blue);
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.simple-dropdown-item:hover {
+    background-color: #f7f4ef;
+    color: #003a7a;
+}
+
+/* ── Shared fade-in animation ───────────────────── */
+@keyframes dropFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,60 @@
+/* src/components/ShopZoneLogo/ShopZoneLogo.css
+   ─────────────────────────────────────────────
+   Styles for the ShopZoneLogo component only.
+   ───────────────────────────────────────────── */
+
+/* ── Wrapper link ───────────────────────────────── */
+.shopzone-logo-link {
+    display: inline-flex;
+    align-items: center;
+    /* vertically centres icon and text */
+    text-decoration: none !important;
+    outline: none;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.shopzone-logo-link:hover,
+.shopzone-logo-link:focus {
+    text-decoration: none !important;
+    outline: none;
+}
+
+/* ── SVG icon ───────────────────────────────────── */
+.shopzone-logo-icon {
+    flex-shrink: 0;
+    display: block;
+    /* removes inline spacing gap */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.shopzone-logo-link:hover .shopzone-logo-icon {
+    transform: scale(1.15) translateY(-2px);
+}
+
+/* ── Wordmark ───────────────────────────────────── */
+.shopzone-logo-wordmark {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    user-select: none;
+    /* Align text baseline with icon centre */
+    display: flex;
+    align-items: center;
+}
+
+/* ── Responsive: hide wordmark on tiny screens ──── */
+@media (max-width: 360px) {
+    .shopzone-logo-wordmark {
+        display: none;
+    }
+}
+
+/* ── Reset button defaults so it looks identical to before ── */
+.shopzone-logo-link {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
