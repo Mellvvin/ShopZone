@@ -9,6 +9,7 @@ import { Container } from 'react-bootstrap';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import ChatWidget from './components/ChatWidget/ChatWidget';
+import Toast from './components/Toast/Toast';
 
 // ── Pages ────────────────────────────────────────────────────────
 import HomePage from './pages/HomePage';
@@ -61,6 +62,7 @@ const App = () => {
       </main>
       <Footer />
       <ChatWidget />
+      <Toast />
     </Router>
   );
 };

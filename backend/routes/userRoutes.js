@@ -13,7 +13,7 @@ const {
 } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
-router.post('/register', registerUser);
+router.post('/', registerUser);        // POST /api/users
 router.post('/login', loginUser);
 router.post('/logout', protect, logoutUser);
 

@@ -26,25 +26,30 @@ export const login = createAsyncThunk(
   }
 );
 
+// Register thunk — sends all new fields to the backend
 export const register = createAsyncThunk(
   'auth/register',
-  async ({ name, email, password }, { rejectWithValue }) => {
+  async (
+    { name, email, password, phone, accountType, businessName, businessType, county },
+    { rejectWithValue }
+  ) => {
     try {
-      const config = {
-        headers: { 'Content-Type': 'application/json' },
-      };
-      const { data } = await axios.post(
-        '/api/users/register',
-        { name, email, password },
-        config
-      );
+      const { data } = await axios.post('/api/users', {
+        name,
+        email,
+        password,
+        phone,
+        accountType,
+        businessName,
+        businessType,
+        county,
+      });
+      // Persist to localStorage so the user stays logged in on refresh
       localStorage.setItem('userInfo', JSON.stringify(data));
       return data;
     } catch (error) {
       return rejectWithValue(
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message
+        error.response?.data?.message || 'Registration failed. Please try again.'
       );
     }
   }
