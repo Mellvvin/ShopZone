@@ -1,13 +1,16 @@
-// src/components/ShopZoneLogo/ShopZoneLogo.jsx
+// frontend/src/components/ShopZoneLogo/ShopZoneLogo.jsx
+// ─────────────────────────────────────────────────────────────
+// Reusable SVG brand logo.
+// Clicking navigates to the homepage and clears all filters
+// by navigating to '/' with no query params, which causes
+// HomePage to fetch all products.
+// ─────────────────────────────────────────────────────────────
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { listProducts } from '../../redux/slices/productSlice';
 import './ShopZoneLogo.css';
 
 const ShopZoneLogo = ({ dark = false, size = 'medium' }) => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
 
     // ── Colour tokens ──────────────────────────────────────────
     const primary = dark ? '#D2B48C' : '#002147';
@@ -34,21 +37,21 @@ const ShopZoneLogo = ({ dark = false, size = 'medium' }) => {
     const cx = icon / 2;
     const x = cx - w / 2;
 
-    // ── Click handler — clears search AND navigates home ───────
+    // ── Click handler ──────────────────────────────────────────
+    // Navigates to '/' with no query params so HomePage fetches
+    // all products and clears any active search or filter.
     const handleLogoClick = () => {
-        dispatch(listProducts(''));   // clears any active keyword filter
         navigate('/');
     };
 
     return (
-        // Using a button instead of Link so we can dispatch before navigating
         <button
             className='shopzone-logo-link'
             style={{ gap }}
             onClick={handleLogoClick}
             aria-label='ShopZone — go to homepage'
         >
-            {/* ── SVG icon ────────────────────────────────────────── */}
+            {/* ── SVG icon: three stacked boxes ─────────────────── */}
             <svg
                 width={icon}
                 height={icon}
@@ -57,12 +60,15 @@ const ShopZoneLogo = ({ dark = false, size = 'medium' }) => {
                 className='shopzone-logo-icon'
                 aria-hidden='true'
             >
+                {/* Bottom box — most transparent */}
                 <rect x={x} y={y3} width={w} height={h} rx={rx} fill={boxLight} />
+                {/* Middle box */}
                 <rect x={x} y={y2} width={w} height={h} rx={rx} fill={boxMid} />
+                {/* Top box — fully opaque */}
                 <rect x={x} y={y1} width={w} height={h} rx={rx} fill={boxFull} />
             </svg>
 
-            {/* ── Wordmark ─────────────────────────────────────────── */}
+            {/* ── Wordmark ───────────────────────────────────────── */}
             <span
                 className='shopzone-logo-wordmark'
                 style={{ fontSize: font }}

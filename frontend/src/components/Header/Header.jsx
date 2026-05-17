@@ -83,13 +83,19 @@ const Header = () => {
   const submitHandler = (e) => {
     e.preventDefault();
     if (keyword.trim()) {
-      dispatch(listProducts(keyword.trim()));
+      // Navigate to homepage with keyword as URL param.
+      // HomePage reads this param and dispatches listProducts.
+      navigate(`/?keyword=${encodeURIComponent(keyword.trim())}`);
+    } else {
       navigate('/');
     }
   };
 
   // Clears input only — results remain on screen
-  const clearSearch = () => setKeyword('');
+  const clearSearch = () => {
+    setKeyword('');
+    navigate('/');
+  };
 
   return (
     <header className='site-header'>

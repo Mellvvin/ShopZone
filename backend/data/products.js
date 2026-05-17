@@ -1,10 +1,10 @@
 // backend/data/products.js
 // ─────────────────────────────────────────────────────────────
 // Seed data for the Product collection.
-// Run with: node backend/seeder.js
+// Run with: node seeder.js from the backend folder.
 //
-// Updated in Step 9 to include:
-//   tags, isFeatured, isOnSale, isClearance, salePrice
+// Updated to add products for:
+//   Baby & Kids, Sports & Outdoors, Health & Wellness
 // ─────────────────────────────────────────────────────────────
 
 const products = [
@@ -15,14 +15,14 @@ const products = [
     category: 'Electronics',
     description: 'Wholesale carton of 10 Samsung A15 smartphones. Popular entry-level Android handsets, ideal for retail resale. Comes with manufacturer warranty.',
     price: 45000,
-    salePrice: 40000,        // discounted from 45,000
+    salePrice: 40000,
     countInStock: 25,
     unit: 'Carton',
     rating: 4.5,
     numReviews: 8,
     tags: ['smartphones', 'samsung', 'electronics', 'wholesale', 'android'],
-    isFeatured: true,         // appears in Featured Products
-    isOnSale: true,         // appears in Deals section
+    isFeatured: true,
+    isOnSale: true,
     isClearance: false,
   },
 
@@ -33,7 +33,7 @@ const products = [
     category: 'Fashion & Apparel',
     description: "Bale of 50 assorted men's cotton round-neck T-shirts. Mixed sizes S–XL, mixed colours. Ideal for market traders and clothing retailers.",
     price: 8500,
-    salePrice: null,         // not on sale
+    salePrice: null,
     countInStock: 60,
     unit: 'Bale',
     rating: 4.2,
@@ -113,7 +113,7 @@ const products = [
     tags: ['hammer', 'stanley', 'tools', 'hardware', 'construction', 'wholesale'],
     isFeatured: false,
     isOnSale: false,
-    isClearance: true,         // clearance item
+    isClearance: true,
   },
 
   // ── 7. Office & Stationery ───────────────────────────────
@@ -185,7 +185,61 @@ const products = [
     tags: ['baskets', 'plastic', 'storage', 'household', 'general', 'wholesale'],
     isFeatured: false,
     isOnSale: false,
-    isClearance: true,         // clearance item
+    isClearance: true,
+  },
+
+  // ── 11. Baby & Kids ──────────────────────────────────────
+  {
+    name: 'Pampers Baby Diapers Size 4 — Carton of 6 Packs',
+    image: '/images/sample.jpg',
+    category: 'Baby & Kids',
+    description: 'Carton of 6 packs of Pampers Active Baby diapers size 4 (9–14kg). Each pack contains 52 diapers. Fast-moving baby care essential for supermarkets, pharmacies and baby shops across Kenya.',
+    price: 8400,
+    salePrice: 7800,
+    countInStock: 75,
+    unit: 'Carton',
+    rating: 4.8,
+    numReviews: 12,
+    tags: ['pampers', 'diapers', 'baby', 'kids', 'baby care', 'wholesale', 'fmcg'],
+    isFeatured: true,
+    isOnSale: true,
+    isClearance: false,
+  },
+
+  // ── 12. Sports & Outdoors ────────────────────────────────
+  {
+    name: 'Adidas Football — Box of 20',
+    image: '/images/sample.jpg',
+    category: 'Sports & Outdoors',
+    description: 'Box of 20 Adidas Tango league footballs size 5. Durable synthetic leather, suitable for training and recreational play. Ideal for sports shops, schools and football academies.',
+    price: 18000,
+    salePrice: null,
+    countInStock: 20,
+    unit: 'Box',
+    rating: 4.5,
+    numReviews: 6,
+    tags: ['football', 'adidas', 'sports', 'outdoors', 'soccer', 'wholesale'],
+    isFeatured: false,
+    isOnSale: false,
+    isClearance: false,
+  },
+
+  // ── 13. Health & Wellness ────────────────────────────────
+  {
+    name: 'Dettol Antiseptic Liquid 500ml — Carton of 24',
+    image: '/images/sample.jpg',
+    category: 'Health & Wellness',
+    description: 'Carton of 24 Dettol antiseptic liquid bottles (500ml each). Multi-purpose disinfectant used in homes, clinics and schools. One of the most trusted health brands in Kenya.',
+    price: 6200,
+    salePrice: 5500,
+    countInStock: 100,
+    unit: 'Carton',
+    rating: 4.9,
+    numReviews: 21,
+    tags: ['dettol', 'antiseptic', 'health', 'wellness', 'disinfectant', 'wholesale', 'fmcg'],
+    isFeatured: false,
+    isOnSale: true,
+    isClearance: false,
   },
 ];
 

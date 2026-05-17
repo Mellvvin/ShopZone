@@ -62,10 +62,9 @@ const RegisterPage = () => {
   // ── Redirect to home when registration succeeds ───────────
   // Also fires a welcome toast.
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo && typeof navigate === 'function') {
       showToast(`Welcome to ShopZone, ${userInfo.name.split(' ')[0]}!`, 'success');
-      // Small delay so the toast renders before navigation
-      const timer = setTimeout(() => navigate('/'), 300);
+      const timer = setTimeout(() => navigate('/'), 500);
       return () => clearTimeout(timer);
     }
   }, [userInfo, navigate]);

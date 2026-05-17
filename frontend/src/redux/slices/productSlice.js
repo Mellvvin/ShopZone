@@ -1,143 +1,184 @@
+// frontend/src/redux/slices/productSlice.js
+// ─────────────────────────────────────────────────────────────
+// Manages all product-related Redux state:
+//   listProducts    — fetch products with optional filters
+//   listProductDetails — fetch a single product by ID
+//   createProductReview — submit a review
+//
+// Step 11 update:
+//   listProducts now accepts a filters object instead of a
+//   plain keyword string, supporting:
+//     keyword, category, featured, deals, clearance, tag
+// ─────────────────────────────────────────────────────────────
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// ── ASYNC ACTIONS ──────────────────────────────────────────
+// @desc    Fetch products with optional filters
+// @param   filters {object} — any combination of:
+//            keyword   {string}  — search term
+//            category  {string}  — exact category match
+//            featured  {boolean} — only featured products
+//            deals     {boolean} — only on-sale products
+//            clearance {boolean} — only clearance products
+//            tag       {string}  — exact tag match
+//
+// Usage examples:
+//   dispatch(listProducts({ keyword: 'samsung' }))
+//   dispatch(listProducts({ category: 'Electronics' }))
+//   dispatch(listProducts({ deals: true }))
+//   dispatch(listProducts({}))  — fetches all products
 export const listProducts = createAsyncThunk(
-  'products/listProducts',
-  async (keyword = '', { rejectWithValue }) => {
+  'products/list',
+  async (filters = {}, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(
-        `/api/products?keyword=${keyword}`
-      );
+      // ── Build query string from filters object ─────────────
+      // URLSearchParams converts the filters object into a
+      // properly encoded query string.
+      // Example: { keyword: 'samsung', category: 'Electronics' }
+      // becomes: ?keyword=samsung&category=Electronics
+      const params = new URLSearchParams();
+
+      if (filters.keyword) params.append('keyword', filters.keyword);
+      if (filters.category) params.append('category', filters.category);
+      if (filters.featured) params.append('featured', 'true');
+      if (filters.deals) params.append('deals', 'true');
+      if (filters.clearance) params.append('clearance', 'true');
+      if (filters.tag) params.append('tag', filters.tag);
+
+      // ── Fetch from backend ─────────────────────────────────
+      const queryString = params.toString();
+      const url = queryString
+        ? `/api/products?${queryString}`
+        : '/api/products';
+
+      const { data } = await axios.get(url);
       return data;
     } catch (error) {
       return rejectWithValue(
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message
+        error.response?.data?.message || error.message
       );
     }
   }
 );
 
+// @desc    Fetch a single product by ID
+// @param   id {string} — MongoDB product ID
 export const listProductDetails = createAsyncThunk(
-  'products/listProductDetails',
+  'products/details',
   async (id, { rejectWithValue }) => {
     try {
       const { data } = await axios.get(`/api/products/${id}`);
       return data;
     } catch (error) {
       return rejectWithValue(
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message
+        error.response?.data?.message || error.message
       );
     }
   }
 );
 
+// @desc    Submit a product review
+// @param   { productId, rating, comment }
 export const createProductReview = createAsyncThunk(
-  'products/createProductReview',
-  async ({ id, rating, comment }, { getState, rejectWithValue }) => {
+  'products/createReview',
+  async ({ productId, rating, comment }, { getState, rejectWithValue }) => {
     try {
+      // Get the auth token from Redux state
       const { auth: { userInfo } } = getState();
       const config = {
         headers: {
           'Content-Type': 'application/json',
-          Authorization:  `Bearer ${userInfo.token}`,
+          Authorization: `Bearer ${userInfo.token}`,
         },
       };
       await axios.post(
-        `/api/products/${id}/reviews`,
+        `/api/products/${productId}/reviews`,
         { rating, comment },
         config
       );
-      return true;
     } catch (error) {
       return rejectWithValue(
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message
+        error.response?.data?.message || error.message
       );
     }
   }
 );
 
-// ── SLICE ──────────────────────────────────────────────────
+// ── Slice ─────────────────────────────────────────────────────
 const productSlice = createSlice({
   name: 'products',
-initialState: {
-  productList: {
+  initialState: {
+    // Product list state
     products: [],
-    loading:  true,   // ← changed from false to true
-    error:    null,
-  },
-  productDetails: {
+    loadingList: false,
+    errorList: null,
+
+    // Single product state
     product: {},
-    loading: false,
-    error:   null,
+    loadingDetails: false,
+    errorDetails: null,
+
+    // Review submission state
+    reviewSuccess: false,
+    reviewLoading: false,
+    reviewError: null,
   },
-  productReview: {
-    loading: false,
-    error:   null,
-    success: false,
-  },
-},
   reducers: {
+    // ── Reset review state after submission ──────────────────
+    // Call this when unmounting the product page so the next
+    // product page starts with a clean review state.
     resetProductReview: (state) => {
-      state.productReview = {
-        loading: false,
-        error:   null,
-        success: false,
-      };
+      state.reviewSuccess = false;
+      state.reviewLoading = false;
+      state.reviewError = null;
     },
   },
   extraReducers: (builder) => {
 
-    // List all products
+    // ── listProducts ─────────────────────────────────────────
     builder
       .addCase(listProducts.pending, (state) => {
-        state.productList.loading = true;
-        state.productList.error   = null;
+        state.loadingList = true;
+        state.errorList = null;
       })
       .addCase(listProducts.fulfilled, (state, action) => {
-        state.productList.loading  = false;
-        state.productList.products = action.payload;
+        state.loadingList = false;
+        state.products = action.payload;
       })
       .addCase(listProducts.rejected, (state, action) => {
-        state.productList.loading = false;
-        state.productList.error   = action.payload;
+        state.loadingList = false;
+        state.errorList = action.payload;
       });
 
-    // Get single product details
+    // ── listProductDetails ───────────────────────────────────
     builder
       .addCase(listProductDetails.pending, (state) => {
-        state.productDetails.loading = true;
-        state.productDetails.error   = null;
+        state.loadingDetails = true;
+        state.errorDetails = null;
       })
       .addCase(listProductDetails.fulfilled, (state, action) => {
-        state.productDetails.loading = false;
-        state.productDetails.product = action.payload;
+        state.loadingDetails = false;
+        state.product = action.payload;
       })
       .addCase(listProductDetails.rejected, (state, action) => {
-        state.productDetails.loading = false;
-        state.productDetails.error   = action.payload;
+        state.loadingDetails = false;
+        state.errorDetails = action.payload;
       });
 
-    // Create product review
+    // ── createProductReview ──────────────────────────────────
     builder
       .addCase(createProductReview.pending, (state) => {
-        state.productReview.loading = true;
-        state.productReview.error   = null;
-        state.productReview.success = false;
+        state.reviewLoading = true;
+        state.reviewError = null;
+        state.reviewSuccess = false;
       })
       .addCase(createProductReview.fulfilled, (state) => {
-        state.productReview.loading = false;
-        state.productReview.success = true;
+        state.reviewLoading = false;
+        state.reviewSuccess = true;
       })
       .addCase(createProductReview.rejected, (state, action) => {
-        state.productReview.loading = false;
-        state.productReview.error   = action.payload;
+        state.reviewLoading = false;
+        state.reviewError = action.payload;
       });
   },
 });

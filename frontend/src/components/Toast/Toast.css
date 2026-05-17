@@ -1,23 +1,33 @@
 /* src/components/Toast/Toast.css
-   ────────────────────────────────────────────────────────────
-   Styles for the global toast notification system.
-   ──────────────────────────────────────────────────────────── */
+   ─────────────────────────────────────────────────────────────
+   All styles for the global toast notification system.
+   Uses sz- prefix on all class names to avoid conflicts with
+   Bootstrap's own .toast and .toast-container classes.
+   ───────────────────────────────────────────────────────────── */
 
-/* ── Container — fixed bottom-right ────────────────────────── */
-.toast-container {
-    position: fixed;
+/* ── Container — fixed bottom-left ──────────────────────────── */
+/* position: fixed means it stays in the corner even when the   */
+/* user scrolls. Bootstrap's .toast-container uses position:    */
+/* absolute which is why we renamed to sz-toast-container.      */
+.sz-toast-container {
+    position: fixed !important;
+    /* !important overrides any Bootstrap leakage */
     bottom: 1.5rem;
-    left: 1.5rem;/* moved to left side */
-    z-index: 99999;/* higher than chat widget */
+    left: 1.5rem;
+    z-index: 99999;
+    /* above chat widget, modals, everything */
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     pointer-events: none;
+    /* clicks pass through the container itself */
+    /* Toasts stack upward — newest appears above older ones */
 }
 
-/* ── Individual toast card ──────────────────────────────────── */
-.toast-item {
+/* ── Individual toast card ───────────────────────────────────── */
+.sz-toast-item {
     pointer-events: all;
+    /* but clicks land on the cards */
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
@@ -29,60 +39,59 @@
     max-width: 380px;
     position: relative;
     overflow: hidden;
-    /* Fade in */
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* ── Visibility states ──────────────────────────────────────── */
-.toast-item--visible {
+/* ── Visibility states ───────────────────────────────────────── */
+.sz-toast-item--visible {
     opacity: 1;
     transform: translateX(0);
 }
 
-.toast-item--hidden {
+/* Slides out to the left when dismissed */
+.sz-toast-item--hidden {
     opacity: 0;
     transform: translateX(-120%);
-    /* slides out to the left */
 }
 
-/* ── Colour themes ──────────────────────────────────────────── */
-.toast-item--success {
+/* ── Colour themes ───────────────────────────────────────────── */
+.sz-toast-item--success {
     background: #fff;
     border-left: 4px solid #27ae60;
 }
 
-.toast-item--error {
+.sz-toast-item--error {
     background: #fff;
     border-left: 4px solid #c0392b;
 }
 
-.toast-item--info {
+.sz-toast-item--info {
     background: #fff;
     border-left: 4px solid var(--oxford-blue);
 }
 
-/* ── Icon ───────────────────────────────────────────────────── */
-.toast-icon {
+/* ── Icon ────────────────────────────────────────────────────── */
+.sz-toast-icon {
     font-size: 1rem;
     font-weight: 700;
     flex-shrink: 0;
     margin-top: 1px;
 }
 
-.toast-item--success .toast-icon {
+.sz-toast-item--success .sz-toast-icon {
     color: #27ae60;
 }
 
-.toast-item--error .toast-icon {
+.sz-toast-item--error .sz-toast-icon {
     color: #c0392b;
 }
 
-.toast-item--info .toast-icon {
+.sz-toast-item--info .sz-toast-icon {
     color: var(--oxford-blue);
 }
 
-/* ── Message text ───────────────────────────────────────────── */
-.toast-message {
+/* ── Message text ────────────────────────────────────────────── */
+.sz-toast-message {
     flex: 1;
     margin: 0 0 0.75rem;
     font-size: 0.88rem;
@@ -90,8 +99,8 @@
     line-height: 1.5;
 }
 
-/* ── Close button ───────────────────────────────────────────── */
-.toast-close {
+/* ── Close button ────────────────────────────────────────────── */
+.sz-toast-close {
     background: none;
     border: none;
     cursor: pointer;
@@ -103,37 +112,36 @@
     transition: color 0.15s ease;
 }
 
-.toast-close:hover {
+.sz-toast-close:hover {
     color: var(--text-dark);
 }
 
-/* ── Draining progress bar ──────────────────────────────────── */
-/* Sits flush at the bottom of the card.                        */
-/* The animation runs for exactly 5s matching the auto-dismiss. */
-.toast-bar {
+/* ── Draining progress bar ───────────────────────────────────── */
+/* Sits flush at the very bottom of the card.                    */
+/* Shrinks from full width to zero over 20 seconds.              */
+.sz-toast-bar {
     position: absolute;
     bottom: 0;
     left: 0;
     height: 3px;
     width: 100%;
     transform-origin: left;
-    /* Drains from full width to zero over 5 seconds */
-    animation: drainBar 5s linear forwards;
+    animation: szDrainBar 20s linear forwards;
 }
 
-.toast-bar--success {
+.sz-toast-bar--success {
     background: #27ae60;
 }
 
-.toast-bar--error {
+.sz-toast-bar--error {
     background: #c0392b;
 }
 
-.toast-bar--info {
+.sz-toast-bar--info {
     background: var(--oxford-blue);
 }
 
-@keyframes drainBar {
+@keyframes szDrainBar {
     from {
         transform: scaleX(1);
     }
@@ -143,16 +151,16 @@
     }
 }
 
-/* ── Mobile: full width at bottom ──────────────────────────── */
+/* ── Mobile — full width bar at bottom of screen ────────────── */
 @media (max-width: 480px) {
-    .toast-container {
+    .sz-toast-container {
         bottom: 0;
         left: 0;
         right: 0;
         padding: 0.75rem;
     }
 
-    .toast-item {
+    .sz-toast-item {
         min-width: unset;
         max-width: unset;
         width: 100%;

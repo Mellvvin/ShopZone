@@ -4,6 +4,11 @@
 //   registerUser, loginUser, logoutUser,
 //   getUserProfile, updateUserProfile,
 //   getAllUsers, getUserById, updateUser, deleteUser
+//
+// Note: password hashing is done directly in this controller
+// instead of a Mongoose pre-save hook, to avoid a conflict
+// with the bcryptjs UMD build overwriting Mongoose middleware
+// callback parameters.
 // ─────────────────────────────────────────────────────────────
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
@@ -35,13 +40,12 @@ const registerUser = async (req, res) => {
     } = req.body;
 
     // ── Password strength validation ──────────────────────────
-    // Rules: at least 8 chars, one uppercase, one number.
-    // Enforced here so the API is protected even if called directly.
+    // At least 8 characters, one uppercase letter, one number.
+    // Enforced here so the API is protected even when called directly.
     const passwordRules = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!passwordRules.test(password)) {
       return res.status(400).json({
-        message:
-          'Password must be at least 8 characters and include one uppercase letter and one number.',
+        message: 'Password must be at least 8 characters and include one uppercase letter and one number.',
       });
     }
 
@@ -61,12 +65,17 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // ── Hash password directly ────────────────────────────────
+    // Done here instead of a pre-save hook to avoid bcryptjs
+    // UMD build conflict with Mongoose middleware parameters.
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     // ── Create user ───────────────────────────────────────────
-    // Password hashing is handled by the pre-save hook in User.js
     const user = await User.create({
       name,
       email,
-      password,
+      password: hashedPassword,
       phone: phone || '',
       accountType: accountType || 'individual',
       businessName: accountType === 'business' ? businessName.trim() : '',
@@ -105,7 +114,7 @@ const loginUser = async (req, res) => {
     // Find user by email
     const user = await User.findOne({ email });
 
-    // Check user exists and password matches
+    // Check user exists and password matches the stored hash
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
@@ -127,7 +136,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-// @desc    Logout user (client handles token removal)
+// @desc    Logout user — client handles token removal
 // @route   POST /api/users/logout
 // @access  Private
 const logoutUser = (req, res) => {
@@ -169,7 +178,7 @@ const updateUserProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user) {
-      // Update fields if provided, otherwise keep existing values
+      // Update each field only if a new value was provided
       user.name = req.body.name || user.name;
       user.email = req.body.email || user.email;
       user.phone = req.body.phone ?? user.phone;
@@ -211,7 +220,6 @@ const updateUserProfile = async (req, res) => {
 // @access  Private/Admin
 const getAllUsers = async (req, res) => {
   try {
-    // Exclude password field from results
     const users = await User.find({}).select('-password');
     res.json(users);
   } catch (error) {
