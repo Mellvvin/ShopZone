@@ -1,13 +1,18 @@
-import { useEffect } from 'react';
+// frontend/src/pages/PlaceOrderPage.jsx
+// ─────────────────────────────────────────────────────────────
+// Final checkout step — shows full order summary and places order.
+// Toast added for successful order placement and errors.
+// ─────────────────────────────────────────────────────────────
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Row, Col, ListGroup, Image,
-  Button, Card, Alert, Spinner
+  Button, Card, Alert, Spinner,
 } from 'react-bootstrap';
 import axios from 'axios';
-import { useState } from 'react';
 import { clearCartItems } from '../redux/slices/cartSlice';
+import { showToast } from '../components/Toast/Toast';
 
 const PlaceOrderPage = () => {
   const dispatch = useDispatch();
@@ -19,35 +24,28 @@ const PlaceOrderPage = () => {
   const { userInfo } = useSelector((state) => state.auth);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
-  // ── Price Calculations ──────────────────────────────────
-  const itemsPrice    = cartItems
+  // ── Price calculations ────────────────────────────────────
+  const itemsPrice = cartItems
     .reduce((acc, item) => acc + item.price * item.qty, 0)
     .toFixed(2);
-
   const shippingPrice = (10).toFixed(2);
-
   const taxPrice = (Number(itemsPrice) * 0.16).toFixed(2);
-
-  const totalPrice    = (
+  const totalPrice = (
     Number(itemsPrice) +
     Number(shippingPrice) +
     Number(taxPrice)
   ).toFixed(2);
 
+  // ── Guards — redirect if prerequisites are missing ────────
   useEffect(() => {
-    if (!userInfo) {
-      navigate('/login');
-    }
-    if (!shippingAddress?.address) {
-      navigate('/shipping');
-    }
-    if (!paymentMethod) {
-      navigate('/payment');
-    }
+    if (!userInfo) navigate('/login');
+    if (!shippingAddress?.address) navigate('/shipping');
+    if (!paymentMethod) navigate('/payment');
   }, [userInfo, shippingAddress, paymentMethod, navigate]);
 
+  // ── Place order handler ───────────────────────────────────
   const placeOrderHandler = async () => {
     try {
       setLoading(true);
@@ -63,7 +61,7 @@ const PlaceOrderPage = () => {
       const { data } = await axios.post(
         '/api/orders',
         {
-          orderItems:      cartItems,
+          orderItems: cartItems,
           shippingAddress,
           paymentMethod,
           itemsPrice,
@@ -74,21 +72,25 @@ const PlaceOrderPage = () => {
         config
       );
 
+      // Clear cart and fire success toast before navigating
       dispatch(clearCartItems());
-      navigate(`/order/${data._id}`);
-    } catch (err) {
-      setError(
-        err.response && err.response.data.message
-          ? err.response.data.message
-          : err.message
+      showToast(
+        `Order placed successfully! Total: $${totalPrice}`,
+        'success'
       );
+      navigate(`/order/${data._id}`);
+
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message;
+      setError(msg);
+      showToast(msg, 'error');
       setLoading(false);
     }
   };
 
   return (
     <>
-      {/* ── Progress Indicator ── */}
+      {/* ── Progress indicator ────────────────────────────── */}
       <div className='d-flex justify-content-center mb-4'>
         <div style={{ width: '100%', maxWidth: '500px' }}>
           <div className='d-flex justify-content-between'>
@@ -98,22 +100,20 @@ const PlaceOrderPage = () => {
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  backgroundColor: index === 2
-                    ? 'var(--oxford-blue)'
-                    : 'var(--tan)',
+                  backgroundColor: index === 2 ? 'var(--oxford-blue)' : 'var(--tan)',
                   color: 'var(--oxford-blue)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   margin: '0 auto 6px',
-                  fontWeight: '700',
+                  fontWeight: 700,
                   fontSize: '0.85rem',
                 }}>
                   {index + 1}
                 </div>
                 <small style={{
                   color: index === 2 ? 'var(--oxford-blue)' : 'var(--text-muted)',
-                  fontWeight: index === 2 ? '600' : '400',
+                  fontWeight: index === 2 ? 600 : 400,
                 }}>
                   {step}
                 </small>
@@ -124,11 +124,14 @@ const PlaceOrderPage = () => {
       </div>
 
       <Row>
-        {/* ── LEFT — Order Details ── */}
-        <Col md={8}>
 
-          {/* Shipping */}
+        {/* ════════════════════════════════════════════════
+            LEFT — Order details
+        ════════════════════════════════════════════════ */}
+        <Col md={8}>
           <ListGroup variant='flush'>
+
+            {/* Shipping address */}
             <ListGroup.Item style={{ borderColor: '#EAE0D5' }}>
               <h4 style={{ color: 'var(--oxford-blue)' }}>Shipping</h4>
               <p style={{ color: 'var(--text-muted)' }}>
@@ -138,7 +141,7 @@ const PlaceOrderPage = () => {
               </p>
             </ListGroup.Item>
 
-            {/* Payment */}
+            {/* Payment method */}
             <ListGroup.Item style={{ borderColor: '#EAE0D5' }}>
               <h4 style={{ color: 'var(--oxford-blue)' }}>Payment Method</h4>
               <p style={{ color: 'var(--text-muted)' }}>
@@ -147,7 +150,7 @@ const PlaceOrderPage = () => {
               </p>
             </ListGroup.Item>
 
-            {/* Order Items */}
+            {/* Order items */}
             <ListGroup.Item style={{ borderColor: '#EAE0D5' }}>
               <h4 style={{ color: 'var(--oxford-blue)' }}>Order Items</h4>
               {cartItems.length === 0 ? (
@@ -178,7 +181,7 @@ const PlaceOrderPage = () => {
                         <Col>
                           <Link
                             to={`/product/${item.product}`}
-                            style={{ color: 'var(--oxford-blue)', fontWeight: '500' }}
+                            style={{ color: 'var(--oxford-blue)', fontWeight: 500 }}
                           >
                             {item.name}
                           </Link>
@@ -195,17 +198,19 @@ const PlaceOrderPage = () => {
                 </ListGroup>
               )}
             </ListGroup.Item>
+
           </ListGroup>
         </Col>
 
-        {/* ── RIGHT — Order Summary ── */}
+        {/* ════════════════════════════════════════════════
+            RIGHT — Order summary + place order button
+        ════════════════════════════════════════════════ */}
         <Col md={4}>
           <Card style={{ border: '1px solid #EAE0D5' }}>
             <ListGroup variant='flush'>
+
               <ListGroup.Item style={{ backgroundColor: 'var(--oxford-blue)' }}>
-                <h4 style={{ color: 'var(--tan)', margin: 0 }}>
-                  Order Summary
-                </h4>
+                <h4 style={{ color: 'var(--tan)', margin: 0 }}>Order Summary</h4>
               </ListGroup.Item>
 
               <ListGroup.Item>
@@ -229,26 +234,23 @@ const PlaceOrderPage = () => {
                 </Row>
               </ListGroup.Item>
 
-              <ListGroup.Item style={{
-                borderTop: '2px solid var(--tan)',
-                paddingTop: '1rem'
-              }}>
+              <ListGroup.Item style={{ borderTop: '2px solid var(--tan)', paddingTop: '1rem' }}>
                 <Row>
-                  <Col style={{ color: 'var(--oxford-blue)', fontWeight: '700' }}>
-                    Total:
-                  </Col>
+                  <Col style={{ color: 'var(--oxford-blue)', fontWeight: 700 }}>Total:</Col>
                   <Col className='product-card-price' style={{ fontSize: '1.2rem' }}>
                     ${totalPrice}
                   </Col>
                 </Row>
               </ListGroup.Item>
 
+              {/* Inline error alert */}
               {error && (
                 <ListGroup.Item>
                   <Alert variant='danger'>{error}</Alert>
                 </ListGroup.Item>
               )}
 
+              {/* Place order button */}
               <ListGroup.Item>
                 <Button
                   type='button'
@@ -263,9 +265,11 @@ const PlaceOrderPage = () => {
                   )}
                 </Button>
               </ListGroup.Item>
+
             </ListGroup>
           </Card>
         </Col>
+
       </Row>
     </>
   );

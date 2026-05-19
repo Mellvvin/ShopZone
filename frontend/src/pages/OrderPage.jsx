@@ -1,57 +1,59 @@
+// frontend/src/pages/OrderPage.jsx
+// ─────────────────────────────────────────────────────────────
+// Order confirmation page.
+// Shows order details, shipping, payment, and cancel option.
+// Toast added for successful order cancellation.
+// ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Row, Col, ListGroup, Image,
-  Card, Alert, Spinner, Badge, Button, Modal
+  Card, Alert, Spinner, Badge, Button, Modal,
 } from 'react-bootstrap';
 import axios from 'axios';
+import { showToast } from '../components/Toast/Toast';
 
 const OrderPage = () => {
-  const { id }       = useParams();
-  const navigate     = useNavigate();
+  const { id } = useParams();
+  const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
-  const [order, setOrder]               = useState(null);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState(null);
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
-  const [cancelError, setCancelError]   = useState(null);
-  const [showModal, setShowModal]       = useState(false);
+  const [cancelError, setCancelError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
+  // ── Fetch order on mount ──────────────────────────────────
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
         const config = {
-          headers: {
-            Authorization: `Bearer ${userInfo.token}`,
-          },
+          headers: { Authorization: `Bearer ${userInfo.token}` },
         };
         const { data } = await axios.get(`/api/orders/${id}`, config);
         setOrder(data);
         setLoading(false);
       } catch (err) {
-        setError(
-          err.response && err.response.data.message
-            ? err.response.data.message
-            : err.message
-        );
+        const msg = err.response?.data?.message || err.message;
+        setError(msg);
+        showToast(msg, 'error');
         setLoading(false);
       }
     };
-
     fetchOrder();
   }, [id, userInfo]);
 
+  // ── Cancel order handler ──────────────────────────────────
   const cancelOrderHandler = async () => {
     try {
       setCancelLoading(true);
       setCancelError(null);
       const config = {
-        headers: {
-          Authorization: `Bearer ${userInfo.token}`,
-        },
+        headers: { Authorization: `Bearer ${userInfo.token}` },
       };
       const { data } = await axios.put(
         `/api/orders/${id}/cancel`,
@@ -61,12 +63,12 @@ const OrderPage = () => {
       setOrder(data);
       setShowModal(false);
       setCancelLoading(false);
+      // Fire both inline alert and toast
+      showToast('Your order has been cancelled successfully.', 'info');
     } catch (err) {
-      setCancelError(
-        err.response && err.response.data.message
-          ? err.response.data.message
-          : err.message
-      );
+      const msg = err.response?.data?.message || err.message;
+      setCancelError(msg);
+      showToast(msg, 'error');
       setCancelLoading(false);
     }
   };
@@ -90,12 +92,10 @@ const OrderPage = () => {
 
   return (
     <>
-      {/* ── Cancel Confirmation Modal ── */}
+      {/* ── Cancel Confirmation Modal ─────────────────────── */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header style={{ backgroundColor: 'var(--oxford-blue)' }}>
-          <Modal.Title style={{ color: 'var(--tan)' }}>
-            Cancel Order
-          </Modal.Title>
+          <Modal.Title style={{ color: 'var(--tan)' }}>Cancel Order</Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ color: 'var(--text-dark)' }}>
           <p>Are you sure you want to cancel this order?</p>
@@ -113,10 +113,7 @@ const OrderPage = () => {
           <Button
             variant='light'
             onClick={() => setShowModal(false)}
-            style={{
-              borderColor: 'var(--tan)',
-              color: 'var(--oxford-blue)',
-            }}
+            style={{ borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}
           >
             Keep Order
           </Button>
@@ -134,7 +131,7 @@ const OrderPage = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* ── Page Header ── */}
+      {/* ── Page header ──────────────────────────────────── */}
       <div className='d-flex justify-content-between align-items-center mb-1'>
         <h2 style={{ color: 'var(--oxford-blue)' }}>
           {order.status === 'cancelled' ? 'Order Cancelled' : 'Order Confirmed'}
@@ -163,7 +160,7 @@ const OrderPage = () => {
       )}
 
       <Row>
-        {/* ── LEFT — Order Details ── */}
+        {/* ── LEFT — Order details ──────────────────────── */}
         <Col md={8}>
           <ListGroup variant='flush'>
 
@@ -212,7 +209,7 @@ const OrderPage = () => {
               )}
             </ListGroup.Item>
 
-            {/* Order Items */}
+            {/* Order items */}
             <ListGroup.Item style={{ borderColor: '#EAE0D5' }}>
               <h4 style={{ color: 'var(--oxford-blue)' }}>Order Items</h4>
               <ListGroup variant='flush'>
@@ -234,7 +231,7 @@ const OrderPage = () => {
                       <Col>
                         <Link
                           to={`/product/${item.product}`}
-                          style={{ color: 'var(--oxford-blue)', fontWeight: '500' }}
+                          style={{ color: 'var(--oxford-blue)', fontWeight: 500 }}
                         >
                           {item.name}
                         </Link>
@@ -250,54 +247,43 @@ const OrderPage = () => {
                 ))}
               </ListGroup>
             </ListGroup.Item>
+
           </ListGroup>
         </Col>
 
-        {/* ── RIGHT — Order Summary ── */}
+        {/* ── RIGHT — Order summary ─────────────────────── */}
         <Col md={4}>
           <Card style={{ border: '1px solid #EAE0D5' }}>
             <ListGroup variant='flush'>
               <ListGroup.Item style={{ backgroundColor: 'var(--oxford-blue)' }}>
-                <h4 style={{ color: 'var(--tan)', margin: 0 }}>
-                  Order Summary
-                </h4>
+                <h4 style={{ color: 'var(--tan)', margin: 0 }}>Order Summary</h4>
               </ListGroup.Item>
-
               <ListGroup.Item>
                 <Row>
                   <Col style={{ color: 'var(--text-muted)' }}>Items:</Col>
                   <Col className='product-card-price'>${order.itemsPrice}</Col>
                 </Row>
               </ListGroup.Item>
-
               <ListGroup.Item>
                 <Row>
                   <Col style={{ color: 'var(--text-muted)' }}>Shipping:</Col>
                   <Col className='product-card-price'>${order.shippingPrice}</Col>
                 </Row>
               </ListGroup.Item>
-
               <ListGroup.Item>
                 <Row>
                   <Col style={{ color: 'var(--text-muted)' }}>VAT (16%):</Col>
                   <Col className='product-card-price'>${order.taxPrice}</Col>
                 </Row>
               </ListGroup.Item>
-
-              <ListGroup.Item style={{
-                borderTop: '2px solid var(--tan)',
-                paddingTop: '1rem'
-              }}>
+              <ListGroup.Item style={{ borderTop: '2px solid var(--tan)', paddingTop: '1rem' }}>
                 <Row>
-                  <Col style={{ color: 'var(--oxford-blue)', fontWeight: '700' }}>
-                    Total:
-                  </Col>
+                  <Col style={{ color: 'var(--oxford-blue)', fontWeight: 700 }}>Total:</Col>
                   <Col className='product-card-price' style={{ fontSize: '1.2rem' }}>
                     ${order.totalPrice}
                   </Col>
                 </Row>
               </ListGroup.Item>
-
               <ListGroup.Item>
                 {order.status === 'cancelled' ? (
                   <Alert variant='danger' style={{ marginBottom: 0 }}>

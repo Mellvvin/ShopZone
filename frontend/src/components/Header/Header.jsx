@@ -22,13 +22,16 @@ import {
 } from 'react-icons/fa';
 
 import { logout } from '../../redux/slices/authSlice';
+import { clearCartItems } from '../../redux/slices/cartSlice';
 import { listProducts } from '../../redux/slices/productSlice';
+import { showToast } from '../Toast/Toast';
 
 import ShopZoneLogo from '../ShopZoneLogo/ShopZoneLogo';
 import SearchBar from '../SearchBar/SearchBar';
 import DesktopDropdownMenu from '../DesktopDropdownMenu/DesktopDropdownMenu';
 import CategoryBar from '../CategoryBar/CategoryBar';
 import MobileDrawer from '../MobileDrawer/MobileDrawer';
+
 
 import './Header.css';
 
@@ -74,6 +77,8 @@ const Header = () => {
 
   const logoutHandler = () => {
     dispatch(logout());
+    dispatch(clearCartItems());
+    showToast('You have been signed out. See you soon!', 'info');
     setShowDropdown(false);
     setShowDrawer(false);
     navigate('/');

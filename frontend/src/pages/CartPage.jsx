@@ -1,29 +1,44 @@
+// frontend/src/pages/CartPage.jsx
+// ─────────────────────────────────────────────────────────────
+// Shopping cart page.
+// Shows all cart items with quantity controls and order summary.
+// Toast added for item removal.
+// ─────────────────────────────────────────────────────────────
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Row, Col, ListGroup, Image,
-  Button, Card, Form, Alert
+  Button, Card, Form, Alert,
 } from 'react-bootstrap';
 import { updateCartQty, removeFromCart } from '../redux/slices/cartSlice';
+import { showToast } from '../components/Toast/Toast';
 
 const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const { cartItems } = useSelector((state) => state.cart);
-  const { userInfo }  = useSelector((state) => state.auth);
+  const { userInfo } = useSelector((state) => state.auth);
 
-  const removeFromCartHandler = (id) => {
+  // ── Remove item from cart ─────────────────────────────────
+  // Fires both the Redux action and a toast notification.
+  const removeFromCartHandler = (id, name) => {
     dispatch(removeFromCart(id));
+    showToast(`${name} removed from cart.`, 'info');
   };
 
- const handleQtyChange = (item, value) => {
-  const parsed = parseInt(value);
-  if (value === '' || isNaN(parsed)) return;
-  const newQty = Math.max(1, parsed);
-  dispatch(updateCartQty({ id: item.product, qty: newQty }));
-};
+  // ── Quantity change handler ───────────────────────────────
+  // Handles both +/- buttons and direct input.
+  // Ignores empty or non-numeric values to prevent NaN.
+  const handleQtyChange = (item, value) => {
+    const parsed = parseInt(value);
+    if (value === '' || isNaN(parsed)) return;
+    const newQty = Math.max(1, parsed);
+    dispatch(updateCartQty({ id: item.product, qty: newQty }));
+  };
 
+  // ── Checkout handler ──────────────────────────────────────
+  // Redirects to login if not logged in, otherwise to shipping.
   const checkoutHandler = () => {
     if (!userInfo) {
       navigate('/login?redirect=shipping');
@@ -34,9 +49,14 @@ const CartPage = () => {
 
   return (
     <Row>
-      {/* ── LEFT — Cart Items ── */}
+
+      {/* ════════════════════════════════════════════════════
+          LEFT — Cart items list
+      ════════════════════════════════════════════════════ */}
       <Col md={8}>
         <h1 className='page-title mb-4'>Shopping Cart</h1>
+
+        {/* Empty cart state */}
         {cartItems.length === 0 ? (
           <Alert style={{
             backgroundColor: 'var(--tan-light)',
@@ -44,7 +64,7 @@ const CartPage = () => {
             color: 'var(--oxford-blue)',
           }}>
             Your cart is empty.{' '}
-            <Link to='/' style={{ color: 'var(--oxford-blue)', fontWeight: '600' }}>
+            <Link to='/' style={{ color: 'var(--oxford-blue)', fontWeight: 600 }}>
               Continue Shopping
             </Link>
           </Alert>
@@ -56,7 +76,8 @@ const CartPage = () => {
                 style={{ borderColor: '#EAE0D5', padding: '1rem 0' }}
               >
                 <Row className='align-items-center'>
-                  {/* Image */}
+
+                  {/* ── Product image ───────────────────── */}
                   <Col md={2}>
                     <Image
                       src={item.image}
@@ -67,24 +88,22 @@ const CartPage = () => {
                     />
                   </Col>
 
-                  {/* Name */}
+                  {/* ── Product name ────────────────────── */}
                   <Col md={3}>
                     <Link
                       to={`/product/${item.product}`}
-                      style={{ color: 'var(--oxford-blue)', fontWeight: '500' }}
+                      style={{ color: 'var(--oxford-blue)', fontWeight: 500 }}
                     >
                       {item.name}
                     </Link>
                   </Col>
 
-                  {/* Price */}
+                  {/* ── Unit price ──────────────────────── */}
                   <Col md={2}>
-                    <span className='product-card-price'>
-                      ${item.price}
-                    </span>
+                    <span className='product-card-price'>${item.price}</span>
                   </Col>
 
-                  {/* ── Quantity Controls ── */}
+                  {/* ── Quantity controls ───────────────── */}
                   <Col md={3}>
                     <Row className='align-items-center'>
                       <Col xs='auto'>
@@ -117,21 +136,23 @@ const CartPage = () => {
                     </Row>
                   </Col>
 
-                  {/* Remove */}
+                  {/* ── Remove button ───────────────────── */}
                   <Col md={1}>
                     <Button
                       type='button'
                       variant='light'
-                      onClick={() => removeFromCartHandler(item.product)}
+                      onClick={() => removeFromCartHandler(item.product, item.name)}
                       style={{
                         color: 'var(--oxford-blue)',
                         border: '1px solid var(--tan)',
                         padding: '4px 10px',
                       }}
+                      aria-label={`Remove ${item.name} from cart`}
                     >
                       ✕
                     </Button>
                   </Col>
+
                 </Row>
               </ListGroup.Item>
             ))}
@@ -139,25 +160,29 @@ const CartPage = () => {
         )}
       </Col>
 
-      {/* ── RIGHT — Order Summary ── */}
+      {/* ════════════════════════════════════════════════════
+          RIGHT — Order summary
+      ════════════════════════════════════════════════════ */}
       <Col md={4}>
         <Card style={{ border: '1px solid #EAE0D5' }}>
           <ListGroup variant='flush'>
+
+            {/* Header */}
             <ListGroup.Item style={{ backgroundColor: 'var(--oxford-blue)' }}>
-              <h4 style={{ color: 'var(--tan)', margin: 0 }}>
-                Order Summary
-              </h4>
+              <h4 style={{ color: 'var(--tan)', margin: 0 }}>Order Summary</h4>
             </ListGroup.Item>
 
+            {/* Item count */}
             <ListGroup.Item>
               <Row>
                 <Col style={{ color: 'var(--text-muted)' }}>Items:</Col>
-                <Col style={{ color: 'var(--oxford-blue)', fontWeight: '600' }}>
+                <Col style={{ color: 'var(--oxford-blue)', fontWeight: 600 }}>
                   {cartItems.reduce((acc, item) => acc + item.qty, 0)}
                 </Col>
               </Row>
             </ListGroup.Item>
 
+            {/* Subtotal */}
             <ListGroup.Item>
               <Row>
                 <Col style={{ color: 'var(--text-muted)' }}>Subtotal:</Col>
@@ -169,6 +194,7 @@ const CartPage = () => {
               </Row>
             </ListGroup.Item>
 
+            {/* Checkout button */}
             <ListGroup.Item>
               <Button
                 type='button'
@@ -179,9 +205,11 @@ const CartPage = () => {
                 Proceed To Checkout
               </Button>
             </ListGroup.Item>
+
           </ListGroup>
         </Card>
       </Col>
+
     </Row>
   );
 };

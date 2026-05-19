@@ -1,17 +1,18 @@
 // frontend/src/components/CategoryBar/CategoryBar.jsx
 // ─────────────────────────────────────────────────────────────
 // Desktop second navbar bar.
-// Contains: Home | Deals | Categories ▾ | Brands | Bulk Orders | More ▾
 //
-// Categories mega-menu:
-//   - Opens on hover (mouse enters the trigger)
-//   - Stays open while hovering over the menu itself
-//   - Closes when mouse leaves both the trigger and the menu
-//   - Also toggles on click for keyboard/touch users
+// Categories behaviour:
+//   - Hover opens the mega-menu
+//   - Click locks it open (ignores hover close timer)
+//   - Clicking the trigger again OR clicking outside unlocks and closes
 //
-// Category values match exactly what is stored in MongoDB.
+// More behaviour:
+//   - Hover opens the dropdown
+//   - Click locks it open
+//   - Clicking the trigger again OR clicking outside unlocks and closes
 // ─────────────────────────────────────────────────────────────
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     FaChevronDown, FaThList,
@@ -21,8 +22,7 @@ import {
 } from 'react-icons/fa';
 import './CategoryBar.css';
 
-// ── Category data ─────────────────────────────────────────────
-// Values must exactly match the category strings in MongoDB.
+// ── Category data — values match MongoDB exactly ──────────────
 const CATEGORIES = [
     { label: 'Electronics', icon: <FaMobileAlt />, value: 'Electronics' },
     { label: 'Fashion & Apparel', icon: <FaTshirt />, value: 'Fashion & Apparel' },
@@ -52,52 +52,102 @@ const MORE_LINKS = [
 const CategoryBar = () => {
     const navigate = useNavigate();
 
-    // ── Dropdown state ────────────────────────────────────────
+    // ── State ─────────────────────────────────────────────────
+    // open   — whether the menu is visible (hover OR locked)
+    // locked — whether the menu is pinned open by a click
     const [catOpen, setCatOpen] = useState(false);
+    const [catLocked, setCatLocked] = useState(false);
     const [moreOpen, setMoreOpen] = useState(false);
+    const [moreLocked, setMoreLocked] = useState(false);
 
-    // ── Hover timeout ref ─────────────────────────────────────
-    // Used to add a small delay before closing the mega-menu
-    // so the user has time to move the mouse from the trigger
-    // button into the menu panel without it closing.
-    const closeTimer = useRef(null);
+    // ── Refs ──────────────────────────────────────────────────
+    const catCloseTimer = useRef(null);
+    const moreCloseTimer = useRef(null);
+    const catRef = useRef(null);
+    const moreRef = useRef(null);
 
-    // ── Hover handlers for Categories mega-menu ───────────────
-
-    // Called when mouse enters the trigger button OR the menu panel
-    const handleCatMouseEnter = useCallback(() => {
-        // Cancel any pending close timer
-        if (closeTimer.current) clearTimeout(closeTimer.current);
-        setCatOpen(true);
-        setMoreOpen(false);
+    // ── Close both menus when clicking outside ────────────────
+    useEffect(() => {
+        const handler = (e) => {
+            if (catRef.current && !catRef.current.contains(e.target)) {
+                setCatOpen(false);
+                setCatLocked(false);
+            }
+            if (moreRef.current && !moreRef.current.contains(e.target)) {
+                setMoreOpen(false);
+                setMoreLocked(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    // Called when mouse leaves the trigger button OR the menu panel
-    // Uses a short delay so moving between trigger and panel
-    // does not cause a flicker close.
-    const handleCatMouseLeave = useCallback(() => {
-        closeTimer.current = setTimeout(() => {
+    // ══ CATEGORIES handlers ═══════════════════════════════════
+
+    // Mouse enters trigger or menu — open immediately, cancel close timer
+    const handleCatEnter = useCallback(() => {
+        if (catCloseTimer.current) clearTimeout(catCloseTimer.current);
+        setCatOpen(true);
+    }, []);
+
+    // Mouse leaves trigger or menu — close after delay UNLESS locked
+    const handleCatLeave = useCallback(() => {
+        if (catLocked) return;   // locked by click — ignore hover close
+        catCloseTimer.current = setTimeout(() => {
             setCatOpen(false);
         }, 120);
-    }, []);
+    }, [catLocked]);
 
-    // ── Click handler for Categories ──────────────────────────
-    // Toggles the menu open/closed on click for accessibility
+    // Click trigger — toggle lock
+    // If not locked: lock it open
+    // If locked: unlock and close
     const handleCatClick = () => {
-        setCatOpen((prev) => !prev);
-        setMoreOpen(false);
+        if (catLocked) {
+            // Unlock — close the menu
+            setCatLocked(false);
+            setCatOpen(false);
+        } else {
+            // Lock open
+            setCatLocked(true);
+            setCatOpen(true);
+            // Close More if it was open
+            setMoreOpen(false);
+            setMoreLocked(false);
+        }
     };
 
-    // ── Navigate to category filtered page ────────────────────
+    // Navigate to category page then close and unlock
     const handleCategory = (value) => {
         navigate(`/?category=${encodeURIComponent(value)}`);
         setCatOpen(false);
+        setCatLocked(false);
     };
 
-    // ── More dropdown handlers ────────────────────────────────
+    // ══ MORE handlers ═════════════════════════════════════════
+
+    const handleMoreEnter = useCallback(() => {
+        if (moreCloseTimer.current) clearTimeout(moreCloseTimer.current);
+        setMoreOpen(true);
+    }, []);
+
+    const handleMoreLeave = useCallback(() => {
+        if (moreLocked) return;
+        moreCloseTimer.current = setTimeout(() => {
+            setMoreOpen(false);
+        }, 120);
+    }, [moreLocked]);
+
     const handleMoreClick = () => {
-        setMoreOpen((prev) => !prev);
-        setCatOpen(false);
+        if (moreLocked) {
+            setMoreLocked(false);
+            setMoreOpen(false);
+        } else {
+            setMoreLocked(true);
+            setMoreOpen(true);
+            // Close Categories if open
+            setCatOpen(false);
+            setCatLocked(false);
+        }
     };
 
     return (
@@ -106,25 +156,18 @@ const CategoryBar = () => {
                 <nav className='category-bar-nav'>
 
                     {/* ── Home ───────────────────────────────────────── */}
-                    <Link to='/' className='catbar-link'>
-                        Home
-                    </Link>
+                    <Link to='/' className='catbar-link'>Home</Link>
 
                     {/* ── Deals ──────────────────────────────────────── */}
-                    <Link to='/?deals=true' className='catbar-link'>
-                        Deals
-                    </Link>
+                    <Link to='/?deals=true' className='catbar-link'>Deals</Link>
 
-                    {/* ── Categories mega-dropdown ───────────────────── */}
-                    {/* Wrapper handles hover events for both trigger     */}
-                    {/* and menu panel so the menu stays open when the    */}
-                    {/* mouse moves between them.                         */}
+                    {/* ── Categories ─────────────────────────────────── */}
                     <div
                         className='catbar-dropdown-wrapper'
-                        onMouseEnter={handleCatMouseEnter}
-                        onMouseLeave={handleCatMouseLeave}
+                        ref={catRef}
+                        onMouseEnter={handleCatEnter}
+                        onMouseLeave={handleCatLeave}
                     >
-                        {/* Trigger button — click also toggles */}
                         <button
                             className={`catbar-link catbar-trigger ${catOpen ? 'active' : ''}`}
                             onClick={handleCatClick}
@@ -132,19 +175,17 @@ const CategoryBar = () => {
                             aria-haspopup='true'
                         >
                             Categories
+                            {/* Chevron rotates when open, shows lock icon when locked */}
                             <FaChevronDown className={`catbar-chevron ${catOpen ? 'open' : ''}`} />
                         </button>
 
-                        {/* Mega-menu panel */}
                         {catOpen && (
                             <div
                                 className='mega-menu'
                                 role='menu'
-                                // Keep the menu open when mouse is inside it
-                                onMouseEnter={handleCatMouseEnter}
-                                onMouseLeave={handleCatMouseLeave}
+                                onMouseEnter={handleCatEnter}
+                                onMouseLeave={handleCatLeave}
                             >
-                                {/* 4-column grid of category cells */}
                                 <div className='mega-menu-grid'>
                                     {CATEGORIES.map((cat) => (
                                         <button
@@ -153,22 +194,21 @@ const CategoryBar = () => {
                                             onClick={() => handleCategory(cat.value)}
                                             role='menuitem'
                                         >
-                                            {/* Oxford Blue icon box */}
                                             <span className='mega-menu-icon'>{cat.icon}</span>
-                                            {/* Category name */}
                                             <span className='mega-menu-label'>{cat.label}</span>
                                         </button>
                                     ))}
                                 </div>
-
-                                {/* View all link at bottom of mega-menu */}
                                 <div className='mega-menu-footer'>
                                     <button
                                         className='mega-menu-view-all'
-                                        onClick={() => { navigate('/'); setCatOpen(false); }}
+                                        onClick={() => {
+                                            navigate('/');
+                                            setCatOpen(false);
+                                            setCatLocked(false);
+                                        }}
                                     >
-                                        <FaThList />
-                                        View All Categories
+                                        <FaThList /> View All Categories
                                     </button>
                                 </div>
                             </div>
@@ -181,8 +221,13 @@ const CategoryBar = () => {
                     {/* ── Bulk Orders ────────────────────────────────── */}
                     <Link to='/contact' className='catbar-link'>Bulk Orders</Link>
 
-                    {/* ── More dropdown ──────────────────────────────── */}
-                    <div className='catbar-dropdown-wrapper'>
+                    {/* ── More ───────────────────────────────────────── */}
+                    <div
+                        className='catbar-dropdown-wrapper'
+                        ref={moreRef}
+                        onMouseEnter={handleMoreEnter}
+                        onMouseLeave={handleMoreLeave}
+                    >
                         <button
                             className={`catbar-link catbar-trigger ${moreOpen ? 'active' : ''}`}
                             onClick={handleMoreClick}
@@ -193,16 +238,23 @@ const CategoryBar = () => {
                             <FaChevronDown className={`catbar-chevron ${moreOpen ? 'open' : ''}`} />
                         </button>
 
-                        {/* Simple vertical dropdown */}
                         {moreOpen && (
-                            <div className='simple-dropdown' role='menu'>
+                            <div
+                                className='simple-dropdown'
+                                role='menu'
+                                onMouseEnter={handleMoreEnter}
+                                onMouseLeave={handleMoreLeave}
+                            >
                                 {MORE_LINKS.map((link) => (
                                     <Link
                                         key={link.to}
                                         to={link.to}
                                         className='simple-dropdown-item'
                                         role='menuitem'
-                                        onClick={() => setMoreOpen(false)}
+                                        onClick={() => {
+                                            setMoreOpen(false);
+                                            setMoreLocked(false);
+                                        }}
                                     >
                                         {link.label}
                                     </Link>

@@ -1,24 +1,31 @@
+// frontend/src/pages/AdminProductListPage.jsx
+// ─────────────────────────────────────────────────────────────
+// Admin page — lists all products with edit and delete actions.
+// Toasts added for: product deleted, product created, errors.
+// Category dropdown updated to match MongoDB category strings.
+// ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Table, Button, Row, Col,
-  Alert, Spinner, Modal, Badge
+  Alert, Spinner, Modal, Badge,
 } from 'react-bootstrap';
 import axios from 'axios';
+import { showToast } from '../components/Toast/Toast';
 
 const AdminProductListPage = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
-  const [products, setProducts]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
-  const [deleteId, setDeleteId]       = useState(null);
-  const [showModal, setShowModal]     = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [successMsg, setSuccessMsg]   = useState(null);
 
+  // ── Fetch all products ────────────────────────────────────
   useEffect(() => {
     if (!userInfo || !userInfo.isAdmin) {
       navigate('/login');
@@ -37,15 +44,14 @@ const AdminProductListPage = () => {
       setProducts(data);
       setLoading(false);
     } catch (err) {
-      setError(
-        err.response && err.response.data.message
-          ? err.response.data.message
-          : err.message
-      );
+      const msg = err.response?.data?.message || err.message;
+      setError(msg);
+      showToast(msg, 'error');
       setLoading(false);
     }
   };
 
+  // ── Delete handlers ───────────────────────────────────────
   const confirmDelete = (id) => {
     setDeleteId(id);
     setShowModal(true);
@@ -58,61 +64,57 @@ const AdminProductListPage = () => {
         headers: { Authorization: `Bearer ${userInfo.token}` },
       };
       await axios.delete(`/api/products/${deleteId}`, config);
-      setSuccessMsg('Product deleted successfully');
       setShowModal(false);
       setDeleteLoading(false);
+      // Both inline and toast
+      showToast('Product deleted successfully.', 'success');
       fetchProducts();
-      setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err) {
-      setError(
-        err.response && err.response.data.message
-          ? err.response.data.message
-          : err.message
-      );
+      const msg = err.response?.data?.message || err.message;
+      setError(msg);
+      showToast(msg, 'error');
       setDeleteLoading(false);
       setShowModal(false);
     }
   };
 
+  // ── Create product handler ────────────────────────────────
   const createProductHandler = async () => {
     try {
       const config = {
         headers: {
           'Content-Type': 'application/json',
-          Authorization:  `Bearer ${userInfo.token}`,
+          Authorization: `Bearer ${userInfo.token}`,
         },
       };
       const { data } = await axios.post(
         '/api/products',
         {
-          name:         'New Product',
-          price:        0,
-          image:        '/images/sample.jpg',
-          category:     'General',
-          description:  'Product description',
+          name: 'New Product',
+          price: 0,
+          image: '/images/sample.jpg',
+          category: 'General Merchandise',
+          description: 'Product description',
           countInStock: 0,
-          unit:         'Per Unit',
+          unit: 'Per Unit',
         },
         config
       );
+      showToast('New product created. Fill in the details below.', 'info');
       navigate(`/admin/product/${data._id}/edit`);
     } catch (err) {
-      setError(
-        err.response && err.response.data.message
-          ? err.response.data.message
-          : err.message
-      );
+      const msg = err.response?.data?.message || err.message;
+      setError(msg);
+      showToast(msg, 'error');
     }
   };
 
   return (
     <>
-      {/* ── Delete Confirmation Modal ── */}
+      {/* ── Delete Confirmation Modal ─────────────────────── */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header style={{ backgroundColor: 'var(--oxford-blue)' }}>
-          <Modal.Title style={{ color: 'var(--tan)' }}>
-            Delete Product
-          </Modal.Title>
+          <Modal.Title style={{ color: 'var(--tan)' }}>Delete Product</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>Are you sure you want to delete this product?</p>
@@ -128,21 +130,13 @@ const AdminProductListPage = () => {
           >
             Cancel
           </Button>
-          <Button
-            variant='danger'
-            onClick={deleteHandler}
-            disabled={deleteLoading}
-          >
-            {deleteLoading ? (
-              <Spinner animation='border' size='sm' />
-            ) : (
-              'Yes, Delete'
-            )}
+          <Button variant='danger' onClick={deleteHandler} disabled={deleteLoading}>
+            {deleteLoading ? <Spinner animation='border' size='sm' /> : 'Yes, Delete'}
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* ── Page Header ── */}
+      {/* ── Page header ──────────────────────────────────── */}
       <Row className='align-items-center mb-4'>
         <Col>
           <h2 style={{ color: 'var(--oxford-blue)' }} className='page-title'>
@@ -150,33 +144,18 @@ const AdminProductListPage = () => {
           </h2>
         </Col>
         <Col className='text-end'>
-          <Button
-            variant='dark'
-            onClick={createProductHandler}
-          >
+          <Button variant='dark' onClick={createProductHandler}>
             + Create Product
           </Button>
         </Col>
       </Row>
 
-      {successMsg && (
-        <Alert style={{
-          backgroundColor: 'var(--tan-light)',
-          borderColor:     'var(--tan)',
-          color:           'var(--oxford-blue)',
-        }}>
-          {successMsg}
-        </Alert>
-      )}
-
+      {/* Inline error */}
       {error && <Alert variant='danger'>{error}</Alert>}
 
       {loading ? (
         <div className='text-center py-5'>
-          <Spinner
-            animation='border'
-            style={{ color: 'var(--oxford-blue)' }}
-          />
+          <Spinner animation='border' style={{ color: 'var(--oxford-blue)' }} />
         </div>
       ) : (
         <Table responsive hover style={{ fontSize: '0.88rem' }}>
@@ -198,54 +177,31 @@ const AdminProductListPage = () => {
                 key={product._id}
                 style={{
                   backgroundColor: index % 2 === 0 ? 'white' : '#FAFAF9',
-                  verticalAlign:   'middle',
+                  verticalAlign: 'middle',
                 }}
               >
-                <td style={{
-                  fontFamily: 'Courier New',
-                  fontSize:   '0.72rem',
-                  color:      'var(--text-muted)',
-                }}>
+                <td style={{ fontFamily: 'Courier New', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                   {product._id.slice(-8)}
                 </td>
                 <td>
                   <img
                     src={product.image}
                     alt={product.name}
-                    style={{
-                      width:        '45px',
-                      height:       '45px',
-                      objectFit:    'cover',
-                      borderRadius: '6px',
-                      border:       '1px solid #EAE0D5',
-                    }}
+                    style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #EAE0D5' }}
                   />
                 </td>
-                <td style={{ fontWeight: '500', color: 'var(--oxford-blue)' }}>
+                <td style={{ fontWeight: 500, color: 'var(--oxford-blue)' }}>
                   {product.name}
                 </td>
-                <td className='product-card-price'>
-                  ${product.price}
-                </td>
+                <td className='product-card-price'>${product.price}</td>
                 <td>
-                  <Badge style={{
-                    backgroundColor: 'var(--oxford-blue)',
-                    color:           'var(--tan)',
-                    fontSize:        '0.72rem',
-                    padding:         '4px 8px',
-                    borderRadius:    '20px',
-                  }}>
+                  <Badge style={{ backgroundColor: 'var(--oxford-blue)', color: 'var(--tan)', fontSize: '0.72rem', padding: '4px 8px', borderRadius: '20px' }}>
                     {product.unit || 'Per Unit'}
                   </Badge>
                 </td>
-                <td style={{ color: 'var(--text-muted)' }}>
-                  {product.category}
-                </td>
+                <td style={{ color: 'var(--text-muted)' }}>{product.category}</td>
                 <td>
-                  <span style={{
-                    color:      product.countInStock > 0 ? 'green' : 'red',
-                    fontWeight: '600',
-                  }}>
+                  <span style={{ color: product.countInStock > 0 ? 'green' : 'red', fontWeight: 600 }}>
                     {product.countInStock}
                   </span>
                 </td>
@@ -254,14 +210,7 @@ const AdminProductListPage = () => {
                     <Link
                       to={`/admin/product/${product._id}/edit`}
                       className='btn btn-sm'
-                      style={{
-                        backgroundColor: 'var(--oxford-blue)',
-                        color:           'var(--tan)',
-                        border:          'none',
-                        padding:         '4px 10px',
-                        borderRadius:    '6px',
-                        fontSize:        '0.8rem',
-                      }}
+                      style={{ backgroundColor: 'var(--oxford-blue)', color: 'var(--tan)', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem' }}
                     >
                       Edit
                     </Link>
@@ -269,11 +218,7 @@ const AdminProductListPage = () => {
                       size='sm'
                       variant='danger'
                       onClick={() => confirmDelete(product._id)}
-                      style={{
-                        padding:      '4px 10px',
-                        borderRadius: '6px',
-                        fontSize:     '0.8rem',
-                      }}
+                      style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem' }}
                     >
                       Delete
                     </Button>

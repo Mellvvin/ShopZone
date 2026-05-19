@@ -1,0 +1,158 @@
+/* CategoryCards.css
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Styles for the 13-category grid on the ShopZone homepage.
+ *
+ * Layout:
+ *   .category-cards-section  — outer wrapper with section padding
+ *   .category-cards-grid     — auto-fill CSS grid
+ *   .category-card           — individual button card with icon, label, arrow
+ *
+ * Reuses shared section header classes (.section-header, .section-title,
+ * .section-subtitle) defined in HomePage.css so all homepage sections look
+ * consistent.
+ * ─────────────────────────────────────────────────────────────────────────────
+*/
+
+/* ── Section wrapper ─────────────────────────────────────────────────────── */
+.category-cards-section {
+  padding: 64px 24px 48px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Grid ────────────────────────────────────────────────────────────────── */
+/* auto-fill with 120px minimum per cell so it naturally wraps on smaller screens */
+.category-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+/* ── Individual card ─────────────────────────────────────────────────────── */
+.category-card {
+  /* Reset button defaults */
+  all: unset;
+  cursor: pointer;
+  box-sizing: border-box;
+
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 12px 16px;
+  border-radius: 12px;
+  position: relative;
+
+  /* Visual */
+  background: #fff;
+  border: 1.5px solid rgba(0, 33, 71, 0.08);
+  text-align: center;
+
+  /* Transitions — lift, shadow, border colour */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Hover/focus lift effect */
+.category-card:hover,
+.category-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 33, 71, 0.12);
+  border-color: var(--tan);
+}
+
+/* ── Icon wrapper ────────────────────────────────────────────────────────── */
+.category-card__icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(0, 33, 71, 0.06); /* very light Oxford Blue tint */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  /* Animate background tint on card hover */
+  transition: background 0.2s ease;
+}
+
+.category-card:hover .category-card__icon-wrap,
+.category-card:focus-visible .category-card__icon-wrap {
+  background: rgba(0, 33, 71, 0.12);
+}
+
+/* Icon itself */
+.category-card__icon {
+  font-size: 1.4rem;
+  color: var(--oxford-blue);
+}
+
+/* ── Label ───────────────────────────────────────────────────────────────── */
+.category-card__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--oxford-blue);
+  line-height: 1.3;
+  text-align: center;
+
+  /* Allow two-line labels to wrap cleanly */
+  white-space: normal;
+  overflow-wrap: break-word;
+  max-width: 100px;
+}
+
+/* ── Hover arrow ─────────────────────────────────────────────────────────── */
+/* Hidden by default, slides in on card hover */
+.category-card__arrow {
+  font-size: 0.65rem;
+  color: var(--tan);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+}
+
+.category-card:hover .category-card__arrow,
+.category-card:focus-visible .category-card__arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .category-cards-section {
+    padding: 48px 16px 32px;
+  }
+
+  .category-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+  }
+
+  .category-card {
+    padding: 16px 8px 14px;
+  }
+
+  .category-card__icon-wrap {
+    width: 44px;
+    height: 44px;
+  }
+
+  .category-card__icon {
+    font-size: 1.2rem;
+  }
+
+  .category-card__label {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .category-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
