@@ -159,7 +159,7 @@ const CategoryBar = () => {
                     <Link to='/' className='catbar-link'>Home</Link>
 
                     {/* ── Deals ──────────────────────────────────────── */}
-                    <Link to='/?deals=true' className='catbar-link'>Deals</Link>
+                    <Link to='/offers' className='catbar-link'>Deals</Link>
 
                     {/* ── Categories ─────────────────────────────────── */}
                     <div

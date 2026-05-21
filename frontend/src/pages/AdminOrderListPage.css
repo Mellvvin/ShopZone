@@ -1,0 +1,524 @@
+/* AdminOrderListPage.css
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Styles for the ShopZone Admin Order Management page.
+ *
+ * Layout:
+ *   .admin-orders-page          — outer wrapper
+ *   .admin-orders-page__header  — title row + summary counts
+ *   .admin-orders-tabs          — three-tab navigation bar
+ *   .admin-orders-table-wrap    — horizontally scrollable table container
+ *   .admin-orders-table         — orders data table
+ *
+ * Components:
+ *   .admin-status-badge         — colour-coded order status pill
+ *   .admin-bool-badge           — yes/no paid/delivered badges
+ *   .admin-table-btn            — inline action buttons in each row
+ *   .admin-modal-overlay        — modal backdrop
+ *   .admin-modal                — modal card (deliver + send quote)
+ *
+ * Colours from index.css variables:
+ *   --oxford-blue  #002147
+ *   --tan          #D2B48C
+ *   --off-white    #FAF8F5
+ * ─────────────────────────────────────────────────────────────────────────────
+*/
+
+/* ── Page wrapper ────────────────────────────────────────────────────────── */
+.admin-orders-page {
+  min-height: 100vh;
+  background: var(--off-white);
+  padding: 0 0 80px;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+.admin-orders-page__header {
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 33, 71, 0.08);
+  padding: 28px 32px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.admin-orders-page__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-orders-page__icon {
+  font-size: 1.4rem;
+  color: var(--tan);
+  flex-shrink: 0;
+}
+
+.admin-orders-page__title {
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  font-weight: 800;
+  color: var(--oxford-blue);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* Summary count pills */
+.admin-orders-counts {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-orders-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0, 33, 71, 0.04);
+  border-radius: 10px;
+  padding: 10px 20px;
+  min-width: 80px;
+}
+
+.admin-orders-count--alert {
+  background: #fff8f0;
+  border: 1px solid #f0a500;
+}
+
+.admin-orders-count--payout {
+  background: #eafaf1;
+  border: 1px solid #27ae60;
+}
+
+.admin-orders-count__num {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--oxford-blue);
+  line-height: 1;
+}
+
+.admin-orders-count--alert .admin-orders-count__num  { color: #f0a500; }
+.admin-orders-count--payout .admin-orders-count__num { color: #27ae60; }
+
+.admin-orders-count__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+/* ── Tab bar ─────────────────────────────────────────────────────────────── */
+.admin-orders-tabs {
+  display: flex;
+  border-bottom: 2px solid rgba(0, 33, 71, 0.08);
+  background: #fff;
+  padding: 0 32px;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.admin-orders-tab {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #aaa;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-orders-tab:hover {
+  color: var(--oxford-blue);
+}
+
+.admin-orders-tab--active {
+  color: var(--oxford-blue);
+  border-bottom-color: var(--oxford-blue);
+}
+
+/* Count badge on tab */
+.admin-orders-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(0, 33, 71, 0.08);
+  color: var(--oxford-blue);
+}
+
+.admin-orders-tab__count--alert  { background: #f0a500; color: #fff; }
+.admin-orders-tab__count--payout { background: #27ae60; color: #fff; }
+
+/* ── Loading / error / empty states ─────────────────────────────────────── */
+.admin-orders-loading,
+.admin-orders-error,
+.admin-orders-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 24px;
+  color: #888;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.admin-orders-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(0, 33, 71, 0.1);
+  border-top-color: var(--oxford-blue);
+  border-radius: 50%;
+  animation: aoSpinnerRotate 0.8s linear infinite;
+}
+
+@keyframes aoSpinnerRotate {
+  to { transform: rotate(360deg); }
+}
+
+.admin-orders-error { color: #c0392b; }
+
+.admin-orders-retry-btn {
+  all: unset;
+  cursor: pointer;
+  padding: 10px 24px;
+  background: var(--oxford-blue);
+  color: var(--tan);
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* ── Table wrapper ───────────────────────────────────────────────────────── */
+.admin-orders-table-wrap {
+  padding: 28px 32px;
+  overflow-x: auto;
+}
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.admin-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 800px; /* prevents squishing on narrow viewports — scrolls instead */
+}
+
+.admin-orders-table thead th {
+  background: var(--oxford-blue);
+  color: var(--tan);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.admin-orders-table tbody td {
+  padding: 12px 14px;
+  color: #444;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(0, 33, 71, 0.06);
+}
+
+/* Alternating row shading */
+.admin-orders-table__row--alt td {
+  background: rgba(0, 33, 71, 0.015);
+}
+
+/* Order ID cell */
+.admin-orders-table__id {
+  font-weight: 700;
+  color: var(--oxford-blue) !important;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* Tier 2 bulk flag */
+.admin-orders-table__tier2-flag {
+  display: inline-block;
+  margin-left: 6px;
+  background: rgba(210, 180, 140, 0.25);
+  color: var(--oxford-blue);
+  border: 1px solid var(--tan);
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+/* Buyer name + email stacked */
+.admin-orders-table__buyer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-orders-table__buyer-email {
+  font-size: 0.72rem;
+  color: #bbb;
+}
+
+.admin-orders-table__date {
+  white-space: nowrap;
+  color: #777 !important;
+}
+
+/* Total + commission stacked */
+.admin-orders-table__total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-orders-table__commission {
+  font-size: 0.68rem;
+  color: #bbb;
+}
+
+/* Actions cell */
+.admin-orders-table__actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Status badges ───────────────────────────────────────────────────────── */
+.admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-status-badge--pending    { background: rgba(0,33,71,0.07);  color: #888; }
+.admin-status-badge--processing { background: #e8f0fe;             color: #2980b9; }
+.admin-status-badge--dispatched { background: #fff3e0;             color: #e67e22; }
+.admin-status-badge--delivered  { background: #eafaf1;             color: #27ae60; }
+.admin-status-badge--cancelled  { background: #fdf0f0;             color: #e74c3c; }
+
+/* ── Bool badges (paid / delivered yes/no) ───────────────────────────────── */
+.admin-bool-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-bool-badge--yes { color: #27ae60; }
+.admin-bool-badge--no  { color: #ccc; }
+
+/* Quote status text */
+.admin-quote-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #f0a500;
+}
+
+/* ── Inline table action buttons ─────────────────────────────────────────── */
+.admin-table-btn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  text-decoration: none;
+}
+
+.admin-table-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.admin-table-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* View — outlined Oxford Blue */
+.admin-table-btn--view {
+  border: 1.5px solid rgba(0, 33, 71, 0.2);
+  color: var(--oxford-blue);
+}
+
+.admin-table-btn--view:hover {
+  background: rgba(0, 33, 71, 0.05);
+}
+
+/* Deliver — dark fill */
+.admin-table-btn--deliver {
+  background: var(--oxford-blue);
+  color: var(--tan);
+}
+
+/* Send Quote — amber */
+.admin-table-btn--quote {
+  background: #f0a500;
+  color: #fff;
+}
+
+/* Release Payout — green */
+.admin-table-btn--payout {
+  background: #27ae60;
+  color: #fff;
+}
+
+/* ── Modal shared styles ──────────────────────────────────────────────────── */
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 33, 71, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  padding: 24px;
+  backdrop-filter: blur(3px);
+}
+
+.admin-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 33, 71, 0.2);
+}
+
+.admin-modal__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--oxford-blue);
+  margin: 0 0 12px;
+}
+
+.admin-modal__body {
+  font-size: 0.88rem;
+  color: #666;
+  line-height: 1.7;
+  margin: 0 0 20px;
+}
+
+/* Form fields inside modal */
+.admin-modal__field {
+  margin-bottom: 16px;
+}
+
+.admin-modal__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  margin-bottom: 6px;
+}
+
+.admin-modal__required { color: #c0392b; }
+
+.admin-modal__input {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--oxford-blue);
+  border: 1.5px solid rgba(0, 33, 71, 0.18);
+  border-radius: 7px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.admin-modal__input:focus {
+  border-color: var(--oxford-blue);
+}
+
+.admin-modal__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.admin-modal__btn {
+  all: unset;
+  cursor: pointer;
+  flex: 1;
+  min-width: 120px;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-align: center;
+  transition: opacity 0.15s ease;
+}
+
+.admin-modal__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Confirm — Oxford Blue */
+.admin-modal__btn--confirm {
+  background: var(--oxford-blue);
+  color: var(--tan);
+}
+
+/* Dismiss — outlined */
+.admin-modal__btn--dismiss {
+  border: 1.5px solid rgba(0, 33, 71, 0.2);
+  color: var(--oxford-blue);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .admin-orders-page__header {
+    padding: 20px 16px;
+  }
+
+  .admin-orders-tabs {
+    padding: 0 16px;
+  }
+
+  .admin-orders-table-wrap {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-orders-page__header {
+    flex-direction: column;
+  }
+
+  .admin-orders-tab {
+    padding: 14px 12px;
+    font-size: 0.78rem;
+  }
+
+  .admin-modal {
+    padding: 24px 20px;
+  }
+}

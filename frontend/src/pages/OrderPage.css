@@ -1,0 +1,873 @@
+/* OrderPage.css
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Styles for the ShopZone Order confirmation / tracking page.
+ *
+ * Layout:
+ *   .order-page              — outer wrapper
+ *   .order-page__heading     — order ID + date strip
+ *   .order-page__inner       — two-column flex (details | status+summary)
+ *   .order-page__left        — left column: items, address, payment sections
+ *   .order-page__right       — right column: timeline, price card, actions
+ *
+ * Key components:
+ *   .order-timeline          — four-step status progress indicator
+ *   .order-quote-section     — Tier 2 delivery quote flow (pending/sent/approved/rejected)
+ *   .order-modal-overlay     — cancel confirmation modal
+ *
+ * Colours from index.css variables:
+ *   --oxford-blue  #002147
+ *   --tan          #D2B48C
+ *   --off-white    #FAF8F5
+ * ─────────────────────────────────────────────────────────────────────────────
+*/
+
+/* ── Page wrapper ────────────────────────────────────────────────────────── */
+.order-page {
+  min-height: 100vh;
+  background: var(--off-white);
+  padding: 0 0 80px;
+}
+
+/* Loading state */
+.order-page--loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.order-page__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(0, 33, 71, 0.1);
+  border-top-color: var(--oxford-blue);
+  border-radius: 50%;
+  animation: opSpinnerRotate 0.8s linear infinite;
+}
+
+@keyframes opSpinnerRotate {
+  to { transform: rotate(360deg); }
+}
+
+/* Error state */
+.order-page--error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 24px;
+  color: #c0392b;
+  font-size: 0.9rem;
+}
+
+.order-page__retry-btn {
+  all: unset;
+  cursor: pointer;
+  padding: 10px 24px;
+  background: var(--oxford-blue);
+  color: var(--tan);
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+/* ── Page heading ────────────────────────────────────────────────────────── */
+.order-page__heading {
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 33, 71, 0.08);
+  padding: 24px;
+  text-align: center;
+}
+
+.order-page__title {
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  font-weight: 800;
+  color: var(--oxford-blue);
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+/* Shortened order ID in tan */
+.order-page__id {
+  color: var(--tan);
+}
+
+.order-page__date {
+  font-size: 0.82rem;
+  color: #aaa;
+  margin: 0;
+}
+
+/* ── Two-column layout ───────────────────────────────────────────────────── */
+.order-page__inner {
+  max-width: 1100px;
+  margin: 32px auto 0;
+  padding: 0 24px;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.order-page__left {
+  flex: 1 1 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.order-page__right {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 24px;
+}
+
+/* ── Section card ────────────────────────────────────────────────────────── */
+.order-section {
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0, 33, 71, 0.08);
+  padding: 24px;
+}
+
+.order-section__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(0, 33, 71, 0.07);
+}
+
+.order-section__icon {
+  font-size: 1rem;
+  color: var(--tan);
+  flex-shrink: 0;
+}
+
+.order-section__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  margin: 0;
+}
+
+/* ── Order items list ────────────────────────────────────────────────────── */
+.order-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 33, 71, 0.06);
+}
+
+.order-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.order-item__img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 33, 71, 0.08);
+  flex-shrink: 0;
+}
+
+.order-item__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.order-item__name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s ease;
+}
+
+.order-item__name:hover { color: var(--tan); }
+
+.order-item__category {
+  font-size: 0.72rem;
+  color: #aaa;
+}
+
+.order-item__unit {
+  font-size: 0.72rem;
+  color: #ccc;
+}
+
+.order-item__price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 0.78rem;
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.order-item__price strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+}
+
+/* ── Detail grid (address) ───────────────────────────────────────────────── */
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+  margin-bottom: 0;
+}
+
+.order-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-detail__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #bbb;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.order-detail__value {
+  font-size: 0.88rem;
+  color: var(--oxford-blue);
+}
+
+.order-detail__value--accent {
+  font-weight: 700;
+  color: var(--oxford-blue);
+}
+
+/* ── Tier 2 delivery quote section ───────────────────────────────────────── */
+.order-quote-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 33, 71, 0.07);
+}
+
+.order-quote-section__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  margin: 0 0 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Base quote status block */
+.order-quote-status {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.order-quote-status svg {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.order-quote-status strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.order-quote-status p {
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Pending state */
+.order-quote-status--pending {
+  background: rgba(0, 33, 71, 0.04);
+  border: 1px solid rgba(0, 33, 71, 0.1);
+  color: #555;
+}
+.order-quote-status--pending svg { color: #aaa; }
+
+/* Sent — buyer needs to action */
+.order-quote-status--sent {
+  background: #fff8f0;
+  border: 1.5px solid #f0a500;
+  color: #555;
+}
+.order-quote-status--sent svg { color: #f0a500; }
+
+/* Approved */
+.order-quote-status--approved {
+  background: #f0fff4;
+  border: 1.5px solid #27ae60;
+  color: #555;
+}
+.order-quote-status--approved svg { color: #27ae60; }
+
+/* Rejected */
+.order-quote-status--rejected {
+  background: #fdf0f0;
+  border: 1.5px solid #e74c3c;
+  color: #555;
+}
+.order-quote-status--rejected svg { color: #e74c3c; }
+
+.order-quote-status__content { flex: 1; }
+
+.order-quote-status__notes {
+  font-style: italic;
+  color: #888;
+}
+
+/* Approve / Reject action buttons */
+.order-quote-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.order-quote-btn {
+  all: unset;
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.order-quote-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.order-quote-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.order-quote-btn--approve {
+  background: var(--oxford-blue);
+  color: var(--tan);
+}
+
+.order-quote-btn--reject {
+  background: transparent;
+  color: #c0392b;
+  border: 1.5px solid #c0392b;
+}
+
+/* ── Payment row ─────────────────────────────────────────────────────────── */
+.order-payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.order-payment-method {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--oxford-blue);
+}
+
+.order-payout-status {
+  margin-top: 8px;
+}
+
+/* ── Status badges ───────────────────────────────────────────────────────── */
+.order-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.order-badge--paid {
+  background: #eafaf1;
+  color: #27ae60;
+}
+
+.order-badge--unpaid {
+  background: rgba(0, 33, 71, 0.05);
+  color: #888;
+}
+
+.order-badge--payout-done {
+  background: #eafaf1;
+  color: #27ae60;
+}
+
+.order-badge--payout-pending {
+  background: rgba(0, 33, 71, 0.04);
+  color: #aaa;
+}
+
+/* ── Order status timeline ───────────────────────────────────────────────── */
+.order-status-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0, 33, 71, 0.08);
+  padding: 24px;
+}
+
+.order-status-card--cancelled {
+  text-align: center;
+  border-color: #e74c3c;
+  background: #fdf0f0;
+}
+
+.order-status-card__cancel-icon {
+  font-size: 2rem;
+  color: #e74c3c;
+  margin-bottom: 8px;
+}
+
+.order-status-card__cancel-note {
+  font-size: 0.82rem;
+  color: #888;
+  margin: 8px 0 0;
+}
+
+.order-status-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  margin: 0 0 20px;
+}
+
+/* Timeline ordered list */
+.order-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.order-timeline__step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.order-timeline__step:last-child {
+  padding-bottom: 0;
+}
+
+/* Icon circle */
+.order-timeline__icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 33, 71, 0.06);
+  flex-shrink: 0;
+  z-index: 1;
+  transition: background 0.2s ease;
+}
+
+.order-timeline__icon {
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+/* Done step */
+.order-timeline__step--done .order-timeline__icon-wrap {
+  background: var(--tan);
+}
+.order-timeline__step--done .order-timeline__icon {
+  color: var(--oxford-blue);
+}
+
+/* Current step */
+.order-timeline__step--current .order-timeline__icon-wrap {
+  background: var(--oxford-blue);
+  box-shadow: 0 0 0 4px rgba(0, 33, 71, 0.12);
+}
+.order-timeline__step--current .order-timeline__icon {
+  color: var(--tan);
+}
+
+/* Step label */
+.order-timeline__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #ccc;
+}
+
+.order-timeline__step--done .order-timeline__label,
+.order-timeline__step--current .order-timeline__label {
+  color: var(--oxford-blue);
+}
+
+/* Vertical connector line */
+.order-timeline__connector {
+  position: absolute;
+  left: 15px;
+  top: 32px;
+  width: 2px;
+  height: calc(100% - 12px);
+  background: rgba(0, 33, 71, 0.08);
+}
+
+.order-timeline__connector--done {
+  background: var(--tan);
+}
+
+/* ── Price summary card ───────────────────────────────────────────────────── */
+.order-price-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0, 33, 71, 0.08);
+  padding: 24px;
+}
+
+.order-price-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  margin: 0 0 16px;
+}
+
+.order-price-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-price-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.order-price-line__note {
+  font-size: 0.72rem;
+  color: #aaa;
+}
+
+.order-price-divider {
+  height: 1px;
+  background: rgba(0, 33, 71, 0.08);
+  margin: 4px 0;
+}
+
+.order-price-line--total {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+}
+
+.order-price-line--total strong {
+  font-size: 1.05rem;
+}
+
+/* Admin commission line — muted */
+.order-price-line--commission {
+  font-size: 0.72rem;
+  color: #bbb;
+  border-top: 1px dashed rgba(0,33,71,0.08);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+/* ── Action buttons ──────────────────────────────────────────────────────── */
+.order-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-action-btn {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-align: center;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.order-action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.order-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Cancel — outlined red */
+.order-action-btn--cancel {
+  border: 1.5px solid #e74c3c;
+  color: #e74c3c;
+}
+
+.order-action-btn--cancel:hover:not(:disabled) {
+  background: #fdf0f0;
+}
+
+/* Mark delivered — Oxford Blue */
+.order-action-btn--deliver {
+  background: var(--oxford-blue);
+  color: var(--tan);
+}
+
+/* Release payout — Tan */
+.order-action-btn--payout {
+  background: var(--tan);
+  color: var(--oxford-blue);
+}
+
+/* ── Cancel confirmation modal ───────────────────────────────────────────── */
+.order-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 33, 71, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  padding: 24px;
+  backdrop-filter: blur(3px);
+}
+
+.order-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 33, 71, 0.2);
+}
+
+.order-modal__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--oxford-blue);
+  margin: 0 0 12px;
+}
+
+.order-modal__body {
+  font-size: 0.88rem;
+  color: #666;
+  line-height: 1.7;
+  margin: 0 0 24px;
+}
+
+.order-modal__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.order-modal__btn {
+  all: unset;
+  cursor: pointer;
+  flex: 1;
+  min-width: 120px;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-align: center;
+  transition: opacity 0.15s ease;
+}
+
+.order-modal__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Confirm cancel — red fill */
+.order-modal__btn--confirm {
+  background: #e74c3c;
+  color: #fff;
+}
+
+/* Keep order — outlined */
+.order-modal__btn--dismiss {
+  border: 1.5px solid rgba(0, 33, 71, 0.2);
+  color: var(--oxford-blue);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .order-page__inner {
+    flex-direction: column;
+  }
+
+  .order-page__right {
+    flex: none;
+    width: 100%;
+    position: static;
+  }
+
+  .order-page__left {
+    flex: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .order-page__inner {
+    padding: 0 16px;
+    margin-top: 20px;
+  }
+
+  .order-section {
+    padding: 18px 16px;
+  }
+
+  .order-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-quote-actions {
+    flex-direction: column;
+  }
+
+  .order-quote-btn {
+    text-align: center;
+  }
+}
+
+/* ── Seller Quote Form ───────────────────────────────────────────────────── */
+.seller-quote-form {
+  background: rgba(0, 33, 71, 0.03);
+  border: 1.5px solid rgba(0, 33, 71, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.seller-quote-form__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  margin: 0 0 6px;
+}
+
+.seller-quote-form__zone {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0 0 16px;
+}
+
+.seller-quote-form__field {
+  margin-bottom: 14px;
+}
+
+.seller-quote-form__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  margin-bottom: 5px;
+}
+
+.seller-quote-form__input {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: var(--oxford-blue);
+  border: 1.5px solid rgba(0, 33, 71, 0.15);
+  border-radius: 6px;
+  outline: none;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.seller-quote-form__input:focus {
+  border-color: var(--oxford-blue);
+}
+
+.seller-quote-form__submit {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px;
+  background: var(--oxford-blue);
+  color: var(--tan);
+  border-radius: 7px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  text-align: center;
+  margin-top: 4px;
+  transition: background 0.2s ease;
+}
+
+.seller-quote-form__submit:hover:not(:disabled) {
+  background: #003266;
+}
+
+.seller-quote-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

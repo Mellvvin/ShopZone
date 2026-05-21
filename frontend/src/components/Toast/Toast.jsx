@@ -27,17 +27,17 @@ export const showToast = (message, type = 'success') => {
 
 // ── ToastItem — a single notification card ────────────────────
 // Renders the icon, message, close button and draining bar.
-// Auto-dismisses after 20 seconds.
+// Auto-dismisses after 5 seconds.
 const ToastItem = ({ id, message, type, onRemove }) => {
     const [visible, setVisible] = useState(true);
 
-    // ── Auto-dismiss after 20 seconds ─────────────────────────
+    // ── Auto-dismiss after 5 seconds ─────────────────────────
     useEffect(() => {
         const timer = setTimeout(() => {
             setVisible(false);
             // Wait for the fade-out animation to finish before removing
             setTimeout(() => onRemove(id), 300);
-        }, 20000);
+        }, 5000);
         return () => clearTimeout(timer);
     }, [id, onRemove]);
 
@@ -70,7 +70,7 @@ const ToastItem = ({ id, message, type, onRemove }) => {
             </button>
 
             {/* ── Draining progress bar ────────────────────────────── */}
-            {/* Starts full width and shrinks to zero over 20 seconds  */}
+            {/* Starts full width and shrinks to zero over 5 seconds  */}
             <div className={`sz-toast-bar sz-toast-bar--${type}`} />
         </div>
     );

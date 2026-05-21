@@ -1,71 +1,96 @@
 // HomePage.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// ShopZone homepage — Step 12 redesign.
-//
-// STRUCTURE:
-//   A) "Home state" (no keyword / category / filter active):
-//       1. HeroBanner          — full-width hero with CTAs and trust stats
-//       2. CategoryCards       — 13-category grid
-//       3. Featured Products   — products where isFeatured = true
-//       4. New Arrivals        — most recently added products (last 4)
-//       5. Deals Banner        — inline CTA strip linking to /?deals=true
-//
-//   B) "Browse/Search state" (keyword, category, or any filter is active):
-//       • Standard heading describing the active filter
-//       • Product grid (same as before Step 12)
-//       • "Back to home" link
-//
-// Both states use the same Redux listProducts action.
-// Featured and New Arrivals make their own dispatches with specific filters.
-//
-// DEPENDENCIES:
-//   Redux:  state.products  (productSlice — products, loadingList, errorList)
-//   Router: useSearchParams, useNavigate, Link
-//   Components: HeroBanner, CategoryCards, ProductCard (inline), SkeletonCard
+// CHANGES FROM PREVIOUS VERSION:
+//   • ProductCard now has an Add to Cart button
+//   • After adding, button becomes inline − qty + stepper
+//   • Card body click still navigates to product page
+//   • Imports addToCart, updateCartQty, removeFromCart from cartSlice
+//   • showToast fired on add and on remove via stepper reaching 0
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { listProducts } from '../redux/slices/productSlice';
+import { addToCart, updateCartQty, removeFromCart } from '../redux/slices/cartSlice';
+import { showToast } from '../components/Toast/Toast';
 import HeroBanner from '../components/HeroBanner/HeroBanner';
 import CategoryCards from '../components/CategoryCards/CategoryCards';
-import { FaArrowLeft, FaTag, FaFire, FaStar, FaChevronRight } from 'react-icons/fa';
+import {
+  FaArrowLeft,
+  FaTag,
+  FaFire,
+  FaStar,
+  FaChevronRight,
+  FaShoppingCart,
+  FaPlus,
+  FaMinus,
+} from 'react-icons/fa';
 import './HomePage.css';
 
-// ── How many products to show in each homepage section ───────────────────────
 const FEATURED_LIMIT = 8;
 const NEW_ARRIVALS_LIMIT = 4;
 
-// ────────────────────────────────────────────────────────────────────────────
-// ProductCard (inline, homepage-specific)
-// ─────────────────────────────────────────────────────────────────────────────
-// A lightweight product card used only on this page. The full ProductCard
-// component in components/ can be used here if preferred; this one avoids
-// importing heavy cart logic into what is primarily a discovery page.
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
+// ProductCard
+// ─────────────────────────────────────────────────────────────────────────
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleClick = () => navigate(`/product/${product._id}`);
+  // Read cart to know if this product is already in it and at what qty
+  const cartItems = useSelector((state) => state.cart.cartItems);
+  const cartItem = cartItems.find((i) => i.product === product._id);
+  const cartQty = cartItem ? cartItem.qty : 0;
 
-  // Choose the display price — show salePrice if the product is on sale
   const displayPrice = product.isOnSale && product.salePrice
     ? product.salePrice
     : product.price;
 
   const isDiscounted = product.isOnSale && product.salePrice;
 
+  // Navigate to product page — only fires when card body is clicked,
+  // not when the cart buttons are clicked (they call stopPropagation)
+  const handleCardClick = () => navigate(`/product/${product._id}`);
+
+  // Add to cart — adds 1 unit, fires toast, does not navigate
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    dispatch(addToCart({ id: product._id, qty: 1 }));
+    showToast(`${product.name} added to cart`, 'success');
+  };
+
+  // Increase qty — if already in cart bump by 1, cap at countInStock
+  const handleIncrease = (e) => {
+    e.stopPropagation();
+    if (cartQty >= product.countInStock) {
+      showToast(`Only ${product.countInStock} units available`, 'error');
+      return;
+    }
+    dispatch(updateCartQty({ id: product._id, qty: cartQty + 1 }));
+  };
+
+  // Decrease qty — if qty reaches 0 remove from cart entirely
+  const handleDecrease = (e) => {
+    e.stopPropagation();
+    if (cartQty === 1) {
+      dispatch(removeFromCart(product._id));
+      showToast(`${product.name} removed from cart`, 'info');
+    } else {
+      dispatch(updateCartQty({ id: product._id, qty: cartQty - 1 }));
+    }
+  };
+
   return (
     <article
       className='hp-product-card'
-      onClick={handleClick}
+      onClick={handleCardClick}
       role='button'
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+      onKeyDown={(e) => e.key === 'Enter' && handleCardClick()}
       aria-label={`View ${product.name}`}
     >
-      {/* ── Badges ──────────────────────────────────────────────────────── */}
+      {/* ── Badges ────────────────────────────────────────────────── */}
       <div className='hp-product-card__badges' aria-hidden='true'>
         {product.isFeatured && (
           <span className='hp-badge hp-badge--featured'>
@@ -84,7 +109,7 @@ const ProductCard = ({ product }) => {
         )}
       </div>
 
-      {/* ── Product image ────────────────────────────────────────────────── */}
+      {/* ── Image ─────────────────────────────────────────────────── */}
       <div className='hp-product-card__img-wrap'>
         <img
           src={product.image}
@@ -94,15 +119,12 @@ const ProductCard = ({ product }) => {
         />
       </div>
 
-      {/* ── Info ─────────────────────────────────────────────────────────── */}
+      {/* ── Info ──────────────────────────────────────────────────── */}
       <div className='hp-product-card__info'>
-        {/* Category label */}
         <span className='hp-product-card__category'>{product.category}</span>
 
-        {/* Product name */}
         <h3 className='hp-product-card__name'>{product.name}</h3>
 
-        {/* Price row — show original crossed out if discounted */}
         <div className='hp-product-card__price-row'>
           <span className='hp-product-card__price'>
             ${displayPrice.toFixed(2)}
@@ -112,24 +134,66 @@ const ProductCard = ({ product }) => {
               ${product.price.toFixed(2)}
             </span>
           )}
-          {/* Unit (e.g. "per dozen") */}
           {product.unit && (
             <span className='hp-product-card__unit'>/ {product.unit}</span>
           )}
         </div>
 
-        {/* Stock badge */}
         {product.countInStock === 0 && (
           <span className='hp-product-card__out-of-stock'>Out of stock</span>
         )}
       </div>
+
+      {/* ── Cart controls ─────────────────────────────────────────── */}
+      {/* Shown at the bottom of the card, separate from the clickable body */}
+      <div
+        className='hp-product-card__cart-row'
+        onClick={(e) => e.stopPropagation()} // isolate entire row from card click
+      >
+        {product.countInStock === 0 ? (
+          // Out of stock — disabled button
+          <button className='hp-cart-btn hp-cart-btn--disabled' disabled>
+            Out of Stock
+          </button>
+        ) : cartQty === 0 ? (
+          // Not in cart — show Add to Cart button
+          <button
+            className='hp-cart-btn hp-cart-btn--add'
+            onClick={handleAddToCart}
+            aria-label={`Add ${product.name} to cart`}
+          >
+            <FaShoppingCart aria-hidden='true' />
+            Add to Cart
+          </button>
+        ) : (
+          // Already in cart — show stepper
+          <div className='hp-cart-stepper' role='group' aria-label={`Quantity for ${product.name}`}>
+            <button
+              className='hp-stepper-btn'
+              onClick={handleDecrease}
+              aria-label='Decrease quantity'
+            >
+              <FaMinus aria-hidden='true' />
+            </button>
+            <span className='hp-stepper-qty' aria-live='polite'>{cartQty}</span>
+            <button
+              className='hp-stepper-btn'
+              onClick={handleIncrease}
+              aria-label='Increase quantity'
+            >
+              <FaPlus aria-hidden='true' />
+            </button>
+          </div>
+        )}
+      </div>
+
     </article>
   );
 };
 
-// ────────────────────────────────────────────────────────────────────────────
-// SkeletonCard — placeholder while products are loading
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
+// SkeletonCard
+// ─────────────────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
   <div className='hp-skeleton-card' aria-hidden='true'>
     <div className='hp-skeleton hp-skeleton--img' />
@@ -139,29 +203,22 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ────────────────────────────────────────────────────────────────────────────
-// ProductRow — a horizontal scrolling row of ProductCards with a heading
-// Used for Featured Products and New Arrivals sections
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
+// ProductRow
+// ─────────────────────────────────────────────────────────────────────────
 const ProductRow = ({ title, subtitle, products, loading, error, viewAllHref, icon: Icon }) => {
   const navigate = useNavigate();
 
   return (
     <section className='hp-product-row' aria-labelledby={`row-${title.replace(/\s+/g, '-')}`}>
-      {/* Header row: title + "View all" link */}
       <div className='hp-row-header'>
         <div className='hp-row-header__left'>
           {Icon && <Icon className='hp-row-header__icon' aria-hidden='true' />}
           <div>
-            <h2
-              className='hp-row-header__title'
-              id={`row-${title.replace(/\s+/g, '-')}`}
-            >
+            <h2 className='hp-row-header__title' id={`row-${title.replace(/\s+/g, '-')}`}>
               {title}
             </h2>
-            {subtitle && (
-              <p className='hp-row-header__subtitle'>{subtitle}</p>
-            )}
+            {subtitle && <p className='hp-row-header__subtitle'>{subtitle}</p>}
           </div>
         </div>
         {viewAllHref && (
@@ -175,20 +232,15 @@ const ProductRow = ({ title, subtitle, products, loading, error, viewAllHref, ic
         )}
       </div>
 
-      {/* Product grid — 2→3→4 columns depending on viewport */}
       {loading ? (
         <div className='hp-product-grid'>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
+          {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : error ? (
         <p className='hp-row-error'>Could not load products. Please try again.</p>
       ) : products && products.length > 0 ? (
         <div className='hp-product-grid'>
-          {products.map((p) => (
-            <ProductCard key={p._id} product={p} />
-          ))}
+          {products.map((p) => <ProductCard key={p._id} product={p} />)}
         </div>
       ) : (
         <p className='hp-row-empty'>No products available in this section yet.</p>
@@ -197,9 +249,9 @@ const ProductRow = ({ title, subtitle, products, loading, error, viewAllHref, ic
   );
 };
 
-// ────────────────────────────────────────────────────────────────────────────
-// DealsBanner — inline promotional strip between the two product rows
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
+// DealsBanner
+// ─────────────────────────────────────────────────────────────────────────
 const DealsBanner = () => {
   const navigate = useNavigate();
 
@@ -216,7 +268,7 @@ const DealsBanner = () => {
       </div>
       <button
         className='hp-deals-banner__cta'
-        onClick={() => navigate('/?deals=true')}
+        onClick={() => navigate('/offers')}
         aria-label='Browse all deals and clearance items'
       >
         Browse Deals <FaChevronRight aria-hidden='true' />
@@ -225,15 +277,14 @@ const DealsBanner = () => {
   );
 };
 
-// ────────────────────────────────────────────────────────────────────────────
-// HomePage — main export
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
+// HomePage
+// ─────────────────────────────────────────────────────────────────────────
 const HomePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // ── Read URL query params to decide which state we're in ─────────────────
   const keyword = searchParams.get('keyword') || '';
   const category = searchParams.get('category') || '';
   const deals = searchParams.get('deals') || '';
@@ -241,23 +292,12 @@ const HomePage = () => {
   const clearance = searchParams.get('clearance') || '';
   const tag = searchParams.get('tag') || '';
 
-  // Is the user actively filtering/searching?
   const isBrowsingMode = !!(keyword || category || deals || featured || clearance || tag);
 
-  // ── Redux state ───────────────────────────────────────────────────────────
-  // We use a single productSlice but dispatch multiple filter sets.
-  // For the home state we need featured and newArrivals separately.
-  // For the browse state we use the main products list.
-  const {
-    products,
-    loadingList,
-    errorList,
-  } = useSelector((state) => state.products);
+  const { products, loadingList, errorList } = useSelector((state) => state.products);
 
-  // ── Dispatch logic ────────────────────────────────────────────────────────
   useEffect(() => {
     if (isBrowsingMode) {
-      // Browse mode — pass active filters to the API
       const filters = {};
       if (keyword) filters.keyword = keyword;
       if (category) filters.category = category;
@@ -265,32 +305,16 @@ const HomePage = () => {
       if (featured) filters.featured = featured;
       if (clearance) filters.clearance = clearance;
       if (tag) filters.tag = tag;
-
       dispatch(listProducts(filters));
     } else {
-      // Home mode — fetch featured products first (shown in Featured section)
-      // New arrivals are sliced from the general products list
       dispatch(listProducts({ featured: 'true' }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyword, category, deals, featured, clearance, tag]);
 
-  // ── Separate featured from general for the home sections ─────────────────
-  // Featured row: first FEATURED_LIMIT products from the featured API call
   const featuredProducts = !isBrowsingMode ? products.slice(0, FEATURED_LIMIT) : [];
+  const newArrivalsProducts = !isBrowsingMode ? [...products].reverse().slice(0, NEW_ARRIVALS_LIMIT) : [];
 
-  // For New Arrivals we make a second dispatch below with no filters
-  // and slice the most recent ones. We store this in local state via a
-  // separate useEffect so it doesn't clobber the featured list in Redux.
-  // NOTE: Since productSlice holds one flat list, we trigger new arrivals
-  // in a second effect and show them only after featured resolves.
-  // For simplicity at this stage, new arrivals shows the reverse of the
-  // featured call (i.e. last N items), which gives you recently seeded items.
-  const newArrivalsProducts = !isBrowsingMode
-    ? [...products].reverse().slice(0, NEW_ARRIVALS_LIMIT)
-    : [];
-
-  // ── Build contextual browse heading ──────────────────────────────────────
   const getBrowseHeading = () => {
     if (keyword) return `Search results for "${keyword}"`;
     if (category) return category;
@@ -304,22 +328,13 @@ const HomePage = () => {
   return (
     <div className='homepage'>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          A) HOME STATE — shown when no search / filter is active
-         ══════════════════════════════════════════════════════════════════ */}
+      {/* ══ HOME STATE ════════════════════════════════════════════════ */}
       {!isBrowsingMode && (
         <>
-          {/* 1. Hero Banner */}
           <HeroBanner />
-
-          {/* Spacer to compensate for the hero stats strip overlapping */}
-          {/* This pushes the section below clear of the overhanging strip */}
           <div className='homepage__hero-offset' aria-hidden='true' />
-
-          {/* 2. Category Cards */}
           <CategoryCards />
 
-          {/* 3. Featured Products row */}
           <div className='homepage__section-wrapper' id='featured-section'>
             <ProductRow
               title='Featured Products'
@@ -332,12 +347,10 @@ const HomePage = () => {
             />
           </div>
 
-          {/* 4. Inline deals promotional banner between the two rows */}
           <div className='homepage__section-wrapper homepage__section-wrapper--banner'>
             <DealsBanner />
           </div>
 
-          {/* 5. New Arrivals row */}
           <div className='homepage__section-wrapper'>
             <ProductRow
               title='New Arrivals'
@@ -352,13 +365,9 @@ const HomePage = () => {
         </>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════
-          B) BROWSE / SEARCH STATE — shown when filters are active
-         ══════════════════════════════════════════════════════════════════ */}
+      {/* ══ BROWSE / SEARCH STATE ════════════════════════════════════ */}
       {isBrowsingMode && (
         <div className='homepage__browse-wrapper'>
-
-          {/* Back to home + contextual heading */}
           <div className='homepage__browse-header'>
             <button
               className='homepage__back-btn'
@@ -367,34 +376,23 @@ const HomePage = () => {
             >
               <FaArrowLeft aria-hidden='true' /> Back to Home
             </button>
-
             <h1 className='homepage__browse-title'>{getBrowseHeading()}</h1>
           </div>
 
-          {/* Product grid */}
           {loadingList ? (
             <div className='hp-product-grid'>
-              {Array.from({ length: 8 }).map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
+              {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           ) : errorList ? (
-            <div className='homepage__error'>
-              <p>{errorList}</p>
-            </div>
+            <div className='homepage__error'><p>{errorList}</p></div>
           ) : products && products.length > 0 ? (
             <div className='hp-product-grid'>
-              {products.map((p) => (
-                <ProductCard key={p._id} product={p} />
-              ))}
+              {products.map((p) => <ProductCard key={p._id} product={p} />)}
             </div>
           ) : (
             <div className='homepage__empty'>
               <p>No products found. Try a different search or category.</p>
-              <button
-                className='homepage__back-btn'
-                onClick={() => navigate('/')}
-              >
+              <button className='homepage__back-btn' onClick={() => navigate('/')}>
                 Back to Home
               </button>
             </div>

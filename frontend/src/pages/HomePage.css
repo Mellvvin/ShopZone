@@ -527,3 +527,94 @@
     padding-right: 16px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CART CONTROLS ON PRODUCT CARD
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Row at the bottom of each card containing the cart button or stepper */
+.hp-product-card__cart-row {
+  padding: 0 14px 14px;
+  margin-top: auto;
+}
+
+/* ── Add to Cart button ─────────────────────────────────────────────────── */
+.hp-cart-btn {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: background 0.2s ease, transform 0.15s ease;
+  letter-spacing: 0.02em;
+}
+
+/* Default — Oxford Blue fill */
+.hp-cart-btn--add {
+  background: var(--oxford-blue);
+  color: var(--tan);
+}
+
+.hp-cart-btn--add:hover,
+.hp-cart-btn--add:focus-visible {
+  background: #003266;
+  transform: translateY(-1px);
+}
+
+/* Disabled — out of stock */
+.hp-cart-btn--disabled {
+  background: rgba(0, 33, 71, 0.06);
+  color: #ccc;
+  cursor: not-allowed;
+  font-size: 0.75rem;
+}
+
+/* ── Quantity stepper ────────────────────────────────────────────────────── */
+/* Shown after item is added to cart — replaces the Add button */
+.hp-cart-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 33, 71, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  height: 36px;
+}
+
+/* − and + buttons */
+.hp-stepper-btn {
+  all: unset;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--oxford-blue);
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.hp-stepper-btn:hover,
+.hp-stepper-btn:focus-visible {
+  background: rgba(0, 33, 71, 0.1);
+}
+
+/* Quantity number */
+.hp-stepper-qty {
+  flex: 1;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  user-select: none;
+}

@@ -27,6 +27,7 @@ import AdminProductListPage from './pages/AdminProductListPage';
 import AdminProductEditPage from './pages/AdminProductEditPage';
 import AdminOrderListPage from './pages/AdminOrderListPage';
 import AdminUserListPage from './pages/AdminUserListPage';
+import SpecialOffersPage from './pages/SpecialOffersPage';
 
 const App = () => {
   return (
@@ -41,6 +42,7 @@ const App = () => {
             <Route path='/cart' element={<CartPage />} />
             <Route path='/login' element={<LoginPage />} />
             <Route path='/register' element={<RegisterPage />} />
+            <Route path='/offers' element={<SpecialOffersPage />} />
 
             {/* ── Protected Routes ── */}
             <Route path='/shipping' element={<ShippingPage />} />
@@ -54,7 +56,6 @@ const App = () => {
             <Route path='/admin/product/:id/edit' element={<AdminProductEditPage />} />
             <Route path='/admin/orders' element={<AdminOrderListPage />} />
             <Route path='/admin/users' element={<AdminUserListPage />} />
-
             {/* ── 404 ── */}
             <Route path='*' element={<NotFoundPage />} />
           </Routes>

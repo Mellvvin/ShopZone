@@ -1,11 +1,14 @@
 // frontend/src/pages/AdminProductEditPage.jsx
-// ─────────────────────────────────────────────────────────────
-// Admin page — edit or create a single product.
-// Toasts added for: product saved, upload error, errors.
-// Category dropdown updated to match MongoDB category strings.
-// New fields added: salePrice, tags, isFeatured, isOnSale,
-//                   isClearance.
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// CHANGES FROM PREVIOUS VERSION:
+//   • Predefined tags per category — auto-populate when category changes
+//   • Sale price field hidden unless isOnSale is ticked
+//   • Validation: name cannot be default, price > 0, description min 30 chars,
+//     image required, stock > 0 on creation
+//   • Tags rendered as removable chips with add-your-own input
+//   • Unit type hints added
+//   • Sale price validation and confirmation dialog preserved from last update
+// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -33,6 +36,39 @@ const CATEGORIES = [
   'General Merchandise',
 ];
 
+// ── Predefined tags per category ──────────────────────────────
+// Auto-populated when seller selects a category.
+// Seller can remove irrelevant ones or add their own.
+const CATEGORY_TAGS = {
+  'Electronics': ['electronics', 'gadgets', 'wholesale', 'bulk', 'accessories', 'cables', 'tech'],
+  'Fashion & Apparel': ['fashion', 'clothing', 'wholesale', 'bulk', 'apparel', 'garments', 'uniforms'],
+  'Fabric & Textiles': ['fabric', 'textiles', 'wholesale', 'bulk', 'material', 'cotton', 'thread'],
+  'Home & Kitchen': ['home', 'kitchen', 'household', 'wholesale', 'bulk', 'utensils', 'cookware'],
+  'Food & Grocery': ['food', 'grocery', 'wholesale', 'bulk', 'packaged', 'beverages', 'staples'],
+  'Beauty & Personal Care': ['beauty', 'cosmetics', 'wholesale', 'bulk', 'skincare', 'haircare', 'grooming'],
+  'Hardware & Tools': ['hardware', 'tools', 'wholesale', 'bulk', 'industrial', 'construction', 'fittings'],
+  'Office & Stationery': ['office', 'stationery', 'wholesale', 'bulk', 'school', 'supplies', 'paper'],
+  'Agriculture & Garden': ['agriculture', 'garden', 'wholesale', 'bulk', 'farming', 'seeds', 'fertiliser'],
+  'Baby & Kids': ['baby', 'kids', 'children', 'wholesale', 'bulk', 'toys', 'feeding'],
+  'Sports & Outdoors': ['sports', 'outdoor', 'wholesale', 'bulk', 'fitness', 'equipment', 'activewear'],
+  'Health & Wellness': ['health', 'wellness', 'wholesale', 'bulk', 'supplements', 'vitamins', 'hygiene'],
+  'General Merchandise': ['general', 'merchandise', 'wholesale', 'bulk', 'variety', 'assorted'],
+};
+
+// ── Unit hints — shown below the unit dropdown ────────────────
+const UNIT_HINTS = {
+  'Per Unit': 'Single item — e.g. one phone, one chair',
+  'Bale': 'Compressed bundle — e.g. 50 pieces of fabric per bale',
+  'Carton': 'Sealed box — e.g. 24 tins per carton',
+  'Dozen': '12 pieces per dozen',
+  'Kg': 'Price per kilogram — e.g. maize flour, sugar',
+  'Box': 'Open box — e.g. 100 pens per box',
+  'Sack': 'Large bag — e.g. 50kg sack of rice',
+};
+
+// ── Default values that mean the product was never properly filled ─
+const INVALID_NAMES = ['new product', 'sample product', 'product name', 'enter product name'];
+
 const AdminProductEditPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -40,17 +76,21 @@ const AdminProductEditPage = () => {
 
   // ── Form field state ──────────────────────────────────────
   const [name, setName] = useState('');
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState('');
   const [salePrice, setSalePrice] = useState('');
   const [image, setImage] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [countInStock, setCountInStock] = useState(0);
+  const [countInStock, setCountInStock] = useState('');
   const [unit, setUnit] = useState('Per Unit');
-  const [tags, setTags] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isOnSale, setIsOnSale] = useState(false);
   const [isClearance, setIsClearance] = useState(false);
+
+  // Tags stored as an array of strings for chip rendering
+  const [tagList, setTagList] = useState([]);
+  // Custom tag input field
+  const [tagInput, setTagInput] = useState('');
 
   // ── UI state ──────────────────────────────────────────────
   const [uploading, setUploading] = useState(false);
@@ -60,12 +100,17 @@ const AdminProductEditPage = () => {
   const [uploadError, setUploadError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
+  // ── Auth header ───────────────────────────────────────────
+  const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${userInfo.token}`,
+    },
+  };
+
   // ── Fetch existing product data ───────────────────────────
   useEffect(() => {
-    if (!userInfo || !userInfo.isAdmin) {
-      navigate('/login');
-      return;
-    }
+    if (!userInfo || !userInfo.isAdmin) { navigate('/login'); return; }
     fetchProduct();
   }, [userInfo, navigate]);
 
@@ -74,24 +119,55 @@ const AdminProductEditPage = () => {
       setLoading(true);
       const { data } = await axios.get(`/api/products/${id}`);
       setName(data.name);
-      setPrice(data.price);
+      setPrice(data.price ?? '');
       setSalePrice(data.salePrice ?? '');
-      setImage(data.image);
-      setCategory(data.category);
-      setDescription(data.description);
-      setCountInStock(data.countInStock);
+      setImage(data.image ?? '');
+      setCategory(data.category ?? '');
+      setDescription(data.description ?? '');
+      setCountInStock(data.countInStock ?? '');
       setUnit(data.unit || 'Per Unit');
-      // Tags are stored as array — display as comma-separated string
-      setTags(data.tags ? data.tags.join(', ') : '');
       setIsFeatured(data.isFeatured || false);
       setIsOnSale(data.isOnSale || false);
       setIsClearance(data.isClearance || false);
+      // Tags come as array from backend
+      setTagList(data.tags || []);
       setLoading(false);
     } catch (err) {
       const msg = err.response?.data?.message || err.message;
       setError(msg);
       showToast(msg, 'error');
       setLoading(false);
+    }
+  };
+
+  // ── Auto-populate tags when category changes ──────────────
+  // Only pre-fills if tagList is currently empty so we don't
+  // overwrite tags the seller already set on an existing product
+  const handleCategoryChange = (value) => {
+    setCategory(value);
+    // Always replace tags when category changes
+    if (CATEGORY_TAGS[value]) {
+      setTagList(CATEGORY_TAGS[value]);
+    } else {
+      setTagList([]);
+    }
+  };
+
+  // ── Tag chip management ───────────────────────────────────
+  // Remove a tag by clicking the × on its chip
+  const removeTag = (tagToRemove) => {
+    setTagList((prev) => prev.filter((t) => t !== tagToRemove));
+  };
+
+  // Add a custom tag — fired on Enter or comma
+  const handleTagInputKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const newTag = tagInput.trim().toLowerCase().replace(/,/g, '');
+      if (newTag && !tagList.includes(newTag)) {
+        setTagList((prev) => [...prev, newTag]);
+      }
+      setTagInput('');
     }
   };
 
@@ -104,13 +180,13 @@ const AdminProductEditPage = () => {
     try {
       setUploading(true);
       setUploadError(null);
-      const config = {
+      const uploadConfig = {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${userInfo.token}`,
         },
       };
-      const { data } = await axios.post('/api/upload', formData, config);
+      const { data } = await axios.post('/api/upload', formData, uploadConfig);
       setImage(data);
       setUploading(false);
       showToast('Image uploaded successfully.', 'success');
@@ -122,18 +198,72 @@ const AdminProductEditPage = () => {
     }
   };
 
-  // ── Save product handler ──────────────────────────────────
+  // ── Save handler ──────────────────────────────────────────
   const submitHandler = async (e) => {
     e.preventDefault();
+    setError(null);
+
+    // ── Validation ────────────────────────────────────────────
+    if (!name || INVALID_NAMES.includes(name.toLowerCase().trim())) {
+      showToast('Please enter a proper product name.', 'error');
+      setError('Please enter a proper product name.');
+      return;
+    }
+    if (!price || Number(price) <= 0) {
+      showToast('Price must be greater than 0.', 'error');
+      setError('Price must be greater than 0.');
+      return;
+    }
+    if (!category) {
+      showToast('Please select a category.', 'error');
+      setError('Please select a category.');
+      return;
+    }
+    if (!description || description.trim().length < 30) {
+      showToast('Description must be at least 30 characters.', 'error');
+      setError('Description must be at least 30 characters.');
+      return;
+    }
+    if (!image) {
+      showToast('Please upload a product image.', 'error');
+      setError('Please upload a product image.');
+      return;
+    }
+    if (!countInStock || Number(countInStock) < 1) {
+      showToast('Stock count must be at least 1.', 'error');
+      setError('Stock count must be at least 1.');
+      return;
+    }
+
+    // ── Sale price validation ─────────────────────────────────
+    if (isOnSale) {
+      if (!salePrice || Number(salePrice) <= 0) {
+        showToast('Please enter a sale price before marking this product as on sale.', 'error');
+        setError('Please enter a sale price before marking this product as on sale.');
+        return;
+      }
+      if (Number(salePrice) >= Number(price)) {
+        showToast('Sale price must be lower than the regular price.', 'error');
+        setError('Sale price must be lower than the regular price.');
+        return;
+      }
+    }
+
+    // ── Confirmation for sale / clearance ─────────────────────
+    if (isOnSale || isClearance) {
+      const flags = [
+        isOnSale ? `on sale at KES ${Number(salePrice).toFixed(2)}` : null,
+        isClearance ? 'clearance' : null,
+      ].filter(Boolean).join(' and ');
+
+      const confirmed = window.confirm(
+        `Are you sure you want to list "${name}" as ${flags}? This will make it visible on the Special Offers page immediately.`
+      );
+      if (!confirmed) return;
+    }
+
     try {
       setSaving(true);
-      setError(null);
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${userInfo.token}`,
-        },
-      };
       await axios.put(
         `/api/products/${id}`,
         {
@@ -145,10 +275,7 @@ const AdminProductEditPage = () => {
           description,
           countInStock: Number(countInStock),
           unit,
-          // Convert comma-separated string back to array
-          tags: tags
-            ? tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean)
-            : [],
+          tags: tagList,
           isFeatured,
           isOnSale,
           isClearance,
@@ -157,7 +284,6 @@ const AdminProductEditPage = () => {
       );
       setSuccessMsg('Product saved successfully!');
       setSaving(false);
-      // Fire both inline success and toast
       showToast('Product saved successfully!', 'success');
       setTimeout(() => navigate('/admin/products'), 1500);
     } catch (err) {
@@ -190,14 +316,13 @@ const AdminProductEditPage = () => {
         <Col lg={9}>
           <Card className='p-4 shadow-sm'>
             <h2 className='page-title mb-4' style={{ color: 'var(--oxford-blue)' }}>
-              {name === 'New Product' ? 'Create Product' : 'Edit Product'}
+              {name === 'New Product' ? 'Create Product' : `Edit — ${name}`}
             </h2>
 
-            {/* Inline alerts */}
             {error && <Alert variant='danger'>{error}</Alert>}
             {uploadError && <Alert variant='danger'>{uploadError}</Alert>}
             {successMsg && (
-              <Alert style={{ backgroundColor: 'var(--tan-light)', borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}>
+              <Alert style={{ backgroundColor: '#f7f0e6', borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}>
                 {successMsg} Redirecting...
               </Alert>
             )}
@@ -210,10 +335,12 @@ const AdminProductEditPage = () => {
 
                   {/* Product name */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Product Name</Form.Label>
+                    <Form.Label>
+                      Product Name <span style={{ color: '#c0392b' }}>*</span>
+                    </Form.Label>
                     <Form.Control
                       type='text'
-                      placeholder='Enter product name'
+                      placeholder='e.g. Heavy Duty Steel Shelving Unit'
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
@@ -222,43 +349,51 @@ const AdminProductEditPage = () => {
 
                   {/* Price */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Price (KES)</Form.Label>
+                    <Form.Label>
+                      Price (KES) <span style={{ color: '#c0392b' }}>*</span>
+                    </Form.Label>
                     <Form.Control
                       type='number'
-                      placeholder='Enter price'
+                      placeholder='e.g. 8500'
                       value={price}
-                      min='0'
+                      min='1'
                       onChange={(e) => setPrice(e.target.value)}
                       required
                     />
                   </Form.Group>
 
-                  {/* Sale price */}
-                  <Form.Group className='mb-3'>
-                    <Form.Label>
-                      Sale Price (KES)
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginLeft: '0.5rem' }}>
-                        — leave blank if not on sale
-                      </span>
-                    </Form.Label>
-                    <Form.Control
-                      type='number'
-                      placeholder='e.g. 3500'
-                      value={salePrice}
-                      min='0'
-                      onChange={(e) => setSalePrice(e.target.value)}
-                    />
-                  </Form.Group>
+                  {/* Sale price — only visible when isOnSale is ticked */}
+                  {isOnSale && (
+                    <Form.Group className='mb-3'>
+                      <Form.Label>
+                        Sale Price (KES) <span style={{ color: '#c0392b' }}>*</span>
+                      </Form.Label>
+                      <Form.Control
+                        type='number'
+                        placeholder='Must be lower than regular price'
+                        value={salePrice}
+                        min='1'
+                        onChange={(e) => setSalePrice(e.target.value)}
+                      />
+                      {salePrice && Number(salePrice) >= Number(price) && (
+                        <Form.Text style={{ color: '#c0392b', fontSize: '0.78rem' }}>
+                          Sale price must be lower than KES {price}
+                        </Form.Text>
+                      )}
+                    </Form.Group>
+                  )}
 
                   {/* Category */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Category</Form.Label>
+                    <Form.Label>
+                      Category <span style={{ color: '#c0392b' }}>*</span>
+                    </Form.Label>
                     <Form.Select
                       value={category}
-                      onChange={(e) => setCategory(e.target.value)}
+                      onChange={(e) => handleCategoryChange(e.target.value)}
                       required
                     >
-                      <option value=''>Select category...</option>
+                      <option value=''>Select a category...</option>
                       {CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
@@ -272,54 +407,113 @@ const AdminProductEditPage = () => {
                       value={unit}
                       onChange={(e) => setUnit(e.target.value)}
                     >
-                      <option value='Per Unit'>Per Unit</option>
-                      <option value='Bale'>Bale</option>
-                      <option value='Carton'>Carton</option>
-                      <option value='Dozen'>Dozen</option>
-                      <option value='Kg'>Kg</option>
-                      <option value='Box'>Box</option>
-                      <option value='Sack'>Sack</option>
+                      {Object.keys(UNIT_HINTS).map((u) => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
                     </Form.Select>
+                    {/* Unit hint below dropdown */}
+                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                      {UNIT_HINTS[unit]}
+                    </Form.Text>
                   </Form.Group>
 
                   {/* Count in stock */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Count In Stock</Form.Label>
+                    <Form.Label>
+                      Count In Stock <span style={{ color: '#c0392b' }}>*</span>
+                    </Form.Label>
                     <Form.Control
                       type='number'
-                      placeholder='Enter stock count'
+                      placeholder='e.g. 50'
                       value={countInStock}
-                      min='0'
+                      min='1'
                       onChange={(e) => setCountInStock(e.target.value)}
                       required
                     />
+                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                      How many units do you have available right now?
+                    </Form.Text>
                   </Form.Group>
 
-                  {/* Tags */}
+                  {/* Tags — chip system */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Tags</Form.Label>
+                    <Form.Label>Search Tags</Form.Label>
+
+                    {/* Rendered tag chips */}
+                    {tagList.length > 0 && (
+                      <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '6px',
+                        marginBottom: '8px',
+                      }}>
+                        {tagList.map((tag) => (
+                          <span
+                            key={tag}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              background: 'rgba(0,33,71,0.07)',
+                              color: 'var(--oxford-blue)',
+                              borderRadius: '999px',
+                              padding: '3px 10px',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                            }}
+                          >
+                            {tag}
+                            <button
+                              type='button'
+                              onClick={() => removeTag(tag)}
+                              style={{
+                                all: 'unset',
+                                cursor: 'pointer',
+                                color: '#c0392b',
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                lineHeight: 1,
+                              }}
+                              aria-label={`Remove tag ${tag}`}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add custom tag input */}
                     <Form.Control
                       type='text'
-                      placeholder='e.g. wholesale, bulk, samsung, electronics'
-                      value={tags}
-                      onChange={(e) => setTags(e.target.value)}
+                      placeholder='Type a tag and press Enter to add'
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={handleTagInputKeyDown}
                     />
-                    <Form.Text style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                      Comma-separated keywords. Used in search results.
+                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                      {category
+                        ? 'Suggested tags auto-added from your category. Remove irrelevant ones or add your own.'
+                        : 'Select a category first to get suggested tags.'}
                     </Form.Text>
                   </Form.Group>
 
                   {/* Merchandising flags */}
-                  <div
-                    style={{
-                      background: '#f7f4ef',
-                      border: '1px solid #EAE0D5',
-                      borderRadius: '10px',
-                      padding: '1rem',
-                      marginBottom: '1rem',
-                    }}
-                  >
-                    <p style={{ color: 'var(--oxford-blue)', fontWeight: 700, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.75rem' }}>
+                  <div style={{
+                    background: '#f7f4ef',
+                    border: '1px solid #EAE0D5',
+                    borderRadius: '10px',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                  }}>
+                    <p style={{
+                      color: 'var(--oxford-blue)',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '0.75rem',
+                    }}>
                       Merchandising
                     </p>
                     <Form.Check
@@ -331,9 +525,13 @@ const AdminProductEditPage = () => {
                     />
                     <Form.Check
                       type='checkbox'
-                      label='On Sale — show in Deals section (requires Sale Price)'
+                      label='On Sale — show in Deals section (sale price required)'
                       checked={isOnSale}
-                      onChange={(e) => setIsOnSale(e.target.checked)}
+                      onChange={(e) => {
+                        setIsOnSale(e.target.checked);
+                        // Clear sale price if unchecking
+                        if (!e.target.checked) setSalePrice('');
+                      }}
                       className='mb-2'
                     />
                     <Form.Check
@@ -349,13 +547,15 @@ const AdminProductEditPage = () => {
                 {/* ── RIGHT COLUMN ──────────────────────── */}
                 <Col md={6}>
 
-                  {/* Image preview + upload */}
+                  {/* Image upload */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Product Image</Form.Label>
+                    <Form.Label>
+                      Product Image <span style={{ color: '#c0392b' }}>*</span>
+                    </Form.Label>
                     <div style={{
                       width: '100%',
                       height: '200px',
-                      border: '2px dashed #EAE0D5',
+                      border: `2px dashed ${image ? 'var(--tan)' : '#EAE0D5'}`,
                       borderRadius: '10px',
                       overflow: 'hidden',
                       backgroundColor: '#FAFAF9',
@@ -363,18 +563,25 @@ const AdminProductEditPage = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginBottom: '0.75rem',
+                      transition: 'border-color 0.2s ease',
                     }}>
                       {uploading ? (
                         <div className='text-center'>
                           <Spinner animation='border' size='sm' style={{ color: 'var(--oxford-blue)' }} />
-                          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Uploading...</p>
+                          <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.5rem' }}>Uploading...</p>
                         </div>
                       ) : image ? (
-                        <Image src={image} alt='product preview' style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <Image
+                          src={image}
+                          alt='product preview'
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                       ) : (
                         <div className='text-center'>
-                          <p style={{ fontSize: '2rem' }}>📷</p>
-                          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No image selected</p>
+                          <p style={{ fontSize: '2rem', margin: 0 }}>📷</p>
+                          <p style={{ fontSize: '0.8rem', color: '#aaa', margin: '4px 0 0' }}>
+                            No image uploaded
+                          </p>
                         </div>
                       )}
                     </div>
@@ -384,16 +591,16 @@ const AdminProductEditPage = () => {
                       onChange={uploadImageHandler}
                       style={{ fontSize: '0.85rem' }}
                     />
-                    <Form.Text style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                      JPG or PNG only. Uploads immediately on selection.
+                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                      JPG or PNG only. Image is required before saving.
                     </Form.Text>
                   </Form.Group>
 
-                  {/* Image URL */}
+                  {/* Image URL — auto filled after upload */}
                   <Form.Group className='mb-3'>
                     <Form.Label>
                       Image URL
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem', fontWeight: 400 }}>
+                      <span style={{ fontSize: '0.75rem', color: '#aaa', marginLeft: '0.5rem', fontWeight: 400 }}>
                         (auto-filled after upload)
                       </span>
                     </Form.Label>
@@ -410,15 +617,23 @@ const AdminProductEditPage = () => {
 
               {/* Description — full width */}
               <Form.Group className='mb-4'>
-                <Form.Label>Description</Form.Label>
+                <Form.Label>
+                  Description <span style={{ color: '#c0392b' }}>*</span>
+                </Form.Label>
                 <Form.Control
                   as='textarea'
                   rows={4}
-                  placeholder='Enter product description'
+                  placeholder='Describe the product in detail — minimum 30 characters. Include key specs, what is included, and who this product is for.'
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required
                 />
+                <Form.Text style={{
+                  color: description.length < 30 && description.length > 0 ? '#c0392b' : '#888',
+                  fontSize: '0.75rem',
+                }}>
+                  {description.length} / 30 characters minimum
+                </Form.Text>
               </Form.Group>
 
               <div className='d-flex gap-3'>
@@ -427,8 +642,11 @@ const AdminProductEditPage = () => {
                   variant='dark'
                   className='w-100'
                   disabled={saving || uploading}
+                  style={{ background: 'var(--oxford-blue)', borderColor: 'var(--oxford-blue)' }}
                 >
-                  {saving ? <Spinner animation='border' size='sm' /> : 'Save Changes'}
+                  {saving
+                    ? <Spinner animation='border' size='sm' />
+                    : 'Save Changes'}
                 </Button>
                 <Button
                   type='button'
