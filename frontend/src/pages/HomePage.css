@@ -529,6 +529,105 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   MOBILE PRODUCT CARD OVERRIDES  (≤ 480px)
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+  /* Single column on very small screens so cards aren't tiny */
+  .hp-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* Tighter card padding */
+  .hp-product-card__info {
+    padding: 8px 10px 10px;
+    gap: 3px;
+  }
+
+  /* Smaller product name on mobile */
+  .hp-product-card__name {
+    font-size: 0.78rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  /* Smaller price */
+  .hp-product-card__price {
+    font-size: 0.88rem;
+  }
+
+  /* Badges — smaller and only show one at a time to prevent overlap */
+  .hp-product-card__badges {
+    top: 6px;
+    left: 6px;
+    gap: 3px;
+  }
+
+  .hp-badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+  }
+
+  /* Hide lower-priority badges on very small cards — show max 1 */
+  .hp-product-card__badges .hp-badge:nth-child(n+2) {
+    display: none;
+  }
+
+  /* Cart row tighter */
+  .hp-product-card__cart-row {
+    padding: 0 10px 10px;
+  }
+
+  /* Add to Cart button — compact on mobile */
+  .hp-cart-btn--add {
+    font-size: 0.7rem;
+    padding: 7px 8px;
+    gap: 5px;
+  }
+
+  /* Hide the button text on very small cards, keep icon */
+  .hp-cart-btn--add .hp-cart-btn__text {
+    display: none;
+  }
+
+  /* Stepper — tighter */
+  .hp-cart-stepper {
+    height: 32px;
+  }
+
+  .hp-stepper-btn {
+    width: 30px;
+    height: 32px;
+  }
+
+  .hp-stepper-qty {
+    font-size: 0.8rem;
+  }
+
+  /* Product row header — stack on mobile */
+  .hp-row-header {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .hp-row-header__title {
+    font-size: 1rem;
+  }
+
+  .hp-row-header__subtitle {
+    font-size: 0.78rem;
+  }
+
+  /* Deals banner tighter on mobile */
+  .hp-deals-banner {
+    padding: 16px;
+    margin: 20px 0;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    CART CONTROLS ON PRODUCT CARD
    ══════════════════════════════════════════════════════════════════════════ */
 

@@ -1,11 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaComments, FaTimes, FaPaperPlane } from 'react-icons/fa';
+import { FaComments, FaTimes, FaPaperPlane, FaHandPaper } from 'react-icons/fa';
 import { getBotReply } from './chatBrain';
 import './ChatWidget.css';
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [showBubble, setShowBubble] = useState(false);
+
+  useEffect(() => {
+    // Show bubble after 2s delay, hide after 6s
+    const showTimer = setTimeout(() => setShowBubble(true), 2000);
+    const hideTimer = setTimeout(() => setShowBubble(false), 8000);
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
   const [message, setMessage] = useState('');
   const [context, setContext] = useState({
     lastLocation: null,
@@ -81,13 +93,16 @@ const ChatWidget = () => {
       {/* ── Closed state — floating bubble + open button ── */}
       {!isOpen ? (
         <div className='cw-float-row'>
-          <div className='cw-bubble'>
-            Questions? Ask me! 👋
-          </div>
+          {showBubble && (
+            <div className='cw-bubble'>
+              <FaHandPaper className='cw-bubble__icon' aria-hidden='true' />
+              Questions? Ask me!
+            </div>
+          )}
           <button
             className='cw-open-btn'
             aria-label='Open ShopZone chat assistant'
-            onClick={() => setIsOpen(true)}
+            onClick={() => { setIsOpen(true); setShowBubble(false); }}
           >
             <FaComments size={28} />
           </button>

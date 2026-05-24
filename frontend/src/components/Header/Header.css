@@ -114,6 +114,66 @@
     .header-mobile-icons {
         display: flex;
     }
+
+    /* Tan accent line at the bottom of the top bar on mobile */
+    .header-top-bar {
+        border-bottom: 2px solid rgba(210, 180, 140, 0.4);
+    }
+
+    /* More breathing room in the container on mobile */
+    .header-container {
+        padding: 0.65rem 1rem;
+    }
+
+    /* Larger tap targets for mobile icons */
+    .header-mobile-icons {
+        gap: 0.85rem;
+    }
+
+    .header-mobile-btn {
+        padding: 4px;
+    }
+
+    /* Make cart badge slightly larger on mobile for visibility */
+    .header-cart-badge {
+        top: -10px !important;
+        right: -12px !important;
+        min-width: 20px !important;
+        height: 20px !important;
+        font-size: 0.7rem !important;
+    }
+}
+
+/* ── Mobile context strip ────────────────────────────────── */
+/* Thin strip below the top bar on mobile showing ShopZone tagline
+   and a subtle welcome — gives the header visual depth */
+.header-mobile-search-panel {
+    background-color: #001835;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(210, 180, 140, 0.2);
+}
+
+@media (max-width: 991px) {
+
+    /* Add a subtle gradient to the top bar for depth */
+    .header-top-bar {
+        background: linear-gradient(135deg,
+                #002147 0%,
+                #002d5e 60%,
+                #002147 100%);
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* Tighter padding on very small screens */
+    .header-container {
+        padding: 0.55rem 0.75rem;
+    }
+
+    .header-mobile-icons {
+        gap: 0.65rem;
+    }
 }
 
 /* ── Icon labels — text sits to the right of the icon ───────── */

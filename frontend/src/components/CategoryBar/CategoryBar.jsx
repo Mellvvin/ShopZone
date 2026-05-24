@@ -19,6 +19,7 @@ import {
     FaMobileAlt, FaTshirt, FaScroll, FaHome, FaShoppingBasket,
     FaSpa, FaTools, FaPencilAlt, FaSeedling, FaBaby,
     FaRunning, FaHeartbeat, FaBoxOpen,
+    FaInfoCircle, FaQuestionCircle, FaHeadset, FaStore, FaTruck, FaUndoAlt,
 } from 'react-icons/fa';
 import './CategoryBar.css';
 
@@ -41,12 +42,12 @@ const CATEGORIES = [
 
 // ── More dropdown links ───────────────────────────────────────
 const MORE_LINKS = [
-    { label: 'About Us', to: '/about' },
-    { label: 'FAQ', to: '/faq' },
-    { label: 'Contact Support', to: '/contact' },
-    { label: 'Become a Seller', to: '/become-seller' },
-    { label: 'Shipping Policy', to: '/shipping-policy' },
-    { label: 'Returns Policy', to: '/returns-policy' },
+    { label: 'About Us', to: '/about', icon: <FaInfoCircle /> },
+    { label: 'FAQ', to: '/faq', icon: <FaQuestionCircle /> },
+    { label: 'Contact Support', to: '/contact', icon: <FaHeadset /> },
+    { label: 'Become a Seller', to: '/become-seller', icon: <FaStore /> },
+    { label: 'Shipping Policy', to: '/shipping-policy', icon: <FaTruck /> },
+    { label: 'Returns Policy', to: '/returns-policy', icon: <FaUndoAlt /> },
 ];
 
 const CategoryBar = () => {
@@ -256,6 +257,7 @@ const CategoryBar = () => {
                                             setMoreLocked(false);
                                         }}
                                     >
+                                        <span className='simple-dropdown-icon'>{link.icon}</span>
                                         {link.label}
                                     </Link>
                                 ))}

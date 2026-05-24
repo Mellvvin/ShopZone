@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { saveShippingAddress } from '../redux/slices/cartSlice';
 import { FaTruck, FaInfoCircle, FaExclamationTriangle } from 'react-icons/fa';
+import CheckoutSteps from '../components/CheckoutSteps/CheckoutSteps';
 import './ShippingPage.css';
 
 // ── Kenya counties and zone rate data (mirrors backend shippingRates.js) ──
@@ -116,15 +117,7 @@ const ShippingPage = () => {
     <div className='shipping-page'>
 
       {/* ── Progress indicator ────────────────────────────────────────── */}
-      <div className='shipping-progress'>
-        <span className='shipping-progress__step shipping-progress__step--done'>Cart</span>
-        <span className='shipping-progress__divider' aria-hidden='true' />
-        <span className='shipping-progress__step shipping-progress__step--active'>Shipping</span>
-        <span className='shipping-progress__divider' aria-hidden='true' />
-        <span className='shipping-progress__step'>Payment</span>
-        <span className='shipping-progress__divider' aria-hidden='true' />
-        <span className='shipping-progress__step'>Place Order</span>
-      </div>
+      <CheckoutSteps currentStep={2} />
 
       <div className='shipping-page__inner'>
 
@@ -234,6 +227,13 @@ const ShippingPage = () => {
 
                 <div className='delivery-rate-card__days'>
                   {deliveryZone.estimatedDays}
+                </div>
+
+                <div className='delivery-rate-card__disclaimer'>
+                  <FaInfoCircle aria-hidden='true' />
+                  <span>
+                    Estimate only — actual delivery cost is confirmed after your order is placed.
+                  </span>
                 </div>
 
                 {/* Mixed cart notice */}

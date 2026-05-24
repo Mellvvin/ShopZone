@@ -1,9 +1,37 @@
 /* ── Floating container ───────────────────────────────────── */
 .cw-wrapper {
   position: fixed;
-  bottom:   clamp(16px, 3vh, 30px);
-  right:    clamp(12px, 3vw, 30px);
-  z-index:  9999;
+  bottom: clamp(16px, 3vh, 30px);
+  right: clamp(12px, 3vw, 30px);
+  z-index: 9999;
+}
+
+/* On mobile push up above the bottom of the screen so it
+   doesn't overlap sticky footers or checkout buttons */
+@media (max-width: 768px) {
+  .cw-wrapper {
+    bottom: 20px;
+    right: 16px;
+  }
+
+  /* Smaller open button on mobile */
+  .cw-open-btn {
+    width: 54px;
+    height: 54px;
+  }
+
+  /* Chat window fills more of the screen on mobile */
+  .cw-window {
+    width: calc(100vw - 32px);
+    height: min(480px, 75vh);
+    right: 0;
+    bottom: 65px;
+  }
+
+  /* Hide bubble on mobile — too cramped */
+  .cw-bubble {
+    display: none;
+  }
 }
 
 /* ── Closed state — floating button + bubble ─────────────── */
@@ -16,15 +44,24 @@
 
 .cw-bubble {
   background-color: white;
-  color:            #002147;
-  padding:          10px 18px;
-  border-radius:    20px 20px 5px 20px;
-  font-size:        14px;
-  font-weight:      600;
-  box-shadow:       0 4px 15px rgba(0,0,0,0.1);
-  border:           1px solid #D2B48C;
-  animation:        fadeInSlide 0.8s ease-out;
-  white-space:      nowrap;
+  color: #002147;
+  padding: 10px 18px;
+  border-radius: 20px 20px 5px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #D2B48C;
+  animation: fadeInSlide 0.5s ease-out;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cw-bubble__icon {
+  color: var(--tan);
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
 .cw-open-btn {

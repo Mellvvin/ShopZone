@@ -180,7 +180,9 @@
 }
 
 .simple-dropdown-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     padding: 0.6rem 1rem;
     font-size: 0.875rem;
     color: var(--oxford-blue);
@@ -191,6 +193,24 @@
 .simple-dropdown-item:hover {
     background-color: #f7f4ef;
     color: #003a7a;
+}
+
+.simple-dropdown-icon {
+    width: 26px;
+    height: 26px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+}
+
+.simple-dropdown-item:hover .simple-dropdown-icon {
+    background-color: #003a7a;
 }
 
 /* ── Shared fade-in animation ───────────────────── */

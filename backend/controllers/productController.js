@@ -65,7 +65,12 @@ const getProducts = async (req, res) => {
     // Used by the Deals page and the Deals nav link.
     // Example: GET /api/products?deals=true
     if (req.query.deals === 'true') {
-      filter.isOnSale = true;
+      // Return products that are on sale OR clearance
+      // This ensures both tabs on the Special Offers page are populated
+      filter.$or = [
+        { isOnSale: true },
+        { isClearance: true },
+      ];
     }
 
     // ── Clearance filter ──────────────────────────────────────
@@ -118,20 +123,20 @@ const createProduct = async (req, res) => {
     // Creates a placeholder product with all fields so the admin
     // can immediately see and edit every field in the edit form.
     const product = new Product({
-      name:         'Sample Product Name',
-      price:        0,
-      salePrice:    null,
-      user:         req.user._id,
-      image:        '/images/sample.jpg',
-      category:     'General Merchandise',
+      name: 'Draft Product',
+      price: 0,
+      salePrice: null,
+      user: req.user._id,
+      image: '',
+      category: 'General Merchandise',
       countInStock: 0,
-      unit:         'Per Unit',
-      numReviews:   0,
-      description:  'Sample description',
-      tags:         [],
-      isFeatured:   false,
-      isOnSale:     false,
-      isClearance:  false,
+      unit: 'Per Unit',
+      numReviews: 0,
+      description: 'Draft — please complete all fields before saving.',
+      tags: [],
+      isFeatured: false,
+      isOnSale: false,
+      isClearance: false,
     });
 
     const createdProduct = await product.save();

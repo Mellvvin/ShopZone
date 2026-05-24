@@ -173,9 +173,11 @@ const ProductPage = () => {
                 </ListGroup.Item>
 
                 {/* Price */}
-                <ListGroup.Item>
-                  <span className='product-card-price'>${product.price}</span>
-                </ListGroup.Item>
+                    <ListGroup.Item>
+                      <span className='product-card-price'>
+                        {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
+                      </span>
+                    </ListGroup.Item>
 
                 {/* Description */}
                 <ListGroup.Item>
@@ -192,15 +194,17 @@ const ProductPage = () => {
             <Col md={3}>
               <ListGroup variant='flush'>
 
-                {/* Price row */}
-                <ListGroup.Item>
-                  <Row>
-                    <Col>Price:</Col>
-                    <Col>
-                      <strong className='product-card-price'>${product.price}</strong>
-                    </Col>
-                  </Row>
-                </ListGroup.Item>
+                    {/* Price row */}
+                    <ListGroup.Item>
+                      <Row>
+                        <Col>Price:</Col>
+                        <Col>
+                          <strong className='product-card-price'>
+                            {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
+                          </strong>
+                        </Col>
+                      </Row>
+                    </ListGroup.Item>
 
                 {/* Stock status */}
                 <ListGroup.Item>

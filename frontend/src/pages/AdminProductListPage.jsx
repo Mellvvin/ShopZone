@@ -24,6 +24,17 @@ const AdminProductListPage = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // ── Filtered product list ─────────────────────────────────
+  const filteredProducts = products.filter((p) => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      p.name.toLowerCase().includes(q) ||
+      p._id.toLowerCase().includes(q)
+    );
+  });
 
   // ── Fetch all products ────────────────────────────────────
   useEffect(() => {
@@ -153,6 +164,26 @@ const AdminProductListPage = () => {
       {/* Inline error */}
       {error && <Alert variant='danger'>{error}</Alert>}
 
+      {/* Search bar */}
+      <Row className='mb-3'>
+        <Col md={5}>
+          <input
+            type='text'
+            className='form-control'
+            placeholder='Search by product name or ID...'
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </Col>
+        <Col className='d-flex align-items-center'>
+          {searchQuery && (
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''} found
+            </span>
+          )}
+        </Col>
+      </Row>
+
       {loading ? (
         <div className='text-center py-5'>
           <Spinner animation='border' style={{ color: 'var(--oxford-blue)' }} />
@@ -172,7 +203,7 @@ const AdminProductListPage = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((product, index) => (
+              {filteredProducts.map((product, index) => (
               <tr
                 key={product._id}
                 style={{
@@ -193,7 +224,9 @@ const AdminProductListPage = () => {
                 <td style={{ fontWeight: 500, color: 'var(--oxford-blue)' }}>
                   {product.name}
                 </td>
-                <td className='product-card-price'>${product.price}</td>
+                  <td className='product-card-price'>
+                    {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
+                  </td>
                 <td>
                   <Badge style={{ backgroundColor: 'var(--oxford-blue)', color: 'var(--tan)', fontSize: '0.72rem', padding: '4px 8px', borderRadius: '20px' }}>
                     {product.unit || 'Per Unit'}

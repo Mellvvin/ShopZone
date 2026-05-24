@@ -16,6 +16,7 @@ import {
   Form, Button, Card, Alert,
   Spinner, Row, Col, Image,
 } from 'react-bootstrap';
+import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
 
@@ -67,7 +68,7 @@ const UNIT_HINTS = {
 };
 
 // ── Default values that mean the product was never properly filled ─
-const INVALID_NAMES = ['new product', 'sample product', 'product name', 'enter product name'];
+const INVALID_NAMES = ['new product', 'sample product', 'product name', 'enter product name', 'draft product'];
 
 const AdminProductEditPage = () => {
   const { id } = useParams();
@@ -114,16 +115,24 @@ const AdminProductEditPage = () => {
     fetchProduct();
   }, [userInfo, navigate]);
 
+  // Track whether this product was freshly created and never saved
+  // Used by the Back button to delete it if admin abandons the form
+  const [isNewUnsaved, setIsNewUnsaved] = useState(false);
+  const [showSaleModal, setShowSaleModal] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState(null);
+
   const fetchProduct = async () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/products/${id}`);
-      setName(data.name);
+      // If name and image are both empty this is a brand new unsaved product
+      setIsNewUnsaved(data.name === 'Draft Product' && !data.image);
+      setName(data.name === 'Draft Product' ? '' : data.name);
       setPrice(data.price ?? '');
       setSalePrice(data.salePrice ?? '');
       setImage(data.image ?? '');
       setCategory(data.category ?? '');
-      setDescription(data.description ?? '');
+      setDescription(data.description === 'Draft — please complete all fields before saving.' ? '' : (data.description ?? ''));
       setCountInStock(data.countInStock ?? '');
       setUnit(data.unit || 'Per Unit');
       setIsFeatured(data.isFeatured || false);
@@ -145,7 +154,7 @@ const AdminProductEditPage = () => {
   // overwrite tags the seller already set on an existing product
   const handleCategoryChange = (value) => {
     setCategory(value);
-    // Always replace tags when category changes
+    // Always replace tags when category changes — prevents cross-category tag pollution
     if (CATEGORY_TAGS[value]) {
       setTagList(CATEGORY_TAGS[value]);
     } else {
@@ -249,21 +258,21 @@ const AdminProductEditPage = () => {
       }
     }
 
+    
     // ── Confirmation for sale / clearance ─────────────────────
     if (isOnSale || isClearance) {
-      const flags = [
-        isOnSale ? `on sale at KES ${Number(salePrice).toFixed(2)}` : null,
-        isClearance ? 'clearance' : null,
-      ].filter(Boolean).join(' and ');
-
-      const confirmed = window.confirm(
-        `Are you sure you want to list "${name}" as ${flags}? This will make it visible on the Special Offers page immediately.`
-      );
-      if (!confirmed) return;
+      setPendingSaveData(true);
+      setShowSaleModal(true);
+      return;
     }
 
+    await executeSave();
+  };
+
+  const executeSave = async () => {
     try {
       setSaving(true);
+      setShowSaleModal(false);
       await axios.put(
         `/api/products/${id}`,
         {
@@ -294,6 +303,11 @@ const AdminProductEditPage = () => {
     }
   };
 
+  const saleModalFlags = [
+    isOnSale ? `on sale at KES ${Number(salePrice || 0).toFixed(2)}` : null,
+    isClearance ? 'clearance' : null,
+  ].filter(Boolean).join(' and ');
+
   if (loading) {
     return (
       <div className='text-center py-5'>
@@ -304,13 +318,40 @@ const AdminProductEditPage = () => {
 
   return (
     <>
-      <Link
-        to='/admin/products'
-        className='btn btn-light mb-4'
+      
+      {/* ── Sale / Clearance Confirmation Modal ───────────── */}
+      <ConfirmModal
+        show={showSaleModal}
+        onConfirm={executeSave}
+        onCancel={() => { setShowSaleModal(false); setPendingSaveData(null); }}
+        title='Confirm Special Listing'
+        message={`You are about to list "${name}" as ${saleModalFlags}.`}
+        subMessage='This will make it visible on the Special Offers page immediately. Are you sure?'
+        confirmLabel='Yes, Confirm'
+        confirmVariant='primary-branded'
+      />
+
+        <button
+          className='btn btn-light mb-4'
         style={{ borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}
+        onClick={async () => {
+          // If this product was never properly saved, delete it before going back
+          // This prevents junk "empty" products accumulating in the database
+          if (isNewUnsaved) {
+            try {
+              await axios.delete(`/api/products/${id}`, {
+                headers: { Authorization: `Bearer ${userInfo.token}` },
+              });
+            } catch (err) {
+              // Silent fail — product will still be cleaned up by admin tools
+              console.error('Could not delete unsaved product:', err.message);
+            }
+          }
+          navigate('/admin/products');
+        }}
       >
         ← Back to Products
-      </Link>
+      </button>
 
       <Row className='justify-content-center'>
         <Col lg={9}>
@@ -652,7 +693,18 @@ const AdminProductEditPage = () => {
                   type='button'
                   variant='light'
                   className='w-100'
-                  onClick={() => navigate('/admin/products')}
+                  onClick={async () => {
+                    if (isNewUnsaved) {
+                      try {
+                        await axios.delete(`/api/products/${id}`, {
+                          headers: { Authorization: `Bearer ${userInfo.token}` },
+                        });
+                      } catch (err) {
+                        console.error('Could not delete unsaved product:', err.message);
+                      }
+                    }
+                    navigate('/admin/products');
+                  }}
                   style={{ borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}
                 >
                   Cancel

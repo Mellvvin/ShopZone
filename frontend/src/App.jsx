@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 
 // ── Components — updated paths to match new subfolder structure ──
 import Header from './components/Header/Header';
@@ -32,6 +33,7 @@ import SpecialOffersPage from './pages/SpecialOffersPage';
 const App = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Header />
       <main className='py-3'>
         <Container>

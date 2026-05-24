@@ -27,43 +27,7 @@
   padding: 0 0 64px;
 }
 
-/* ── Progress indicator ──────────────────────────────────────────────────── */
-.place-order-progress {
-  background: #fff;
-  border-bottom: 1px solid rgba(0, 33, 71, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 16px 24px;
-}
-
-.place-order-progress__step {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #aaa;
-  padding: 4px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.place-order-progress__step--done {
-  color: var(--tan);
-}
-
-.place-order-progress__step--active {
-  color: var(--oxford-blue);
-  background: rgba(0, 33, 71, 0.06);
-}
-
-.place-order-progress__divider {
-  display: inline-block;
-  width: 24px;
-  height: 1px;
-  background: rgba(0, 33, 71, 0.15);
-  margin: 0 2px;
-}
+/* Progress indicator removed — now handled by CheckoutSteps component */
 
 /* ── Back button row ─────────────────────────────────────────────────────── */
 .place-order-page__back {
@@ -510,6 +474,40 @@
   margin: 0;
 }
 
+/* ── Terms list below place order button ────────────────────────────────── */
+.place-order-summary__terms {
+  margin-top: 4px;
+}
+
+.place-order-summary__terms-list {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.place-order-summary__terms-list li {
+  font-size: 0.7rem;
+  color: #aaa;
+  line-height: 1.5;
+  padding-left: 14px;
+  position: relative;
+}
+
+.place-order-summary__terms-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tan);
+  opacity: 0.6;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   /* Stack columns on tablet and below */
@@ -542,7 +540,4 @@
     grid-template-columns: 1fr;
   }
 
-  .place-order-progress__divider {
-    width: 16px;
-  }
 }

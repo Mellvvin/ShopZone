@@ -127,11 +127,11 @@ const ProductCard = ({ product }) => {
 
         <div className='hp-product-card__price-row'>
           <span className='hp-product-card__price'>
-            ${displayPrice.toFixed(2)}
+            {`KES ${Number(displayPrice).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
           </span>
           {isDiscounted && (
             <span className='hp-product-card__original-price'>
-              ${product.price.toFixed(2)}
+              {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
             </span>
           )}
           {product.unit && (
@@ -157,14 +157,14 @@ const ProductCard = ({ product }) => {
           </button>
         ) : cartQty === 0 ? (
           // Not in cart — show Add to Cart button
-          <button
-            className='hp-cart-btn hp-cart-btn--add'
-            onClick={handleAddToCart}
-            aria-label={`Add ${product.name} to cart`}
-          >
-            <FaShoppingCart aria-hidden='true' />
-            Add to Cart
-          </button>
+            <button
+              className='hp-cart-btn hp-cart-btn--add'
+              onClick={handleAddToCart}
+              aria-label={`Add ${product.name} to cart`}
+            >
+              <FaShoppingCart aria-hidden='true' />
+              <span className='hp-cart-btn__text'>Add to Cart</span>
+            </button>
         ) : (
           // Already in cart — show stepper
           <div className='hp-cart-stepper' role='group' aria-label={`Quantity for ${product.name}`}>

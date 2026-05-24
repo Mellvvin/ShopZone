@@ -32,14 +32,10 @@ import axios from 'axios';
 import { clearCartItems } from '../redux/slices/cartSlice';
 import { showToast } from '../components/Toast/Toast';
 import {
-  FaShoppingBag,
-  FaTruck,
-  FaCreditCard,
-  FaExclamationTriangle,
-  FaInfoCircle,
-  FaCheckCircle,
-  FaArrowLeft,
+  FaShoppingBag, FaTruck, FaCreditCard,
+  FaExclamationTriangle, FaInfoCircle, FaCheckCircle, FaArrowLeft,
 } from 'react-icons/fa';
+import CheckoutSteps from '../components/CheckoutSteps/CheckoutSteps';
 import './PlaceOrderPage.css';
 
 // ── Shipping zone lookup (mirrors backend/data/shippingRates.js) ──────────
@@ -123,13 +119,14 @@ const PlaceOrderPage = () => {
       ? deliveryZone.rate + 500   // surcharge estimate — backend calculates exact
       : deliveryZone.rate;
 
-  // VAT at 16%
-  const vatPrice = itemsPrice * 0.16;
+  // VAT is inclusive — extract the component from the items price
+  // Formula: VAT component = price × 16 / 116
+  const vatPrice = itemsPrice * 16 / 116;
 
-  // Grand total
+  // Grand total — VAT already inside itemsPrice so we do NOT add it again
   const totalPrice = isFullyTier2
-    ? itemsPrice + vatPrice          // shipping TBD — not included until quote approved
-    : itemsPrice + shippingPrice + vatPrice;
+    ? itemsPrice                     // shipping TBD — not included until quote approved
+    : itemsPrice + shippingPrice;
 
   // ── Place order handler ──────────────────────────────────────────────────
   const placeOrderHandler = async () => {
@@ -143,12 +140,12 @@ const PlaceOrderPage = () => {
       //   2. Store the unit (e.g. "per dozen") on the order record
       const orderPayload = {
         orderItems: cartItems.map((item) => ({
-          product: item._id,
+          product: item.product,   // cart stores ID under .product not ._id
           name: item.name,
           qty: item.qty,
           image: item.image,
           price: item.price,
-          category: item.category,   // needed for Tier 2 detection server-side
+          category: item.category,
           unit: item.unit || '',
         })),
         shippingAddress,
@@ -156,7 +153,7 @@ const PlaceOrderPage = () => {
         // We send these for reference — backend recalculates and overrides
         itemsPrice: Number(itemsPrice.toFixed(2)),
         shippingPrice: Number(shippingPrice.toFixed(2)),
-        taxPrice: Number(vatPrice.toFixed(2)),
+        taxPrice: Number(vatPrice.toFixed(2)),   // extracted component, for reference only
         totalPrice: Number(totalPrice.toFixed(2)),
       };
 
@@ -196,15 +193,7 @@ const PlaceOrderPage = () => {
     <div className='place-order-page'>
 
       {/* ── Progress indicator ─────────────────────────────────────────── */}
-      <div className='place-order-progress'>
-        <span className='place-order-progress__step place-order-progress__step--done'>Cart</span>
-        <span className='place-order-progress__divider' aria-hidden='true' />
-        <span className='place-order-progress__step place-order-progress__step--done'>Shipping</span>
-        <span className='place-order-progress__divider' aria-hidden='true' />
-        <span className='place-order-progress__step place-order-progress__step--done'>Payment</span>
-        <span className='place-order-progress__divider' aria-hidden='true' />
-        <span className='place-order-progress__step place-order-progress__step--active'>Place Order</span>
-      </div>
+      <CheckoutSteps currentStep={4} />
 
       {/* ── Back link ─────────────────────────────────────────────────── */}
       <div className='place-order-page__back'>
@@ -400,7 +389,7 @@ const PlaceOrderPage = () => {
               </div>
 
               <div className='place-order-summary__line'>
-                <span>VAT (16%)</span>
+                <span>VAT (included)</span>
                 <span>{formatKES(vatPrice)}</span>
               </div>
 
@@ -447,10 +436,18 @@ const PlaceOrderPage = () => {
             </button>
 
             {/* Reassurance note */}
-            <p className='place-order-summary__note'>
-              By placing your order you agree to ShopZone's terms. All transactions
-              are processed securely through ShopZone — no direct supplier contact.
-            </p>
+            <div className='place-order-summary__terms'>
+              <p className='place-order-summary__note'>
+                By placing your order you agree to ShopZone's terms of service.
+              </p>
+              <ul className='place-order-summary__terms-list'>
+                <li>Payment is made to ShopZone — never directly to a supplier</li>
+                <li>You will never be asked to contact a seller outside this platform</li>
+                <li>Once placed, your order moves to processing and you will receive status updates here</li>
+                <li>For Tier 2 orders, a delivery quote will be sent within 24 hours before payment is required</li>
+              </ul>
+            </div>
+            
           </div>
         </div>
 

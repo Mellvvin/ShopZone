@@ -1,0 +1,161 @@
+/* frontend/src/components/CheckoutSteps/CheckoutSteps.css
+   ─────────────────────────────────────────────────────────
+   Shared checkout progress bar.
+   Done steps: tan tick bubble.
+   Active step: oxford blue bubble, white icon, bold label,
+                oxford blue underline accent.
+   Pending steps: light grey bubble, muted label.
+   ───────────────────────────────────────────────────────── */
+
+/* ── Outer wrapper ──────────────────────────────────────── */
+.checkout-steps {
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.08);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px 24px 16px;
+    gap: 0;
+}
+
+/* ── Each step column ───────────────────────────────────── */
+.checkout-steps__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    max-width: 140px;
+}
+
+/* ── Track row: line — bubble — line ────────────────────── */
+.checkout-steps__track {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Connector lines */
+.checkout-steps__line {
+    flex: 1;
+    height: 2px;
+    background: #e0dbd2;
+    transition: background 0.3s ease;
+}
+
+.checkout-steps__line--filled {
+    background: var(--tan);
+}
+
+.checkout-steps__line--invisible {
+    background: transparent;
+}
+
+/* ── Bubble ─────────────────────────────────────────────── */
+.checkout-steps__bubble {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    border: 2px solid transparent;
+    position: relative;
+    z-index: 1;
+}
+
+/* Done — tan fill, oxford blue tick */
+.checkout-steps__bubble--done {
+    background: var(--tan);
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
+
+/* Active — oxford blue fill, white icon, subtle lift + glow */
+.checkout-steps__bubble--active {
+    background: var(--oxford-blue);
+    border-color: var(--oxford-blue);
+    color: #fff;
+    transform: scale(1.12);
+    box-shadow: 0 4px 16px rgba(0, 33, 71, 0.28);
+}
+
+/* Pending — white fill, light grey border, muted icon */
+.checkout-steps__bubble--pending {
+    background: #fff;
+    border-color: #d0ccc6;
+    color: #bbb;
+}
+
+.checkout-steps__icon {
+    font-size: 1rem;
+}
+
+.checkout-steps__tick {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* ── Label ──────────────────────────────────────────────── */
+.checkout-steps__label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #bbb;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+/* Step number prefix */
+.checkout-steps__number {
+    font-size: 0.65rem;
+    font-weight: 700;
+    opacity: 0.6;
+}
+
+/* Done label */
+.checkout-steps__label--done {
+    color: var(--tan-dark);
+    font-weight: 600;
+}
+
+/* Active label — oxford blue, bold, underline accent */
+.checkout-steps__label--active {
+    color: var(--oxford-blue);
+    font-weight: 800;
+    font-size: 0.8rem;
+    border-bottom: 2px solid var(--oxford-blue);
+    padding-bottom: 1px;
+}
+
+/* Pending label */
+.checkout-steps__label--pending {
+    color: #bbb;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .checkout-steps {
+        padding: 16px 12px 14px;
+    }
+
+    .checkout-steps__bubble {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+
+    .checkout-steps__label {
+        font-size: 0.65rem;
+        margin-top: 7px;
+    }
+
+    .checkout-steps__label--active {
+        font-size: 0.7rem;
+    }
+}

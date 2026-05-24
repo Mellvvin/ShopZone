@@ -1,25 +1,57 @@
+// frontend/src/pages/PaymentPage.jsx
+// ─────────────────────────────────────────────────────────────
+// Payment method selection page.
+// Redesigned with branded payment option cards, icons, and copy.
+// All styling in PaymentPage.css — zero inline styles.
+// ─────────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Button, Card, Col } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { savePaymentMethod } from '../redux/slices/cartSlice';
+import {
+  FaCreditCard, FaMobileAlt, FaUniversity,
+  FaArrowLeft, FaCheckCircle, FaShieldAlt,
+} from 'react-icons/fa';
+import CheckoutSteps from '../components/CheckoutSteps/CheckoutSteps';
+import './PaymentPage.css';
+
+// ── Payment options ───────────────────────────────────────────
+const PAYMENT_OPTIONS = [
+  {
+    value: 'PayPal',
+    label: 'PayPal or Credit Card',
+    description: 'Pay securely using your PayPal account or any major credit or debit card.',
+    icon: FaCreditCard,
+    badge: null,
+  },
+  {
+    value: 'MPesa',
+    label: 'M-Pesa',
+    description: 'Pay via M-Pesa mobile money. You will receive an STK push prompt on your phone after placing your order.',
+    icon: FaMobileAlt,
+    badge: 'Most Popular',
+  },
+  {
+    value: 'BankTransfer',
+    label: 'Bank Transfer',
+    description: 'Pay directly from your bank account. ShopZone will send you the account details after your order is confirmed.',
+    icon: FaUniversity,
+    badge: null,
+  },
+];
 
 const PaymentPage = () => {
-  const { shippingAddress } = useSelector((state) => state.cart);
-  const { userInfo }        = useSelector((state) => state.auth);
-
-  const [paymentMethod, setPaymentMethod] = useState('PayPal');
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const { shippingAddress } = useSelector((state) => state.cart);
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const [paymentMethod, setPaymentMethod] = useState('MPesa');
+
   useEffect(() => {
-    if (!userInfo) {
-      navigate('/login?redirect=shipping');
-    }
-    if (!shippingAddress?.address) {
-      navigate('/shipping');
-    }
+    if (!userInfo) navigate('/login?redirect=shipping');
+    if (!shippingAddress?.address) navigate('/shipping');
   }, [userInfo, shippingAddress, navigate]);
 
   const submitHandler = (e) => {
@@ -29,101 +61,99 @@ const PaymentPage = () => {
   };
 
   return (
-    <div className='d-flex justify-content-center mt-5'>
-      <Card className='p-4 shadow-sm' style={{ width: '100%', maxWidth: '500px' }}>
+    <div className='payment-page'>
 
-        {/* ── Progress Indicator ── */}
-        <div className='d-flex justify-content-between mb-4'>
-          {['Shipping', 'Payment', 'Place Order'].map((step, index) => (
-            <div key={step} className='text-center' style={{ flex: 1 }}>
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                backgroundColor: index === 1
-                  ? 'var(--oxford-blue)'
-                  : index < 1
-                  ? 'var(--tan)'
-                  : 'var(--tan-light)',
-                color: index <= 1 ? 'var(--oxford-blue)' : 'var(--text-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 6px',
-                fontWeight: '700',
-                fontSize: '0.85rem',
-              }}>
-                {index + 1}
-              </div>
-              <small style={{
-                color: index === 1 ? 'var(--oxford-blue)' : 'var(--text-muted)',
-                fontWeight: index === 1 ? '600' : '400',
-              }}>
-                {step}
-              </small>
+      {/* ── Progress indicator ──────────────────────────────────── */}
+      <CheckoutSteps currentStep={3} />
+      
+
+      <div className='payment-page__inner'>
+
+        {/* ── Back button ─────────────────────────────────────────── */}
+        <button
+          className='payment-back-btn'
+          onClick={() => navigate('/shipping')}
+          aria-label='Back to shipping'
+        >
+          <FaArrowLeft aria-hidden='true' /> Back
+        </button>
+
+        <div className='payment-card'>
+          <h1 className='payment-card__title'>Payment Method</h1>
+          <p className='payment-card__subtitle'>
+            All payments are processed securely through ShopZone.
+            You will never be asked to pay a supplier directly.
+          </p>
+
+          <form onSubmit={submitHandler}>
+
+            {/* ── Payment option cards ──────────────────────────── */}
+            <div className='payment-options'>
+              {PAYMENT_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                const isSelected = paymentMethod === option.value;
+                return (
+                  <label
+                    key={option.value}
+                    className={`payment-option ${isSelected ? 'payment-option--selected' : ''}`}
+                    htmlFor={option.value}
+                  >
+                    {/* Hidden radio input — label handles click */}
+                    <input
+                      type='radio'
+                      id={option.value}
+                      name='paymentMethod'
+                      value={option.value}
+                      checked={isSelected}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className='payment-option__input'
+                    />
+
+                    {/* Icon box */}
+                    <div className='payment-option__icon-wrap'>
+                      <Icon className='payment-option__icon' aria-hidden='true' />
+                    </div>
+
+                    {/* Text */}
+                    <div className='payment-option__text'>
+                      <div className='payment-option__label-row'>
+                        <span className='payment-option__label'>{option.label}</span>
+                        {option.badge && (
+                          <span className='payment-option__badge'>{option.badge}</span>
+                        )}
+                      </div>
+                      <p className='payment-option__description'>{option.description}</p>
+                    </div>
+
+                    {/* Selected tick */}
+                    {isSelected && (
+                      <FaCheckCircle
+                        className='payment-option__tick'
+                        aria-hidden='true'
+                      />
+                    )}
+                  </label>
+                );
+              })}
             </div>
-          ))}
+
+            {/* ── Trust note ────────────────────────────────────── */}
+            <div className='payment-trust'>
+              <FaShieldAlt className='payment-trust__icon' aria-hidden='true' />
+              <span>
+                Your payment details are never shared with sellers.
+                ShopZone holds all funds until your order is delivered.
+              </span>
+            </div>
+
+            {/* ── Submit ────────────────────────────────────────── */}
+            <button type='submit' className='payment-submit-btn'>
+              Continue to Order Summary
+            </button>
+
+          </form>
         </div>
-
-        <h2 className='text-center mb-4' style={{ color: 'var(--oxford-blue)' }}>
-          Payment Method
-        </h2>
-
-        <Form onSubmit={submitHandler}>
-          <Form.Group className='mb-4'>
-            <Form.Label style={{
-              color: 'var(--oxford-blue)',
-              fontWeight: '600',
-              marginBottom: '1rem'
-            }}>
-              Select Payment Method
-            </Form.Label>
-
-            <Col>
-              <Form.Check
-                type='radio'
-                label='PayPal or Credit Card'
-                id='PayPal'
-                name='paymentMethod'
-                value='PayPal'
-                checked={paymentMethod === 'PayPal'}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className='mb-3'
-                style={{ color: 'var(--text-dark)' }}
-              />
-              <Form.Check
-                type='radio'
-                label='M-Pesa'
-                id='MPesa'
-                name='paymentMethod'
-                value='MPesa'
-                checked={paymentMethod === 'MPesa'}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className='mb-3'
-                style={{ color: 'var(--text-dark)' }}
-              />
-              <Form.Check
-                type='radio'
-                label='Bank Transfer'
-                id='BankTransfer'
-                name='paymentMethod'
-                value='BankTransfer'
-                checked={paymentMethod === 'BankTransfer'}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                style={{ color: 'var(--text-dark)' }}
-              />
-            </Col>
-          </Form.Group>
-
-          <Button
-            type='submit'
-            variant='dark'
-            className='w-100 mt-2'
-          >
-            Continue to Order Summary
-          </Button>
-        </Form>
-      </Card>
+      </div>
     </div>
   );
 };

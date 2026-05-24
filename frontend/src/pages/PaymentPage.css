@@ -1,0 +1,230 @@
+/* frontend/src/pages/PaymentPage.css
+   ─────────────────────────────────────────────────────────────
+   Styles for the Payment Method selection page.
+   Matches ShippingPage layout and progress indicator pattern.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Page wrapper ───────────────────────────────────────────── */
+.payment-page {
+    min-height: 100vh;
+    background: var(--bg);
+    padding: 0 0 64px;
+}
+
+/* Progress indicator removed — now handled by CheckoutSteps component */
+
+/* ── Inner wrapper ──────────────────────────────────────────── */
+.payment-page__inner {
+    max-width: 560px;
+    margin: 40px auto 0;
+    padding: 0 24px;
+}
+
+/* ── Back button ────────────────────────────────────────────── */
+.payment-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: none;
+    border: none;
+    color: var(--oxford-blue);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 20px;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.payment-back-btn:hover {
+    opacity: 1;
+}
+
+/* ── Main card ──────────────────────────────────────────────── */
+.payment-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1.5px solid rgba(0, 33, 71, 0.08);
+    padding: 32px;
+}
+
+.payment-card__title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+}
+
+.payment-card__subtitle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin: 0 0 28px;
+    line-height: 1.6;
+}
+
+/* ── Payment options list ───────────────────────────────────── */
+.payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+/* ── Individual payment option card ────────────────────────── */
+.payment-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+    border: 1.5px solid rgba(0, 33, 71, 0.12);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    position: relative;
+}
+
+.payment-option:hover {
+    border-color: var(--tan);
+    background-color: rgba(210, 180, 140, 0.04);
+}
+
+.payment-option--selected {
+    border-color: var(--oxford-blue);
+    background-color: rgba(0, 33, 71, 0.03);
+}
+
+/* Hide the native radio — label handles interaction */
+.payment-option__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Icon box */
+.payment-option__icon-wrap {
+    width: 42px;
+    height: 42px;
+    background: var(--oxford-blue);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease;
+}
+
+.payment-option--selected .payment-option__icon-wrap {
+    background-color: var(--oxford-blue);
+}
+
+.payment-option__icon {
+    color: var(--tan);
+    font-size: 1.1rem;
+}
+
+/* Text block */
+.payment-option__text {
+    flex: 1;
+}
+
+.payment-option__label-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.payment-option__label {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+}
+
+.payment-option__badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: var(--tan);
+    color: var(--oxford-blue);
+    padding: 2px 7px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.payment-option__description {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* Selected tick icon — top right */
+.payment-option__tick {
+    color: var(--oxford-blue);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* ── Trust note ─────────────────────────────────────────────── */
+.payment-trust {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: rgba(0, 33, 71, 0.03);
+    border-left: 3px solid var(--oxford-blue);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 24px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.payment-trust__icon {
+    color: var(--oxford-blue);
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* ── Submit button ──────────────────────────────────────────── */
+.payment-submit-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.payment-submit-btn:hover,
+.payment-submit-btn:focus-visible {
+    background: #003266;
+    transform: translateY(-1px);
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .payment-page__inner {
+        padding: 0 16px;
+        margin-top: 24px;
+    }
+
+    .payment-card {
+        padding: 24px 18px;
+    }
+
+    .payment-option {
+        padding: 14px 12px;
+    }
+}

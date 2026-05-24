@@ -200,11 +200,14 @@ const createOrder = async (req, res) => {
     }
 
     // ── Step 4: Calculate tax and total server-side ─────────────────────
+    // VAT is inclusive — extract the component from the price rather than adding on top
+    // Formula: VAT component = price × 16 / 116
     const serverTaxPrice = Number(
-      (serverItemsPrice * SHIPPING_CONSTANTS.VAT_RATE).toFixed(2)
+      (serverItemsPrice * 16 / 116).toFixed(2)
     );
+    // Total = items (VAT already inside) + shipping only
     const serverTotalPrice = Number(
-      (serverItemsPrice + shippingPrice + serverTaxPrice).toFixed(2)
+      (serverItemsPrice + shippingPrice).toFixed(2)
     );
 
     // ── Step 5: Calculate and record platform commission ─────────────────

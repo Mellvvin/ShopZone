@@ -643,10 +643,9 @@ const OrderPage = () => {
                 </span>
               </div>
               <div className='order-price-line'>
-                <span>VAT (16%)</span>
+                <span>VAT (included)</span>
                 <span>{formatKES(order.taxPrice)}</span>
               </div>
-
               <div className='order-price-divider' aria-hidden='true' />
 
               <div className='order-price-line order-price-line--total'>

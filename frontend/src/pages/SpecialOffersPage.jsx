@@ -30,7 +30,7 @@ const getDiscountPct = (original, sale) => {
 };
 
 // ── Helper: format currency ───────────────────────────────────────────────
-const fmt = (n) => `$${Number(n).toFixed(2)}`;
+const fmt = (n) => `KES ${Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
 
 // ─────────────────────────────────────────────────────────────────────────
 // OfferCard — product card with discount badge and cart controls

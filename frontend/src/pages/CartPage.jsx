@@ -4,14 +4,16 @@
 // Shows all cart items with quantity controls and order summary.
 // Toast added for item removal.
 // ─────────────────────────────────────────────────────────────
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Row, Col, ListGroup, Image,
   Button, Card, Form, Alert,
 } from 'react-bootstrap';
-import { updateCartQty, removeFromCart } from '../redux/slices/cartSlice';
+import { updateCartQty, removeFromCart, clearCartItems } from '../redux/slices/cartSlice';
 import { showToast } from '../components/Toast/Toast';
+import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 
 const CartPage = () => {
   const dispatch = useDispatch();
@@ -19,6 +21,22 @@ const CartPage = () => {
 
   const { cartItems } = useSelector((state) => state.cart);
   const { userInfo } = useSelector((state) => state.auth);
+
+ 
+  // ── Clear entire cart ─────────────────────────────────────
+  const [showClearCartModal, setShowClearCartModal] = useState(false);
+
+  const clearCartHandler = () => {
+    setShowClearCartModal(true);
+  };
+
+  const confirmClearCart = () => {
+    dispatch(clearCartItems());
+    showToast('Cart cleared.', 'info');
+    setShowClearCartModal(false);
+  };
+
+
 
   // ── Remove item from cart ─────────────────────────────────
   // Fires both the Redux action and a toast notification.
@@ -48,13 +66,42 @@ const CartPage = () => {
   };
 
   return (
-    <Row>
+    <>
+      <ConfirmModal
+        show={showClearCartModal}
+        onConfirm={confirmClearCart}
+        onCancel={() => setShowClearCartModal(false)}
+        title='Clear Cart'
+        message='Remove all items from your cart?'
+        subMessage='This cannot be undone.'
+        confirmLabel='Yes, Clear Cart'
+        confirmVariant='danger'
+      />
+      <Row>
 
       {/* ════════════════════════════════════════════════════
           LEFT — Cart items list
       ════════════════════════════════════════════════════ */}
       <Col md={8}>
-        <h1 className='page-title mb-4'>Shopping Cart</h1>
+        <div className='d-flex align-items-center justify-content-between mb-4'>
+          <h1 className='page-title mb-0'>Shopping Cart</h1>
+          {cartItems.length > 0 && (
+            <button
+              onClick={clearCartHandler}
+              style={{
+                all: 'unset',
+                cursor: 'pointer',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                color: '#c0392b',
+                borderBottom: '1px solid #c0392b',
+                paddingBottom: '1px',
+              }}
+            >
+              Clear Cart
+            </button>
+          )}
+        </div>
 
         {/* Empty cart state */}
         {cartItems.length === 0 ? (
@@ -100,57 +147,115 @@ const CartPage = () => {
 
                   {/* ── Unit price ──────────────────────── */}
                   <Col md={2}>
-                    <span className='product-card-price'>${item.price}</span>
+                    <span className='product-card-price'>
+                      KES {Number(item.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}
+                    </span>
                   </Col>
 
                   {/* ── Quantity controls ───────────────── */}
                   <Col md={3}>
-                    <Row className='align-items-center'>
-                      <Col xs='auto'>
-                        <Button
-                          variant='light'
-                          className='qty-btn'
-                          onClick={() => handleQtyChange(item, item.qty - 1)}
-                        >
-                          −
-                        </Button>
-                      </Col>
-                      <Col xs='auto'>
-                        <Form.Control
-                          type='number'
-                          value={item.qty}
-                          min={1}
-                          onChange={(e) => handleQtyChange(item, e.target.value)}
-                          className='qty-input'
-                        />
-                      </Col>
-                      <Col xs='auto'>
-                        <Button
-                          variant='light'
-                          className='qty-btn'
-                          onClick={() => handleQtyChange(item, item.qty + 1)}
-                        >
-                          +
-                        </Button>
-                      </Col>
-                    </Row>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      border: '1.5px solid rgba(0,33,71,0.15)',
+                      borderRadius: '6px',
+                      overflow: 'hidden',
+                      height: '32px',
+                    }}>
+                      <button
+                        onClick={() => handleQtyChange(item, item.qty - 1)}
+                        style={{
+                          all: 'unset',
+                          cursor: 'pointer',
+                          width: '28px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.85rem',
+                          color: 'var(--oxford-blue)',
+                          background: 'rgba(0,33,71,0.04)',
+                          flexShrink: 0,
+                        }}
+                        aria-label='Decrease quantity'
+                      >
+                        −
+                      </button>
+                      <input
+                        type='number'
+                        value={item.qty}
+                        min={1}
+                        onChange={(e) => handleQtyChange(item, e.target.value)}
+                        style={{
+                          width: '36px',
+                          height: '32px',
+                          border: 'none',
+                          borderLeft: '1px solid rgba(0,33,71,0.1)',
+                          borderRight: '1px solid rgba(0,33,71,0.1)',
+                          textAlign: 'center',
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          color: 'var(--oxford-blue)',
+                          outline: 'none',
+                          padding: 0,
+                          MozAppearance: 'textfield',
+                        }}
+                        aria-label={`Quantity for ${item.name}`}
+                      />
+                      <button
+                        onClick={() => handleQtyChange(item, item.qty + 1)}
+                        style={{
+                          all: 'unset',
+                          cursor: 'pointer',
+                          width: '28px',
+                          height: '32px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.85rem',
+                          color: 'var(--oxford-blue)',
+                          background: 'rgba(0,33,71,0.04)',
+                          flexShrink: 0,
+                        }}
+                        aria-label='Increase quantity'
+                      >
+                        +
+                      </button>
+                    </div>
                   </Col>
 
                   {/* ── Remove button ───────────────────── */}
                   <Col md={1}>
-                    <Button
+                    <button
                       type='button'
-                      variant='light'
                       onClick={() => removeFromCartHandler(item.product, item.name)}
                       style={{
-                        color: 'var(--oxford-blue)',
-                        border: '1px solid var(--tan)',
-                        padding: '4px 10px',
+                        all: 'unset',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '5px',
+                        border: '1.5px solid #c0392b',
+                        color: '#c0392b',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        transition: 'background 0.15s ease, color 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#c0392b';
+                        e.currentTarget.style.color = '#fff';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = '#c0392b';
                       }}
                       aria-label={`Remove ${item.name} from cart`}
                     >
                       ✕
-                    </Button>
+                    </button>
                   </Col>
 
                 </Row>
@@ -187,9 +292,9 @@ const CartPage = () => {
               <Row>
                 <Col style={{ color: 'var(--text-muted)' }}>Subtotal:</Col>
                 <Col className='product-card-price'>
-                  ${cartItems
+                  KES {cartItems
                     .reduce((acc, item) => acc + item.qty * item.price, 0)
-                    .toFixed(2)}
+                    .toLocaleString('en-KE', { minimumFractionDigits: 2 })}
                 </Col>
               </Row>
             </ListGroup.Item>
@@ -211,6 +316,7 @@ const CartPage = () => {
       </Col>
 
     </Row>
+    </>
   );
 };
 
