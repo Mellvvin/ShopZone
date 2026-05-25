@@ -1,1640 +1,1085 @@
-# ShopZone Project Roadmap
+# ShopZone Active Roadmap
 
-Use this as a working Notion document. Each section can become a Notion heading, and each checklist item can become a task card.
+This is the working Notion roadmap for ShopZone. It removes issues and improvements that are already fixed, keeps unfinished work in the execution order, and adds clearer implementation notes for the next build steps.
 
 ## Product Direction
 
-ShopZone is not just a normal ecommerce store. It is a structured procurement and supply-chain platform for small retailers, remote businesses, group buyers, and individuals who need bulk goods but do not have easy access to reliable suppliers.
+ShopZone is a full stack B2B wholesale platform based in Nairobi, Kenya. It connects retailers, small businesses, remote buyers, group buyers, and individuals to structured supply chains.
 
 The operating model is:
 
 - Customers buy from ShopZone.
-- Suppliers/sellers sell through ShopZone.
-- ShopZone controls pricing, customer communication, delivery, quality, and support.
-- Supplier identity and direct supplier contact must stay private to prevent off-platform deals.
+- Suppliers and sellers sell through ShopZone.
+- ShopZone controls pricing, customer communication, delivery promises, quality control, support, disputes, and payouts.
+- Customers never see supplier names, supplier contacts, supplier locations, supplier cost prices, or direct seller identifiers.
+- Sellers never contact customers directly through the platform.
+- Public listings show ShopZone-controlled information only.
 
-## Current State
+## Current Implemented Baseline
 
-The project already includes:
+These items are already present and should not be repeated as active roadmap tasks unless regression testing shows a problem:
 
-- Customer product browsing
-- Product detail pages
-- Cart flow
-- User registration and login
-- Shipping form
-- Payment method selection
-- Order placement
-- Customer profile page
-- Customer order history
-- Product reviews
-- Image upload route
-- Backend admin-protected APIs for users, products, and orders
+- React/Vite frontend, Node/Express backend, MongoDB/Mongoose data layer, JWT auth, bcryptjs password hashing in controllers, Multer uploads, Redux Toolkit, React Bootstrap, Axios, React Icons.
+- Customer browsing, product detail pages, cart, registration, login, shipping, payment method selection, order placement, profile, order history, product reviews, admin APIs, and upload route.
+- Secure order access in `backend/controllers/orderController.js`, where only the order owner or admin can view an order by ID.
+- Central error middleware in `backend/middleware/errorMiddleware.js`, registered in `backend/server.js`.
+- Foundation admin pages: product list, product edit, order list, and user list.
+- Product merchandising fields in `backend/models/Product.js`: `tags`, `isFeatured`, `isOnSale`, `isClearance`, and `salePrice`.
+- Expanded customer categories in the header/category surfaces.
+- Search across product name, category, description, and tags in `backend/controllers/productController.js`.
+- Homepage redesign with hero, category cards, product sections, deals banner, product cards, and cart controls.
+- Special Offers page and `/offers` route for sale and clearance products.
+- Mobile header fixes, tan cart badge override, mobile deals banner containment, and mobile Special Offers card overrides.
+- Shared `ConfirmModal` replacing `window.confirm` usage.
+- Toast live region improvements, MobileDrawer focus trap, dialog semantics, Escape close, and no inline icon styles in drawer support/admin links.
+- Atomic stock protection during order creation, stock restore on cancellation/rejected delivery quote, server-side item price verification, VAT-inclusive extraction, county-based shipping, Tier 2 delivery quote flow, seller delivery quote submission, platform commission tracking, and lightweight payout release flag.
 
-The main missing pieces are supplier privacy rules, seller onboarding, seller portal, admin approval workflows, real bulk-buying logic, quote/procurement flow, delivery planning, real payments, validation, tests, and production readiness.
+## Non-Negotiable Rules
 
-## Core Business Rules
+- All transactions and communication go through ShopZone.
+- No customer-facing page may expose supplier identity, supplier contact details, supplier location, supplier cost, or direct seller identifiers.
+- Cart items must continue using `item.product` as the MongoDB product ID field.
+- Password hashing stays in controllers; do not add a `User.js` pre-save password hook.
+- VAT is inclusive and must be extracted as `price * 16 / 116`; do not add VAT on top of displayed product prices.
+- Prices must display in KES using `toLocaleString('en-KE', { minimumFractionDigits: 2 })`.
+- UI icons use `react-icons/fa`; do not use emojis for visible UI.
+- Avoid inline `style={{}}` props in JSX. Move styling to component CSS files except where a Bootstrap override is genuinely unavoidable.
+- Each component keeps its own CSS file in its own folder. `index.css` stays for global variables and globals only.
+- Backend authorization is the real security boundary. Frontend route hiding is not enough.
 
-- Customers should never see supplier names, supplier contacts, supplier locations, supplier cost prices, or direct seller identifiers.
-- Sellers should not directly contact customers through the platform.
-- Customers communicate with ShopZone.
-- Sellers communicate with ShopZone.
-- ShopZone decides which seller products become public listings.
-- ShopZone owns the customer price, margin, delivery promise, support process, and dispute handling.
-- Public listings should show ShopZone-controlled information only.
-
-## Phase 1: Clean Up And Stabilize
-
-Execution gate:
-
-- This phase now covers suggested steps 1 to 6.
-- Do not move past this phase until secure order access, central error handling, and the first admin pages all work cleanly.
-- Existing tasks in later admin phases are still planned; this phase pulls the first usable admin screens forward so the platform has a stable operating base.
-
-### Task: Fix Corrupted Frontend Characters
+## Step 1: Clean Corrupted Characters And Text Encoding
 
 Priority: High
 
-Some frontend files contain corrupted/mojibake characters in comments and visible UI labels/icons.
+This remains the most visible cleanup issue. Many files still contain mojibake/corrupted characters. Use ASCII-safe searches for the corrupted byte patterns and common replacement targets instead of copying the broken symbols back into new docs.
+
+Known affected areas:
+
+- `frontend/src/components/Header/Header.jsx`
+- `frontend/src/components/Header/Header.css`
+- `frontend/src/components/ShopZoneLogo/ShopZoneLogo.jsx`
+- `frontend/src/components/ShopZoneLogo/ShopZoneLogo.css`
+- `frontend/src/components/Footer/Footer.jsx`
+- `frontend/src/components/Toast/Toast.jsx`
+- `frontend/src/components/MobileDrawer/MobileDrawer.jsx`
+- `frontend/src/pages/HomePage.css`
+- `frontend/src/pages/SpecialOffersPage.css`
+- `backend/controllers/productController.js`
+- `backend/controllers/orderController.js`
+- `backend/models/Product.js`
+- `backend/models/Order.js`
+- `backend/routes/orderRoutes.js`
 
 Checklist:
 
-- Review `frontend/src/components/Header.jsx`
-- Review `frontend/src/pages/ProfilePage.jsx`
-- Review `frontend/src/pages/PaymentPage.jsx`
-- Review `frontend/src/pages/OrderPage.jsx`
-- Replace corrupted comments with normal ASCII comments
-- Replace corrupted visible icons with proper text or React icon components
-- Run frontend lint/build after cleanup
+- Search the whole repo for corrupted UTF-8 patterns and non-ASCII symbols, especially broken box-drawing comments, broken dashes, broken check/cross/info icons, broken footer arrows, and broken copyright text.
+- Replace corrupted comment dividers with plain ASCII comment dividers.
+- Replace corrupted visible UI symbols with React Icons from `react-icons/fa`.
+- Replace corrupted footer arrow bullets with CSS bullets or proper icon components.
+- Replace Toast visible close/icon characters with React Icons or plain accessible text.
+- Replace corrupted copyright text with ASCII-safe `Copyright {year} ShopZone Wholesale. All rights reserved.` or a CSS-safe entity rendered intentionally.
+- Keep all visible UI labels readable after cleanup.
+- Run frontend build after cleanup.
 
 Acceptance criteria:
 
-- No corrupted characters remain in visible UI
-- Frontend still builds successfully
-- Navigation and dropdowns still work
+- No corrupted characters remain in visible UI.
+- Comments are readable and no longer polluted by mojibake.
+- Toast, Footer, Header, MobileDrawer, product pages, checkout pages, and admin pages still render correctly.
+- Frontend build succeeds.
 
-### Task: Secure Order Access
+## Step 2: Final UI Structure And Accessibility Hardening
 
 Priority: High
 
-Currently, any logged-in user can request an order by ID. The backend should only allow the order owner or an admin to view an order.
+The first accessibility pass has been started, but several semantics and layout details still need tightening before building more features on top.
+
+Issues to address:
+
+- `MobileDrawer` remains mounted as a dialog even when closed. Hide it from assistive technology when closed or render it only when open while preserving exit animation if needed.
+- Product cards use `display: contents` link wrappers. This can be inconsistent for focus rings and assistive technology. Convert clickable product content to a normal block link, with cart controls outside the link.
+- `ShopZoneLogo.jsx` still uses inline `style` props for gap, font size, and color. Move size/color variants into CSS classes or CSS variables.
+- `App.jsx` wraps all routes in a Bootstrap `Container`, while pages like HomePage and SpecialOffersPage already manage their own widths. This can constrain full-width sections and create nested layout spacing.
+- Confirm whether `confirmVariant="primary-branded"` is still used anywhere. If it is, add a CSS-backed variant instead of relying on old inline styles.
+- Ensure all icon-only buttons have clear `aria-label` values.
+- Ensure modal close buttons, drawer close buttons, cart steppers, and search controls have visible focus states.
 
 Checklist:
 
-- Update `getOrderById` in `backend/controllers/orderController.js`
-- Check whether `order.user` matches `req.user._id`
-- Allow access if `req.user.isAdmin` is true
-- Return `401` or `403` if the user is not authorized
-- Test with owner user, another user, and admin user
+- Review `frontend/src/App.jsx` and decide which pages should be full-width outside Bootstrap `Container`.
+- Review `frontend/src/components/MobileDrawer/MobileDrawer.jsx` for closed-state semantics.
+- Review `frontend/src/pages/HomePage.jsx` and `frontend/src/pages/SpecialOffersPage.jsx` for card link/button structure.
+- Review `frontend/src/components/ShopZoneLogo/ShopZoneLogo.jsx` and move inline visual styling into CSS.
+- Run a keyboard-only pass through header, search, drawer, product cards, cart controls, checkout, admin pages, modal, and toast dismissal.
+- Test mobile width around 360px, 390px, 430px, 768px, and desktop.
 
 Acceptance criteria:
 
-- Users cannot access other customers' orders
-- Admins can access all orders
-- Existing order page still works for the correct user
+- Keyboard users can open, navigate, and close the drawer without escaping into background content.
+- Product cards have predictable focus rings and semantic links.
+- No avoidable inline visual styles remain in the reviewed components.
+- Full-width pages are not unintentionally squeezed by the global Bootstrap container.
 
-### Task: Add Central Error Middleware
+## Step 3: Fix Dead Links And Add Core Content Pages
 
 Priority: High
 
-The backend currently handles errors inside each controller. Centralized middleware will make responses more consistent.
+Several visible navigation items point to placeholder routes or routes that may not exist. These should be fixed before seller features so customer support and onboarding are not broken.
+
+Known issues:
+
+- Footer `Become a Seller` points to `/`.
+- Footer `FAQ` points to `/`.
+- Footer category names are non-clickable spans instead of category links.
+- Mobile drawer links include `/brands`, `/contact`, and seller/support labels that need real routes or intentional removal.
+- Header/support links should not lead nowhere.
+
+Pages to add:
+
+- FAQ page.
+- Contact Support page.
+- Become a Seller page.
+- Shipping Policy page.
+- Returns Policy page.
+- Optional Brands page only if ShopZone will actually support brand browsing.
 
 Checklist:
 
-- Add `backend/middleware/errorMiddleware.js`
-- Add `notFound` middleware for unknown routes
-- Add `errorHandler` middleware for server errors
-- Register middleware in `backend/server.js`
-- Gradually simplify controller error handling
+- Add routes in `frontend/src/App.jsx`.
+- Add page files in `frontend/src/pages/`.
+- Add page-specific CSS files when the page needs custom styling.
+- Update Footer links to real routes.
+- Update MobileDrawer links to real routes.
+- Make footer category names link to `/?category=<category>`.
+- Contact page should support customer support, order issues, seller applicant questions, and dispute starts.
+- FAQ should cover wholesale buying, MOQ, delivery quotes, payment, returns, seller privacy, and bulk sourcing.
+- Become a Seller page should explain that ShopZone reviews applications and sellers do not communicate directly with customers.
+- Shipping Policy should explain county rates, Tier 2 delivery quote flow, pickup options, timelines, and remote-area limitations.
+- Returns Policy should explain issue reporting, dispute window, damaged goods evidence, refund or replacement conditions, and ShopZone mediation.
 
 Acceptance criteria:
 
-- Unknown API routes return a clean `404`
-- Server errors return consistent JSON
-- Existing API behavior remains intact
+- No visible nav/footer/support link points to an accidental placeholder.
+- Customers can find FAQ, support, shipping, and returns information.
+- Seller applicants can understand the private supplier model before applying.
 
-### Task: Foundation Admin Pages
+## Step 4: Seller Role And Middleware
 
 Priority: High
 
-These are the first admin screens needed before expanding product, seller, and order workflows.
+The order system already has seller quote concepts, but user accounts do not yet have seller roles or seller authorization. This is the next structural step before building a seller dashboard.
 
-Suggested step mapping:
+Implementation target:
 
-- Step 3: Admin Product List Page
-- Step 4: Admin Product Edit Page
-- Step 5: Admin Order List Page
-- Step 6: Admin User List Page
+- Keep `isAdmin` for admin checks.
+- Add seller-specific fields without breaking existing users.
+- Add backend middleware that allows only approved sellers into seller routes.
+- Keep seller identity private from customers.
 
-Checklist:
+Suggested user fields:
 
-- Build or finish admin product list page
-- Allow admin to view all products
-- Allow admin to create new products from the browser
-- Allow admin to delete or archive products safely
-- Build or finish admin product edit page
-- Connect browser image upload to product create/edit
-- Build admin order list page
-- Allow admin to view all orders
-- Allow admin to mark orders as delivered where appropriate
-- Build admin user list page
-- Allow admin to view all users
-- Allow admin to assign roles and manage accounts
-- Keep backend admin middleware as the real security layer
-
-Acceptance criteria:
-
-- Admin can manage products without Postman
-- Admin can view and update orders from the browser
-- Admin can view users and manage roles
-- Non-admin users cannot access these pages or APIs
-
-## Polish Session After Phase 1: Icons And Brand
-
-Execution note:
-
-- This session covers suggested steps 7 and 8.
-- Do these together after the foundation admin pages work cleanly and before the product/homepage upgrade.
-
-### Task: Replace Emojis With React Icons
-
-Priority: Medium
-
-Use one consistent icon system across the app instead of mixed emoji characters.
+- `isSeller`
+- `sellerStatus`: `none`, `pending`, `approved`, `suspended`, `rejected`
+- `sellerProfile`
+- `sellerApprovedAt`
+- `sellerSuspendedAt`
 
 Checklist:
 
-- Find emoji usage in visible UI
-- Replace navigation, buttons, status labels, and decorative UI emoji with React Icons
-- Keep text labels where icons alone would be unclear
-- Check header, footer, product cards, cart, checkout, profile, admin pages, and support links
-- Run frontend lint/build after replacement
+- Update `backend/models/User.js`.
+- Add seller middleware in `backend/middleware/authMiddleware.js`.
+- Add seller route protection for future seller APIs.
+- Ensure admin middleware remains unchanged for admin-only APIs.
+- Add frontend route guard for seller pages after backend guard exists.
+- Add temporary manual seller approval support through MongoDB until admin UI exists.
 
 Acceptance criteria:
 
-- Visible UI no longer depends on emoji characters
-- Icons render consistently across browsers and devices
+- Customers cannot access seller screens.
+- Pending/rejected/suspended sellers cannot access seller dashboard APIs.
+- Approved sellers can access seller-only APIs.
+- Admin remains the only role with admin dashboard access.
 
-### Task: Add ShopZone Logo
-
-Priority: Medium
-
-Create and use a proper ShopZone logo in the navbar and footer.
-
-Checklist:
-
-- Design or add a ShopZone logo asset
-- Add logo to navbar
-- Add logo to footer
-- Keep logo legible on desktop and mobile
-- Preserve accessible text for screen readers
-
-Acceptance criteria:
-
-- Navbar and footer use the same ShopZone brand mark
-- Logo does not break layout on small screens
-
-## Phase 2: Bulk Commerce Foundations
-
-Execution note:
-
-- This phase now covers the product and homepage upgrade path from suggested steps 9 to 13.
-- Complete these in order because categories, search, homepage sections, and special offers depend on the product model fields.
-
-### Task: Add Bulk Units And Minimum Order Quantities
+## Step 5: Seller Dashboard
 
 Priority: High
 
-ShopZone needs to support wholesale-style buying, not only single-item retail orders.
+Approved sellers need a private portal, but nothing seller submits should become public automatically.
 
-Suggested product fields:
+Seller dashboard scope:
 
-- `unitType`: bale, carton, sack, dozen, kg, box, piece
-- `minimumOrderQuantity`
-- `itemsPerUnit`
-- `weightPerUnit`
-- `dimensions`
-- `isBulkOnly`
-- `leadTimeDays`
+- Seller overview.
+- Seller profile summary.
+- Private product submissions.
+- Stock update requests.
+- Price update requests.
+- Lead time updates.
+- Delivery quote submissions for Tier 2 orders.
+- Payout tracking.
+- ShopZone-to-seller messages only.
+
+Privacy rules:
+
+- Sellers cannot see customer contact details.
+- Sellers cannot message customers.
+- Sellers cannot see full buyer profile data unless ShopZone intentionally exposes a fulfillment-safe subset.
+- Sellers cannot set final public selling price.
+- Seller-uploaded photos must be reviewed before public use.
+- Seller submissions must not expose phone numbers, WhatsApp numbers, shop signs, supplier invoices, watermarks, or warehouse addresses.
 
 Checklist:
 
-- Update product model
-- Update product seed data
-- Update product create/edit APIs
-- Update product cards and product detail pages
-- Show minimum order quantity clearly
-- Prevent cart quantities below minimum order quantity
+- Add seller dashboard route and page.
+- Add seller-specific API routes.
+- Add private seller product submission model or fields.
+- Add seller stock/price/lead-time update flow.
+- Add seller order/fulfillment request list that hides customer identity.
+- Add seller payout status display.
 
 Acceptance criteria:
 
-- Products can be sold by bale, carton, sack, dozen, kg, box, or piece
-- Customers cannot checkout below the minimum order quantity
-- Product pages clearly explain the buying unit
+- Approved sellers can manage their private supply information.
+- Seller submissions do not appear publicly without admin approval.
+- Customer identity remains protected.
 
-### Task: Update Product Model For Merchandising
+## Step 6: Seller Approval System And Trust Badges
 
 Priority: High
 
-Add fields needed for homepage sections, sale views, wholesale logic, and seller/admin product management.
-
-Suggested fields:
-
-- `tags`
-- `isFeatured`
-- `isOnSale`
-- `isClearance`
-- `salePrice`
+Seller onboarding should become a controlled workflow instead of manual database edits.
 
 Checklist:
 
-- Update `backend/models/Product.js`
-- Update product seed data
-- Update product create/update APIs
-- Update admin product forms
-- Validate tags and sale fields
-- Show sale and clearance pricing correctly on customer pages
+- Add seller application model or embedded user application fields.
+- Add public application form on Become a Seller page.
+- Add admin seller application review page.
+- Let admin approve, reject, suspend, or request more information.
+- Add internal seller trust fields: verified documents, fulfillment reliability, dispute count, cancellation rate, average response time.
+- Add internal trust badges for admin/seller views only.
+- Decide if any public trust signal is shown as ShopZone-level quality assurance, not seller identity.
 
 Acceptance criteria:
 
-- Products can be tagged and promoted
-- Admin can mark products as featured, on sale, or clearance
-- Sale price is handled consistently and never produces invalid pricing
+- Sellers can apply from the site.
+- Admin can review and approve sellers.
+- Customers never see raw seller application data or direct seller identity.
 
-### Task: Expand Product Categories
+## Step 7: Admin Seller Management And Product Approval Workflow
 
 Priority: High
 
-Use a broader category list that matches ShopZone's wholesale and general merchandise direction.
-
-Categories:
-
-- Electronics
-- Fashion & Apparel
-- Fabric & Textiles
-- Home & Kitchen
-- Food & Grocery
-- Beauty & Personal Care
-- Hardware & Tools
-- Office & Stationery
-- Agriculture & Garden
-- Baby & Kids
-- Sports & Outdoors
-- Health & Wellness
-- General Merchandise
+Admin needs full control over seller data, supplier cost, and public product approval.
 
 Checklist:
 
-- Update product model/category validation where applicable
-- Update seed data categories
-- Update admin product form category options
-- Update customer category navigation and filters
+- Add admin seller list page.
+- Add admin seller detail page.
+- Show seller contact data only to admin.
+- Show seller private catalog to admin.
+- Let admin convert seller submissions into public ShopZone listings.
+- Add product submission statuses: `draft`, `submitted`, `needs_changes`, `approved`, `rejected`, `archived`.
+- Let admin set final public title, description, category, images, sale price, ShopZone price, stock, availability, and delivery classification.
+- Add rejection reasons and change requests.
 
 Acceptance criteria:
 
-- Admin can assign products to the expanded categories
-- Customer category filters match the same source of truth
+- Seller products are private until approved.
+- Admin controls public listings.
+- Supplier cost and contact data remain private.
 
-### Task: Update Search Across Product Fields
+## Step 8: Request Goods Flow - Manual RFQ First
 
 Priority: High
 
-Search should match more than the product name.
-
-Checklist:
-
-- Search across product name
-- Search across category
-- Search across description
-- Search across tags
-- Keep search compatible with category and filter query params
-- Add backend validation for search input
-
-Acceptance criteria:
-
-- Customers can find products by name, category, description, or tag
-- Search works together with filters and pagination
-
-### Task: Homepage Product And Category Redesign
-
-Priority: High
-
-The homepage should help customers quickly browse the key buying paths.
-
-Sections:
-
-- Hero banner
-- Category cards
-- Featured products
-- New arrivals
-- Clearance section
-
-Checklist:
-
-- Update homepage layout
-- Add data queries for featured products
-- Add data queries for new arrivals
-- Add data queries for clearance products
-- Keep cards consistent with product pricing, sale, stock, and MOQ display
-
-Acceptance criteria:
-
-- Homepage highlights current buying opportunities
-- Featured, new arrival, and clearance sections are data-driven
-
-### Task: Add Special Offers Page
-
-Priority: Medium
-
-Customers should have a dedicated page for sale and clearance products.
-
-Checklist:
-
-- Add special offers route
-- Filter products where `isOnSale` or `isClearance` is true
-- Show regular price and sale price clearly
-- Add navigation link where appropriate
-- Keep filters and search usable on the offers page
-
-Acceptance criteria:
-
-- Customers can browse sale and clearance products in one place
-- Offers page uses the same product card rules as the rest of the shop
-
-### Task: Add Tiered Wholesale Pricing
-
-Priority: High
-
-Customers should see volume discounts, while supplier cost and ShopZone margin remain private.
-
-Example customer-facing pricing:
-
-- 1-2 cartons: KSh 2,000 each
-- 3-9 cartons: KSh 1,850 each
-- 10+ cartons: request quote
-
-Admin-only pricing:
-
-- supplier cost
-- ShopZone margin
-- transport estimate
-- handling cost
-- final selling price
-
-Checklist:
-
-- Add pricing tiers to product model
-- Calculate price based on quantity
-- Show pricing tiers on product detail page
-- Apply correct tier in cart and checkout
-- Keep supplier cost hidden from customers and sellers where not needed
-
-Acceptance criteria:
-
-- Bulk discounts work correctly
-- Customers only see ShopZone selling prices
-- Internal cost and margin are visible only to admin
-
-Suggested step mapping:
-
-- Step 23: Tiered wholesale pricing
-
-### Task: Add Inventory Protection
-
-Priority: High
-
-Orders can currently be created without reducing product stock.
-
-Checklist:
-
-- Check product stock before creating an order
-- Prevent order creation if requested quantity exceeds stock
-- Reduce `countInStock` after a successful order or payment
-- Decide whether stock should reduce at order placement or payment confirmation
-- Restore stock if an unpaid order is cancelled
-- Prevent cancelled orders from being paid or delivered
-
-Acceptance criteria:
-
-- Customers cannot buy more than available stock
-- Stock updates correctly after order creation/payment
-- Cancelled unpaid orders restore stock if stock had been reserved
-
-Suggested step mapping:
-
-- Step 24: Inventory protection
-
-### Task: Add Request Goods And Request Quote Flow
-
-Priority: High
-
-Many customers may need goods that are not listed publicly. ShopZone should let customers request sourcing while keeping suppliers private.
+Customers need a way to request goods that are not publicly listed. Start with a manual ShopZone-managed RFQ before automating supplier bidding.
 
 Customer submits:
 
-- item name
-- quantity
-- unit type
-- location
-- desired delivery date
-- budget range
-- optional image
-- notes
+- Item name.
+- Quantity.
+- Unit type.
+- Location/county.
+- Desired delivery date.
+- Budget range.
+- Optional image.
+- Notes.
 
 Admin sees:
 
-- customer request
-- internal supplier sourcing notes
-- supplier offers/costs
-- margin calculation
-- quote draft
-- quote status
+- Customer request.
+- Internal sourcing notes.
+- Private supplier options.
+- Supplier cost.
+- Transport estimate.
+- Handling cost.
+- Margin calculation.
+- Quote draft.
+- Quote status.
 
 Customer sees:
 
-- ShopZone quote
-- final price
-- delivery estimate
-- payment terms
-- accept/reject action
-
-Suggested quote statuses:
-
-- request received
-- sourcing
-- quote sent
-- accepted
-- rejected
-- expired
-- cancelled
-
-Acceptance criteria:
-
-- Customers can request unavailable or custom bulk goods
-- Admin can source privately and send a ShopZone quote
-- Customers never see supplier identity or supplier pricing
-
-Suggested step mapping:
-
-- Step 22: Request goods flow
-
-## Phase 3: User Profiles And Access Roles
-
-Execution note:
-
-- This phase includes suggested step 14 for seller role/middleware and suggested step 26 for buyer profile enrichment.
-- Manual seller approval through MongoDB can be used as an early temporary workflow before the full admin seller approval UI exists.
-
-### Task: Add Retailer And Bulk Buyer Profiles
-
-Priority: High
-
-ShopZone should understand whether a customer is a retailer, individual bulk buyer, institution, or group buyer.
-
-Customer profile fields:
-
-- buyer type
-- business name, optional
-- business category, optional
-- location
-- preferred product categories
-- typical order size
-- preferred delivery or pickup point
-- payment preference
-
-Admin-only fields:
-
-- trust level
-- credit eligibility
-- average order value
-- quote history
-- dispute history
-- internal notes
-
-Acceptance criteria:
-
-- Customers can identify their buyer type
-- Admin can see operational details without exposing internal notes to customers
-
-Suggested step mapping:
-
-- Step 26: Buyer profile enrichment
-
-### Task: Add Role-Based Access
-
-Priority: High
-
-The platform needs clear roles for customer, admin, and seller.
-
-Suggested roles:
-
-- customer
-- seller applicant
-- seller
-- admin
-
-Checklist:
-
-- Update user model or add role fields
-- Add `isSeller` field if using the current `isAdmin` style before moving to a richer roles array
-- Add seller approval flag/status if needed
-- Add backend middleware for role checks
-- Add seller middleware
-- Add frontend protected routes
-- Keep admin APIs restricted to admins
-- Keep seller portal restricted to approved sellers
-- Support temporary manual seller approval through MongoDB until the admin approval screen exists
-
-Acceptance criteria:
-
-- Customers cannot access admin or seller screens
-- Sellers cannot access admin-only controls
-- Admin can manage both customers and sellers
-
-Suggested step mapping:
-
-- Step 14: Seller role and middleware
-
-## Phase 4: Seller Portal And Approval Workflow
-
-Execution note:
-
-- This phase covers suggested steps 15 and 18, while preserving the larger seller privacy and approval workflow already planned.
-- Seller-facing work can run in parallel with content pages after the product model upgrade is complete.
-
-### Task: Add Seller Application Flow
-
-Priority: High
-
-Sellers should be able to apply to supply products through ShopZone, but they should not become visible to customers.
-
-Seller application fields:
-
-- seller name or business name
-- contact person
-- phone/email
-- location
-- product categories supplied
-- capacity or stock range
-- delivery/pickup capability
-- business documents, optional
-- notes
-
-Checklist:
-
-- Add public "Become a Seller" page
-- Add seller application instructions for manual approval expectations
-- Add seller application API
-- Store applications separately from approved seller accounts
-- Add admin application review page
-- Allow admin to approve, reject, or request more information
-- Create seller account only after approval
-
-Acceptance criteria:
-
-- Sellers can apply
-- Admin can approve or reject sellers
-- Customers cannot see seller applications or seller identities
-
-Suggested step mapping:
-
-- Step 18: Become a seller page
-
-### Task: Add Seller Portal
-
-Priority: High
-
-Approved sellers need a private portal to manage what they can supply.
-
-Seller portal features:
-
-- seller login
-- seller dashboard
-- seller profile
-- product upload
-- product photo upload
-- product photo replacement request
-- product edit
-- product removal request
-- stock updates
-- price updates
-- lead time updates
-- seller order/procurement requests from ShopZone
-- seller payout/payment tracking
-- messages between ShopZone and seller only
-
-Important rules:
-
-- Seller products should not go public automatically.
-- Admin must review and approve public listings.
-- Admin must review and approve seller-uploaded photos before public display.
-- Seller cannot see customer contact details.
-- Seller cannot message customers.
-- Seller cannot control the final customer-facing ShopZone price unless ShopZone chooses to use it.
-- Seller-submitted photos should be rejected or edited if they expose supplier identity, phone numbers, warehouse details, or direct off-platform contact information.
-
-Acceptance criteria:
-
-- Approved sellers can manage their private catalog
-- Sellers can view and manage their own products and fulfillment requests/orders
-- Seller submissions require admin approval before public display
-- Seller-uploaded photos require admin approval before public display
-- Seller cannot access customer identity/contact information beyond what ShopZone explicitly allows for fulfillment
-
-Suggested step mapping:
-
-- Step 15: Seller dashboard
-
-### Task: Add Admin Seller Management
-
-Priority: High
-
-Admin needs full control over sellers and supplier privacy.
-
-Admin seller management features:
-
-- seller list
-- seller application review
-- seller profile details
-- seller contact information
-- seller product catalog
-- seller submitted prices
-- ShopZone selling price
-- supplier cost
-- reliability notes
-- lead times
-- payout/payment status
-- suspend/reactivate seller
-
-Acceptance criteria:
-
-- Admin can manage sellers privately
-- Admin can approve seller products into public ShopZone listings
-- Supplier cost and seller contact data are never exposed to customers
-
-### Task: Add Product Approval Workflow
-
-Priority: High
-
-Seller product uploads should go through ShopZone review.
+- ShopZone quote.
+- Final price.
+- Delivery estimate.
+- Payment terms.
+- Accept/reject action.
 
 Suggested statuses:
 
-- draft
-- submitted
-- needs changes
-- approved
-- rejected
-- archived
+- `request_received`
+- `sourcing`
+- `quote_sent`
+- `accepted`
+- `rejected`
+- `expired`
+- `cancelled`
 
 Checklist:
 
-- Add seller product submission model or fields
-- Let seller submit product details
-- Let admin review submitted products
-- Let admin set final public title, description, price, category, images, and availability
-- Publish only approved products
+- Add quote/request model.
+- Add customer request form.
+- Add admin request list/detail page.
+- Add admin quote builder.
+- Add customer quote response flow.
+- Support image upload using current local upload first, then Cloudinary later.
+- Keep supplier identities and costs admin-only.
 
 Acceptance criteria:
 
-- Seller submissions do not appear publicly until approved
-- Admin controls customer-facing product data
-- Customers see ShopZone listings, not seller-managed raw submissions
+- Customers can request unavailable bulk goods.
+- Admin can source privately and send ShopZone quotes.
+- Customers never see supplier identity or supplier pricing.
 
-## Phase 5: Admin Dashboard And Operations
-
-### Task: Add Admin Product Upload And Editing Portal
-
-Priority: High
-
-This should be one of the first practical admin features because adding products through Postman is slow and does not scale. Admin should be able to populate and maintain the public catalog from the browser.
-
-Admin product upload features:
-
-- create product
-- upload product photos
-- replace product photos
-- remove product photos
-- reorder product photos
-- edit product title
-- edit product description
-- edit category
-- edit unit type, for example bale, carton, sack, dozen, kg, box, or piece
-- edit minimum order quantity
-- edit stock
-- edit regular price
-- edit tiered bulk prices
-- edit lead time
-- publish or unpublish product
-- archive product instead of permanently deleting when order history depends on it
-
-Photo rules:
-
-- Customer-facing photos should not reveal private supplier names, phone numbers, labels, watermarks, warehouse details, or direct supplier identity.
-- Admin should be able to replace seller-submitted photos before publishing.
-- Only approved photos should appear on public product pages.
-
-Acceptance criteria:
-
-- Admin can add products without Postman
-- Admin can upload and manage product photos from the browser
-- Admin can update price, stock, units, MOQ, and availability
-- Customers only see published ShopZone-approved product data
-
-### Task: Add Admin Route Protection On Frontend
-
-Priority: High
-
-The backend has admin APIs, but the frontend needs admin-only screens and route guards.
-
-Checklist:
-
-- Create an admin route wrapper/component
-- Redirect non-admin users away from admin pages
-- Show admin links only for admin users
-- Keep backend admin middleware as the real security layer
-
-Acceptance criteria:
-
-- Non-admin users cannot view admin UI
-- Admin users can access admin pages from navigation
-
-### Task: Product Management UI
-
-Priority: High
-
-Admin users need product create/edit/delete screens that support bulk supply-chain products.
-
-Checklist:
-
-- Add product list admin page
-- Add create product page or modal
-- Add edit product page
-- Add delete/archive confirmation
-- Connect image upload
-- Show stock, price, category, unit, MOQ, tiered pricing, lead time, and public/private status
-- Link public listings to private seller submissions where applicable
-
-Acceptance criteria:
-
-- Admin can create and edit public ShopZone products
-- Admin can hide or archive products
-- Product changes appear on customer pages only after admin approval
-
-### Task: Order And Procurement Management UI
-
-Priority: High
-
-Admin users need to manage both customer orders and private seller fulfillment.
-
-Checklist:
-
-- Add admin order list page
-- Show customer, location, date, total, payment status, delivery status, and order status
-- Add order detail view for admin
-- Add seller/procurement assignment area
-- Add internal notes
-- Add mark-as-paid and mark-as-delivered actions where appropriate
-- Add status update actions
-
-Acceptance criteria:
-
-- Admin can see all customer orders
-- Admin can privately coordinate fulfillment with sellers
-- Customer order history reflects ShopZone-controlled status updates
-
-### Task: User Management UI
+## Step 9: Automated Blind RFQ With Supplier Bidding
 
 Priority: Medium
 
-Backend user admin routes already exist, but roles need to support customers, sellers, and admins.
+Only start this after the manual RFQ flow works.
 
 Checklist:
 
-- Add admin user list page
-- Add user detail/edit page
-- Allow role management
-- Add delete/deactivate user action
-- Prevent accidental deletion of the current admin account
+- Let admin send sanitized RFQs to approved sellers.
+- Sellers receive only fulfillment-safe request details.
+- Sellers submit structured offers: available quantity, seller price, lead time, pickup/delivery capability.
+- Prevent free-text fields that could leak phone numbers or direct contact details unless moderated.
+- Admin reviews seller offers and selects one or more suppliers.
+- Customer receives only ShopZone final quote.
 
 Acceptance criteria:
 
-- Admin can view customers and sellers
-- Admin can update user roles safely
-- Admin can deactivate users without breaking order history
+- Sellers can bid privately.
+- Admin controls final customer quote.
+- Customers never see seller bids or identities.
 
-### Task: Admin Summary Dashboard
-
-Priority: Medium
-
-The dashboard should focus on supply-chain operations, not just store totals.
-
-Checklist:
-
-- Show total orders
-- Show total revenue
-- Show pending quotes
-- Show pending seller applications
-- Show pending product approvals
-- Show pending procurement tasks
-- Show low-stock products
-- Show active delivery routes
-- Show recent order issues
-
-Acceptance criteria:
-
-- Admin can quickly understand store and supply operations
-- Dashboard data loads from backend APIs
-
-## Phase 6: Communication, Support, And Privacy
-
-Execution note:
-
-- This phase includes suggested step 17 for the contact support page.
-- Content pages from suggested steps 16 to 20 can be built in parallel with seller workflow once the product model upgrade is complete.
-
-### Task: Add ShopZone-Mediated Messaging
+## Step 10: Tiered Wholesale Pricing
 
 Priority: High
 
-All communication should go through ShopZone.
+The platform has units, sale prices, and order price snapshots, but true tiered volume pricing is still needed.
 
-Customer-facing ticket types:
+Customer-facing example:
 
-- product question
-- quote request
-- delivery question
-- order issue
-- return/replacement request
-- bulk sourcing request
+- 1-2 cartons: KES 2,000 each.
+- 3-9 cartons: KES 1,850 each.
+- 10+ cartons: request quote.
 
-Seller-facing ticket types:
+Admin-only pricing:
 
-- product clarification
-- stock confirmation
-- fulfillment request
-- price update discussion
-- payout question
+- Supplier cost.
+- ShopZone margin.
+- Transport estimate.
+- Handling cost.
+- Final selling price.
 
 Checklist:
 
-- Add support/ticket model
-- Add customer support page
-- Add contact support form
-- Send support form submissions to `support@shopzone.com` or store them for admin review before email delivery is configured
-- Add seller message area
-- Add admin ticket inbox
-- Add internal notes visible only to admin
-- Prevent customer-seller direct messaging
+- Add pricing tiers to product model.
+- Add admin UI for tier editing.
+- Validate tier ranges do not overlap.
+- Calculate tier price based on cart quantity.
+- Snapshot tier price into order item `priceAtPurchase`.
+- Show tier table on product detail page.
+- Show applied tier in cart and checkout.
+- Support quote-required tier such as `10+ request quote`.
+- Keep supplier cost hidden from customers and sellers unless admin-only.
 
 Acceptance criteria:
 
-- Customers communicate with ShopZone only
-- Sellers communicate with ShopZone only
-- Admin can manage both sides from one place
+- Bulk discounts work correctly.
+- Cart and checkout use the correct tier.
+- Existing sale/clearance pricing does not conflict with tiered pricing.
 
-Suggested step mapping:
-
-- Step 17: Contact support page
-
-### Task: Add Quality Control And Dispute Handling
-
-Priority: Medium
-
-Because supplier identity is private, ShopZone must own customer trust.
-
-Checklist:
-
-- Add ShopZone verified product badge
-- Add quality grade fields
-- Add inspection status
-- Add issue reporting
-- Add replacement/refund request flow
-- Add proof of dispatch
-- Add proof of delivery
-- Track seller performance internally
-
-Acceptance criteria:
-
-- Customers know ShopZone stands behind product quality
-- Admin can track supplier reliability privately
-- Order problems have a clear resolution workflow
-
-## Phase 7: Delivery And Regional Supply
-
-### Task: Add Delivery Zones And Pickup Points
+## Step 11: Bulk Units, MOQ, And Product Detail Wholesale Clarity
 
 Priority: High
 
-Remote access is central to the product. Delivery cannot be treated as a small checkout detail.
+The current model has `unit`, but not the full wholesale structure. Add richer wholesale fields once tiered pricing is planned.
 
-Customer-facing:
+Suggested fields:
 
-- delivery available/not available
-- delivery fee estimate
-- pickup point options
-- estimated delivery date
-- next delivery window
-
-Admin-facing:
-
-- seller pickup location
-- ShopZone consolidation point
-- route planning
-- driver/dispatch notes
-- delivery cost breakdown
-
-Acceptance criteria:
-
-- Customers can see realistic delivery options
-- Admin can plan fulfillment without revealing supplier locations
-
-### Task: Add Route-Based Delivery Planning
-
-Priority: Medium
-
-ShopZone can reduce delivery costs by grouping remote-area orders.
+- `unitType`: bale, carton, sack, dozen, kg, box, piece.
+- `minimumOrderQuantity`.
+- `itemsPerUnit`.
+- `weightPerUnit`.
+- `dimensions`.
+- `isBulkOnly`.
+- `leadTimeDays`.
 
 Checklist:
 
-- Add delivery route model
-- Assign orders to routes
-- Add route delivery dates
-- Add route capacity
-- Add admin route management page
-- Notify customers of route delivery windows
+- Update `backend/models/Product.js`.
+- Update seed data.
+- Update product create/edit API.
+- Update admin product form.
+- Update product cards, product detail, cart, and checkout.
+- Prevent cart quantities below MOQ.
+- Explain buying unit clearly on product detail page.
 
 Acceptance criteria:
 
-- Admin can group deliveries by region
-- Customers receive clear delivery estimates
+- Customers understand exactly what one unit means.
+- Checkout cannot proceed below MOQ.
+- Wholesale data is consistent across admin and customer views.
 
-## Phase 8: Group Buying And Repeat Orders
-
-### Task: Add ShopZone-Managed Group Buying
-
-Priority: Medium
-
-Group buying can help remote retailers and individuals unlock bulk prices and shared delivery.
-
-Customer-facing:
-
-- join a ShopZone group order
-- see target quantity
-- see deadline
-- see final group price
-- see delivery or pickup point
-- pay individual portion
-
-Admin-facing:
-
-- private seller options
-- procurement notes
-- group margin
-- fulfillment plan
-- split orders by customer
-
-Acceptance criteria:
-
-- Customers can join group buys without seeing suppliers
-- ShopZone manages supplier sourcing privately
-
-### Task: Add Repeat Orders And Restock Reminders
+## Step 12: Wishlist And Saved Procurement List
 
 Priority: Medium
 
-Retailers often buy the same goods repeatedly.
+Saved items should support repeat procurement, not only casual wishlisting.
 
 Checklist:
 
-- Add reorder previous order
-- Add saved frequent products
-- Add weekly/monthly restock reminders
-- Add suggested reorder quantities
-- Add customer restock plan
+- Add saved item model or user field.
+- Add save/remove API.
+- Add saved items page.
+- Add save button on product cards and product detail page.
+- Allow saved items to be moved into cart.
+- Allow saved items to become RFQ requests.
+- Consider saved procurement lists by business purpose, such as monthly restock.
 
 Acceptance criteria:
 
-- Customers can quickly repeat common orders
-- ShopZone can forecast demand better
+- Logged-in customers can save products.
+- Saved items support repeat bulk buying and future sourcing requests.
 
-## Phase 9: Payments And Credit
+## Step 13: Buyer Profile Enrichment
 
-### Task: Integrate M-Pesa STK Push
+Priority: Medium
+
+The user model already has basic account type, business name, business type, county, and phone. Expand this into a procurement profile.
+
+Suggested customer fields:
+
+- Buyer type: retailer, individual bulk buyer, institution, group buyer.
+- Preferred product categories.
+- Typical order size.
+- Preferred delivery or pickup point.
+- Payment preference.
+- Restock frequency.
+
+Admin-only fields:
+
+- Trust level.
+- Credit eligibility.
+- Average order value.
+- Quote history.
+- Dispute history.
+- Internal notes.
+
+Checklist:
+
+- Update user model carefully without breaking existing accounts.
+- Update profile page form.
+- Add admin-only profile fields to admin user detail/edit flow.
+- Keep admin notes hidden from customers.
+
+Acceptance criteria:
+
+- Customers can identify their buying context.
+- Admin can make better sourcing and support decisions.
+
+## Step 14: Order Status Expansion
+
+Priority: Medium
+
+The order model now has `pending`, `processing`, `dispatched`, `delivered`, and `cancelled`, but the business flow needs richer customer-facing and internal statuses.
+
+Suggested customer statuses:
+
+- `pending`
+- `awaiting_payment`
+- `paid`
+- `sourcing`
+- `procurement_confirmed`
+- `preparing_dispatch`
+- `in_transit`
+- `ready_for_pickup`
+- `delivered`
+- `cancelled`
+- `refunded`
+
+Suggested internal fulfillment statuses:
+
+- `seller_requested`
+- `seller_confirmed`
+- `seller_unavailable`
+- `preparing`
+- `ready_for_pickup`
+- `handed_over`
+- `cancelled`
+
+Checklist:
+
+- Update `backend/models/Order.js`.
+- Add valid status transitions.
+- Update payment logic.
+- Update delivery/admin logic.
+- Update customer order pages.
+- Update admin order pages.
+- Update seller portal fulfillment pages when seller portal exists.
+
+Acceptance criteria:
+
+- Customer status reflects ShopZone progress.
+- Seller fulfillment status remains internal.
+- Invalid transitions are blocked.
+
+## Step 15: Support Tickets And Dispute System
 
 Priority: High
 
-M-Pesa is likely the most important real payment method for this project.
+A contact page alone is not enough for a marketplace-style wholesale platform. Support and disputes should be tracked.
+
+Checklist:
+
+- Add support ticket model.
+- Add ticket categories: order issue, damaged goods, missing item, delivery issue, seller application, payment issue, general support.
+- Add customer ticket form.
+- Add admin ticket list/detail page.
+- Link tickets to order ID where applicable.
+- Add ticket statuses: open, waiting_customer, waiting_internal, resolved, closed.
+- Add internal admin notes.
+- Add dispute evidence uploads for damaged or missing goods.
+- Keep seller/customer communication mediated by ShopZone.
+
+Acceptance criteria:
+
+- Customers can report issues through ShopZone.
+- Admin can track and resolve support tickets.
+- Disputes do not expose sellers to customers.
+
+## Step 16: Lightweight Escrow And Payout Hold System
+
+Priority: High
+
+The order model has payout release tracking. Build the operational UI and rules around it.
+
+Checklist:
+
+- Add admin payout queue UI if not fully surfaced.
+- Show delivered and paid orders awaiting payout release.
+- Add payout hold window after delivery.
+- Block payout release if there is an open dispute.
+- Add admin payout release confirmation.
+- Store payout release actor and timestamp.
+- Add seller payout view after seller dashboard exists.
+
+Acceptance criteria:
+
+- Admin can release payouts intentionally.
+- Disputed orders cannot be paid out accidentally.
+- Sellers can eventually see payout status without seeing customer details.
+
+## Step 17: Product Filtering, Sorting, And Pagination
+
+Priority: Medium
+
+Search and category filters exist, but full filtering and pagination are still needed for scale.
+
+Checklist:
+
+- Add backend pagination for products.
+- Add backend pagination for admin orders.
+- Add backend pagination for users.
+- Add backend pagination for seller products.
+- Add filters for category, unit type, MOQ, price range, rating, in-stock status, delivery region, sale, clearance, and featured.
+- Add sort by newest, price, rating, stock, and lead time.
+- Preserve filters/search while paginating.
+- Keep URL query params shareable.
+
+Acceptance criteria:
+
+- Large product and admin lists load efficiently.
+- Customers can narrow results accurately.
+- Search, filters, sorting, and pagination work together.
+
+## Step 18: Bulk Excel Product Upload
+
+Priority: Medium
+
+Admin and future sellers will need faster product creation than one form at a time.
+
+Checklist:
+
+- Choose CSV/XLSX parser.
+- Define import template.
+- Validate required columns.
+- Validate categories, units, MOQ, prices, stock, sale fields, and tiered pricing.
+- Preview import before saving.
+- Show row-level errors.
+- Support admin upload first.
+- Add seller upload later as private submissions requiring admin approval.
+
+Acceptance criteria:
+
+- Admin can upload many products safely.
+- Bad rows do not corrupt product data.
+- Seller bulk uploads do not publish directly.
+
+## Step 19: Seller Reputation System
+
+Priority: Medium
+
+Reputation should be operational and private by default.
+
+Checklist:
+
+- Track fulfillment reliability.
+- Track cancellation/unavailable rate.
+- Track response time.
+- Track dispute rate.
+- Track quality issue rate.
+- Show admin-only seller score.
+- Show seller-facing improvement guidance without exposing customer identities.
+- Decide whether any customer-facing signal should be ShopZone quality controlled rather than seller-named.
+
+Acceptance criteria:
+
+- Admin can prioritize reliable sellers.
+- Seller reputation does not leak supplier identity to customers.
+
+## Step 20: M-Pesa STK Push Integration
+
+Priority: High
+
+M-Pesa is the most important real payment method for this Kenya-focused platform.
 
 Production note:
 
-- Safaricom Daraja production access requires the correct business account setup and a reachable live domain/callback URL.
+- Safaricom Daraja production access requires correct business account setup and a reachable live callback URL.
+- Start with Daraja sandbox.
 
 Checklist:
 
-- Choose Safaricom Daraja sandbox first
-- Add backend payment route
-- Store required M-Pesa environment variables
-- Initiate STK Push from order page
-- Handle callback from M-Pesa
-- Mark order as paid only after confirmed success
-- Store payment reference/result on the order
+- Add backend payment routes.
+- Store Daraja environment variables.
+- Initiate STK Push from order page.
+- Handle callback from M-Pesa.
+- Verify callback signatures/status.
+- Mark order as paid only after confirmed success.
+- Store payment reference/result on the order.
+- Handle failed, cancelled, timeout, duplicate, and pending states.
+- Prevent customer-side button clicks from directly marking orders paid.
 
 Acceptance criteria:
 
-- Customer can initiate M-Pesa payment
-- Backend receives payment result
-- Paid orders update correctly
-- Failed payments do not mark orders as paid
+- Customer can initiate M-Pesa payment.
+- Backend receives and verifies payment result.
+- Paid orders update correctly.
+- Failed payments do not mark orders as paid.
 
-Suggested step mapping:
-
-- Step 27: M-Pesa payment integration
-
-### Task: Add Deposits And Partial Payments
+## Step 21: Deposits, Partial Payments, Bank Transfer, And Card Decision
 
 Priority: Medium
 
-Large bulk orders may require deposits or staged payments.
+Bulk orders may require staged payments and manual payment support.
 
 Checklist:
 
-- Add required deposit amount
-- Add balance due amount
-- Add payment status tracking
-- Prevent fulfillment before required payment threshold
-- Allow admin to confirm manual payments
+- Add required deposit amount.
+- Add balance due amount.
+- Add payment status tracking.
+- Prevent fulfillment before required payment threshold.
+- Let admin confirm manual bank transfers.
+- Add ShopZone bank transfer instructions if bank transfer is enabled.
+- Decide whether to keep PayPal/card in the UI.
+- If PayPal/card remains, add official frontend integration and backend confirmation route.
+- Never expose seller bank details to customers.
 
 Acceptance criteria:
 
-- Large orders can be paid in stages
-- Admin can track balance due
+- Large orders can be paid in stages.
+- Manual payments are trackable.
+- Payment UI does not promise unsupported methods.
 
-### Task: Add Pay-Later Controls For Verified Retailers
-
-Priority: Low
-
-Pay-later should be controlled carefully and only for approved buyers.
-
-Checklist:
-
-- Add customer credit eligibility
-- Add credit limit
-- Add admin approval flow
-- Add outstanding balance tracking
-- Block new credit orders when over limit
-
-Acceptance criteria:
-
-- Only approved buyers can use credit
-- Admin can monitor credit risk
-
-### Task: Add PayPal Or Card Payment
+## Step 22: Cloudinary Image Storage
 
 Priority: Medium
 
-The UI already mentions PayPal or credit card.
+Local `backend/uploads` is acceptable for development but risky in production.
 
 Checklist:
 
-- Decide whether to keep PayPal
-- Add official PayPal checkout frontend integration
-- Add backend confirmation route
-- Store payment result on order
-- Handle success and failure states
+- Choose Cloudinary or another storage provider.
+- Add provider environment variables.
+- Update upload route.
+- Store remote image URLs on products, requests, disputes, and seller submissions.
+- Validate image size.
+- Validate image type.
+- Keep local upload only as a development fallback if useful.
+- Remove supplier-identifying image metadata or reject images with visible direct contact information during admin review.
 
 Acceptance criteria:
 
-- PayPal/card payment can mark an order as paid
-- Customer receives clear feedback after payment
+- Images persist reliably in production.
+- Uploads are validated.
+- Seller/customer image flows do not leak private supplier data.
 
-### Task: Add Bank Transfer Instructions
-
-Priority: Low
-
-Bank transfer can be manual at first.
-
-Checklist:
-
-- Add ShopZone bank details or payment instructions
-- Add "awaiting confirmation" state
-- Let admin manually mark bank transfer orders as paid
-- Never expose seller bank details to customers
-
-Acceptance criteria:
-
-- Bank transfer orders are clearly marked as unpaid/pending confirmation
-- Admin can confirm payment manually
-
-## Phase 10: Customer Experience
-
-### Task: Improve Product Filtering
-
-Priority: Medium
-
-The category bar currently searches by keyword. Replace this with real filters.
-
-Checklist:
-
-- Add category filtering
-- Add unit type filtering
-- Add minimum order filtering
-- Add price range filtering
-- Add rating filtering
-- Add in-stock filtering
-- Add delivery-region filtering
-- Add sort by newest, price, rating, and lead time
-- Update backend query handling
-- Update frontend state and URL query params
-
-Acceptance criteria:
-
-- Customers can narrow product results accurately
-- Filters work together
-- Search still works
-
-### Task: Add Pagination
-
-Priority: Medium
-
-Product and order lists currently return all records.
-
-Checklist:
-
-- Add backend pagination for products
-- Add backend pagination for admin orders
-- Add backend pagination for users
-- Add backend pagination for seller products
-- Add pagination controls on frontend
-- Preserve filters/search while paginating
-
-Acceptance criteria:
-
-- Large lists load efficiently
-- Users can move between pages
-
-### Task: Add Wishlist Or Saved Procurement List
-
-Priority: Medium
-
-For this platform, saved items should support repeat sourcing, not just casual shopping.
-
-Checklist:
-
-- Add wishlist or saved procurement list
-- Add add/remove API
-- Add saved items page
-- Add save button on product cards/details
-- Allow saved items to become quote/order requests
-
-Acceptance criteria:
-
-- Logged-in customers can save products
-- Saved items support repeat bulk buying
-
-Suggested step mapping:
-
-- Step 21: Wishlist / saved items
-
-### Task: Add FAQ And Support Pages
-
-Priority: Low
-
-Navigation currently mentions FAQ and contact support, but those routes are not implemented.
-
-Checklist:
-
-- Add FAQ page
-- Answer common customer, seller, delivery, payment, return, and bulk-buying questions
-- Wire FAQ navbar link to the actual route
-- Add contact/support page
-- Add support form that sends to `support@shopzone.com` or stores submissions for admin handling
-- Add return/refund policy page
-- Document 7 day return policy and how customers report issues
-- Add shipping policy page
-- Document rates, timelines, county coverage, delivery limits, and pickup options
-- Add seller application information page
-- Explain how to become a seller and how approval works
-- Wire menu links to actual routes
-
-Acceptance criteria:
-
-- Header links do not lead nowhere
-- Customers and seller applicants can find basic support information
-
-Suggested step mapping:
-
-- Step 16: FAQ page
-- Step 17: Contact support page
-- Step 18: Become a seller page
-- Step 19: Shipping policy page
-- Step 20: Returns policy page
-
-## Phase 11: Backend Validation And Data Safety
-
-Execution note:
-
-- This phase includes suggested steps 25 and 29.
-- Validation should be added before production deployment and before public seller/customer data grows.
-
-### Task: Add Request Validation
+## Step 23: Backend Request Validation
 
 Priority: High
 
-Controllers currently trust incoming request body data too much.
+Controllers still trust too much incoming request body data. Add validation before real users or seller data scale.
 
 Checklist:
 
-- Validate registration fields
-- Validate login fields
-- Validate product create/update fields
-- Validate seller application fields
-- Validate seller product submission fields
-- Validate quote request fields
-- Validate order creation payload
-- Validate shipping address fields
-- Validate prices and quantities as positive numbers
-- Validate review rating between 1 and 5
-- Handle invalid MongoDB IDs cleanly
+- Validate registration fields.
+- Validate login fields.
+- Validate profile updates.
+- Validate product create/update fields.
+- Validate seller application fields.
+- Validate seller product submission fields.
+- Validate quote request fields.
+- Validate order creation payload.
+- Validate shipping address fields.
+- Validate prices and quantities as positive numbers.
+- Validate sale price lower than normal price when sale/clearance is active.
+- Validate review rating between 1 and 5.
+- Validate ObjectId params before database calls.
+- Sanitize strings that appear in public UI.
+- Add consistent `400` responses for bad input.
 
 Acceptance criteria:
 
-- Bad input returns clear `400` responses
-- Invalid IDs do not crash or return confusing errors
-- Product/order/seller data in the database stays consistent
+- Invalid input returns clear errors.
+- Invalid MongoDB IDs do not crash or produce confusing server errors.
+- Product, order, seller, and quote data stay consistent.
 
-Suggested step mapping:
-
-- Step 29: Backend request validation
-
-### Task: Improve Order And Procurement Statuses
+## Step 24: Forgot Password And Email Infrastructure
 
 Priority: Medium
 
-Order status currently supports only `pending` and `cancelled`.
-
-Suggested customer order statuses:
-
-- pending
-- awaiting payment
-- paid
-- sourcing
-- procurement confirmed
-- preparing dispatch
-- in transit
-- ready for pickup
-- delivered
-- cancelled
-- refunded
-
-Suggested seller fulfillment statuses:
-
-- requested
-- confirmed
-- unavailable
-- preparing
-- ready for pickup
-- handed over
-- cancelled
+Add password recovery after core account and validation work is stable.
 
 Checklist:
 
-- Update `backend/models/Order.js`
-- Add procurement/fulfillment status fields
-- Update order creation default status
-- Update payment logic
-- Update delivery/admin logic
-- Update customer order pages
-- Update admin order pages
-- Update seller portal fulfillment pages
+- Choose email provider or SMTP setup.
+- Add reset token fields to user model.
+- Add forgot password API.
+- Add reset password API.
+- Add frontend forgot/reset pages.
+- Add token expiry.
+- Do not reveal whether an email exists.
+- Keep password hashing in controller.
 
 Acceptance criteria:
 
-- Customer status reflects ShopZone progress
-- Seller fulfillment status remains internal
-- Cancel, pay, source, dispatch, and deliver actions follow valid transitions
+- Users can recover accounts securely.
+- Reset tokens expire and cannot be reused.
 
-Suggested step mapping:
+## Step 25: Invoice Generation With KRA/VAT Breakdown
 
-- Step 25: Order status expansion
+Priority: Medium
 
-## Phase 12: Testing And Quality
+Invoices should reflect Kenya context and VAT-inclusive pricing.
 
-Execution note:
+Checklist:
 
-- This phase covers suggested steps 30 and 31.
-- Add backend coverage first for auth, orders, products, and seller flows, then add focused React Testing Library coverage for customer and admin flows.
+- Add invoice generation using `pdfkit` or similar.
+- Include ShopZone business details.
+- Include KRA PIN field when available.
+- Include customer/order details.
+- Show VAT-inclusive breakdown using `price * 16 / 116`.
+- Show item subtotal, shipping, VAT component, and total.
+- Add download invoice button on order page.
+- Add admin invoice access.
 
-### Task: Add Backend Tests
+Acceptance criteria:
+
+- Customers can download invoices.
+- VAT display is accurate and not added on top.
+
+## Step 26: HTTP-Only Cookie Auth
+
+Priority: Medium
+
+Move from local token storage to stronger auth storage before production.
+
+Checklist:
+
+- Add cookie-based JWT response.
+- Set `httpOnly`, `secure`, and `sameSite` appropriately.
+- Update frontend API auth flow.
+- Add logout cookie clearing.
+- Update CORS credentials.
+- Ensure protected routes still work.
+
+Acceptance criteria:
+
+- Auth no longer depends on JavaScript-readable tokens.
+- Login/logout/profile/admin flows still work.
+
+## Step 27: Ad Management System
+
+Priority: Low
+
+Only add this after product and seller workflows are stable.
+
+Checklist:
+
+- Define ad placements.
+- Add admin ad creation UI.
+- Add image upload and validation.
+- Add start/end dates.
+- Add active/inactive state.
+- Add click tracking if needed.
+- Ensure ads do not crowd operational pages.
+
+Acceptance criteria:
+
+- Admin can manage promotional placements.
+- Ads do not interfere with checkout or core browsing.
+
+## Step 28: Swahili Language Option
+
+Priority: Low
+
+Add localization after the main UI copy stabilizes.
+
+Checklist:
+
+- Choose translation approach.
+- Extract visible strings.
+- Add English and Swahili dictionaries.
+- Add language switcher.
+- Translate core customer flows first: browse, cart, checkout, order status, support, FAQ.
+- Keep admin/seller translation optional until later.
+
+Acceptance criteria:
+
+- Customers can use core flows in English or Swahili.
+- Currency, dates, and status labels remain clear.
+
+## Step 29: Tests
 
 Priority: High
 
-There are no real tests yet.
+There are no real automated tests yet.
 
-Checklist:
+Backend test checklist:
 
-- Choose Jest or another test runner
-- Add test database setup
-- Test auth registration/login
-- Test protected routes
-- Test admin-only routes
-- Test seller-only routes
-- Test product CRUD
-- Test seller application approval
-- Test product approval workflow
-- Test quote request flow
-- Test order creation
-- Test order cancellation
-- Test order access authorization
+- Choose Jest or another runner.
+- Add test database setup.
+- Test registration/login.
+- Test protected routes.
+- Test admin-only routes.
+- Test seller-only routes after seller middleware exists.
+- Test product CRUD.
+- Test product search/filtering.
+- Test order creation.
+- Test atomic stock protection.
+- Test order cancellation stock restore.
+- Test order access authorization.
+- Test delivery quote approve/reject flow.
+- Test payout release restrictions.
+
+Frontend test checklist:
+
+- Choose React Testing Library.
+- Test login/register forms.
+- Test cart behavior.
+- Test checkout step rendering.
+- Test protected page behavior.
+- Test admin route behavior.
+- Test product list loading/empty/error states.
+- Test Special Offers filters/tabs.
+- Test drawer keyboard behavior.
+- Test ConfirmModal focus/default action.
 
 Acceptance criteria:
 
-- Backend test command runs successfully
-- Critical API behavior is covered
+- Backend test command runs successfully.
+- Frontend test command runs successfully.
+- Critical customer, admin, and seller flows are covered.
 
-Suggested step mapping:
-
-- Step 30: Backend tests
-
-### Task: Add Frontend Tests
+## Step 30: Build, Lint, And Quality Scripts
 
 Priority: Medium
 
-Frontend tests can start small.
+Root scripts should make quality checks easy.
+
+Current state:
+
+- Root has `npm run dev`, `npm run server`, `npm run client`, and `npm start`.
+- Frontend has `build`, `lint`, and `preview`.
 
 Checklist:
 
-- Choose React Testing Library
-- Test login/register forms
-- Test cart behavior
-- Test protected page redirect behavior
-- Test admin route protection
-- Test seller route protection
-- Test product list loading states
-- Test order page states
+- Add root `build` script.
+- Add root `lint` script.
+- Add backend linting if desired.
+- Add root `test` script after tests exist.
+- Document all commands in README.
+- Run build/lint after significant frontend changes.
 
 Acceptance criteria:
 
-- Core customer, admin, and seller flows have basic coverage
-- Components do not regress silently
+- One root command can build frontend.
+- One root command can run lint/tests when configured.
 
-Suggested step mapping:
-
-- Step 31: Frontend tests
-
-### Task: Add Lint And Build Checks
+## Step 31: README
 
 Priority: Medium
 
-The frontend has lint/build scripts. The root project should make quality checks easy.
+The README should be enough for another developer to run and understand ShopZone.
 
 Checklist:
 
-- Add root `build` script
-- Add root `lint` script
-- Add backend linting if desired
-- Add root `test` script after tests exist
-- Document commands in README
+- Add project overview.
+- Explain the private supplier model.
+- Add tech stack.
+- Add folder structure.
+- Add installation steps.
+- Add environment setup.
+- Add seed command.
+- Add development command: `npm run dev`.
+- Add backend and frontend ports.
+- Add build command after root build exists.
+- Add test command after tests exist.
+- Add demo credentials if available.
+- Add screenshots if available.
+- Document VAT-inclusive pricing rule.
+- Document KES formatting rule.
+- Document no direct supplier contact rule.
 
 Acceptance criteria:
 
-- One command can check frontend build
-- One command can run lint/tests
+- A new developer can run the project from README alone.
+- The business model is clear.
 
-## Phase 13: Production Readiness
-
-Execution note:
-
-- This phase covers suggested steps 28, 32, 33, and 34.
-- Start this phase only when the platform is feature complete enough for real users, real products, and real payment configuration.
-
-### Task: Improve Environment Configuration
-
-Priority: High
-
-The project should clearly document required environment variables.
-
-Checklist:
-
-- Add `.env.example` for backend
-- Document `MONGO_URI`
-- Document `JWT_SECRET`
-- Document `PORT`
-- Document payment provider variables
-- Document storage provider variables
-- Avoid committing real secrets
-
-Acceptance criteria:
-
-- A new developer can configure the project without guessing
-- No secret values are committed
-
-### Task: Production Image Storage
+## Step 32: Deployment And Environment Configuration
 
 Priority: Medium
 
-Local `backend/uploads` works in development but is risky for production.
-
-Options:
-
-- Cloudinary
-- AWS S3
-- Firebase Storage
-- Supabase Storage
+Prepare deployment only after core workflows are stable.
 
 Checklist:
 
-- Choose storage provider, with Cloudinary as the first suggested option
-- Update upload route
-- Store remote image URLs on products
-- Validate image size/type
-- Support customer request images
-- Support seller product images
-- Keep local upload only for development if useful
+- Add `.env.example` for backend.
+- Document `MONGO_URI`, `JWT_SECRET`, `PORT`, payment variables, storage variables, and frontend API URL.
+- Decide backend hosting.
+- Decide frontend hosting.
+- Configure production CORS.
+- Configure frontend API base URL.
+- Add production build instructions.
+- Test deployed frontend against deployed backend.
+- Ensure no real secrets are committed.
 
 Acceptance criteria:
 
-- Product and request images persist reliably in production
-- Uploads are validated
+- Frontend and backend work from deployed URLs.
+- New environments can be configured without guessing.
 
-Suggested step mapping:
-
-- Step 28: Cloudinary image storage
-
-### Task: Deployment Setup
+## Step 33: Frontend Documentation
 
 Priority: Medium
 
-Prepare the app for hosting.
+Document the frontend with the same clarity as the backend docs.
 
 Checklist:
 
-- Decide hosting target for backend
-- Decide hosting target for frontend
-- Configure production CORS
-- Configure frontend API base URL
-- Add production build instructions
-- Test deployed frontend against deployed backend
+- Document folder structure.
+- Explain every page component.
+- Explain every reusable component.
+- Explain Redux store and slices.
+- Explain routing.
+- Explain protected/admin/seller route behavior after seller routes exist.
+- Explain API call patterns.
+- Explain styling conventions.
+- Explain how Toast and inline alerts coexist.
+- Explain how to run, lint, build, and test frontend.
 
 Acceptance criteria:
 
-- Frontend and backend work from deployed URLs
-- API calls succeed in production
+- A new developer can understand what every frontend file does.
+- Frontend docs match backend documentation quality.
 
-Suggested step mapping:
+## Step 34: TypeScript Migration
 
-- Step 33: Deployment
+Priority: Post-deployment
 
-### Task: Update README
-
-Priority: Medium
-
-The README should explain how to run, test, seed, and deploy the project.
+Do not start until the JavaScript version is stable, tested, and deployed.
 
 Checklist:
 
-- Add project overview
-- Explain ShopZone's private supplier model
-- Add tech stack
-- Add installation steps
-- Add environment setup
-- Add seed command
-- Add development commands
-- Add build commands
-- Add test commands once available
-- Add demo customer/admin/seller credentials
-- Add screenshots if available
+- Add TypeScript config.
+- Migrate shared types first.
+- Migrate Redux slices.
+- Migrate API clients.
+- Migrate reusable components.
+- Migrate pages.
+- Add backend type strategy only if moving backend to TypeScript later.
 
 Acceptance criteria:
 
-- Someone else can run the project from the README alone
-- The business model is clear from the documentation
+- TypeScript improves maintainability without blocking current delivery.
 
-Suggested step mapping:
+## Suggested Execution Order
 
-- Step 32: README
+Use this as the Notion step checklist.
 
-### Task: Add Frontend Documentation
+1. Clean corrupted characters and text encoding.
+2. Final UI structure and accessibility hardening.
+3. Fix dead links and add FAQ, Contact, Become a Seller, Shipping Policy, and Returns Policy pages.
+4. Add seller role and middleware.
+5. Add seller dashboard.
+6. Add seller approval system and trust badges.
+7. Add admin seller management and product approval workflow.
+8. Add manual Request Goods / RFQ flow.
+9. Add automated blind RFQ with supplier bidding.
+10. Add tiered wholesale pricing.
+11. Add bulk units, MOQ, and wholesale product detail clarity.
+12. Add wishlist / saved procurement list.
+13. Enrich buyer profiles.
+14. Expand order statuses.
+15. Add support tickets and dispute system.
+16. Build lightweight escrow and payout hold UI/rules.
+17. Add product filtering, sorting, and pagination.
+18. Add bulk Excel product upload.
+19. Add seller reputation system.
+20. Integrate M-Pesa STK Push.
+21. Add deposits, partial payments, bank transfer, and final card/PayPal decision.
+22. Move production image storage to Cloudinary or equivalent.
+23. Add backend request validation.
+24. Add forgot password and email infrastructure.
+25. Add invoice generation with KRA/VAT breakdown.
+26. Move auth toward HTTP-only cookies.
+27. Add ad management system.
+28. Add Swahili language option.
+29. Add backend and frontend tests.
+30. Add root build, lint, and quality scripts.
+31. Update README.
+32. Configure deployment and environment documentation.
+33. Add frontend documentation.
+34. Migrate to TypeScript after deployment.
 
-Priority: Medium
-
-Document the frontend with the same level of clarity as the backend docs.
-
-Checklist:
-
-- Document frontend folder structure
-- Explain every page component
-- Explain every reusable component
-- Explain Redux store and slices
-- Explain routing and protected route behavior
-- Explain API call patterns
-- Explain styling conventions
-- Document how to run, lint, build, and test the frontend
-
-Acceptance criteria:
-
-- A new developer can understand what every frontend file does
-- Frontend documentation matches the style and completeness of the backend docs
-
-Suggested step mapping:
-
-- Step 34: Frontend documentation
-
-## Suggested Work Order
-
-1. Fix corrupted frontend characters
-2. Secure order access
-3. Add admin route protection
-4. Add admin product upload and editing portal so products no longer need to be added through Postman
-5. Add bulk units, MOQ, and tiered pricing to admin product forms and customer pages
-6. Add backend validation and central error middleware
-7. Add inventory protection
-8. Add role-based access for customer, seller, and admin
-9. Add seller application flow
-10. Add seller portal with product/photo submission
-11. Add admin seller management and product approval workflow
-12. Add request goods/request quote flow
-13. Add admin order and procurement management
-14. Add ShopZone-mediated messaging and support tickets
-15. Add delivery zones and pickup points
-16. Add M-Pesa payment integration
-17. Add group buying and repeat orders
-18. Add tests
-19. Prepare environment/deployment documentation
-
-## Suggested 34-Step Execution Order
-
-Use this as the Notion execution checklist. Items that already exist elsewhere in the roadmap should stay where they are and be linked back to the phase/task instead of being deleted.
-
-### Foundation: Finish Before Moving On
-
-1. Secure order access so users cannot view other users' orders
-2. Add central error middleware for consistent API error responses
-3. Build/admin Product List Page to view all products, delete/archive, and create new products
-4. Build/admin Product Edit Page to create and edit products with browser image upload
-5. Build/admin Order List Page to view all orders and mark orders as delivered
-6. Build/admin User List Page to view users, assign roles, and manage accounts
-
-Do not move past step 6 until all admin pages work cleanly.
-
-### Polish Session
-
-7. Replace all emojis with React Icons for a consistent icon system
-8. Design and add the ShopZone logo to the navbar and footer
-
-Do steps 7 and 8 together in one session.
-
-### Product And Homepage Upgrade
-
-9. Update the Product model with `tags`, `isFeatured`, `isOnSale`, `isClearance`, and `salePrice`
-10. Expand categories to Electronics, Fashion & Apparel, Fabric & Textiles, Home & Kitchen, Food & Grocery, Beauty & Personal Care, Hardware & Tools, Office & Stationery, Agriculture & Garden, Baby & Kids, Sports & Outdoors, Health & Wellness, and General Merchandise
-11. Update search to query name, category, description, and tags together
-12. Redesign homepage with hero banner, category cards, featured products, new arrivals, and clearance section
-13. Add Special Offers page for sale and clearance products
-
-Do steps 9 to 13 in order because each one depends on the product model upgrade.
-
-### Seller And Content Pages
-
-14. Add seller role and middleware using `isSeller`, seller middleware, and manual approval through MongoDB until admin approval UI exists
-15. Add seller dashboard so sellers can manage their own products and orders/fulfillment requests
-16. Add FAQ page and wire up the navbar link
-17. Add Contact Support page with a form for `support@shopzone.com` and wire up the navbar link
-18. Add Become a Seller page with information and application instructions
-19. Add Shipping Policy page with rates, timelines, and county coverage
-20. Add Returns Policy page with the 7 day policy and issue reporting flow
-
-Steps 14 to 20 can run in parallel once the product model is updated.
-
-### Advanced Commerce Features
-
-21. Add Wishlist / Saved Items for repeat bulk buying
-22. Add Request Goods flow where customers submit sourcing requests and admin quotes privately
-23. Add tiered wholesale pricing for volume discounts such as 1-2 units, 3-9 units, and 10+ on request
-24. Add inventory protection so stock reduces on order and restores on cancellation where appropriate
-25. Expand order statuses to pending, sourcing, in transit, delivered, refunded, and related internal states
-26. Enrich buyer profiles with buyer type, business name, and preferred categories
-
-Tackle steps 21 to 26 after the platform is stable and populated with real products.
-
-### Production Readiness
-
-27. Integrate M-Pesa payments through Safaricom Daraja when a live domain and business account are ready
-28. Move production image storage to Cloudinary or another cloud storage provider
-29. Add backend request validation for all incoming data
-30. Add backend tests with Jest covering auth, orders, products, and seller flows
-31. Add frontend tests with React Testing Library covering key customer and admin flows
-32. Update README with setup, seed, deploy, and business model documentation
-33. Choose hosting and configure production CORS and environment variables
-34. Add frontend documentation in the same style as backend docs, covering every file and function
-
-Only start steps 27 to 34 when the platform is feature complete enough for production preparation.
-
-## Notes
+## Working Notes
 
 - Keep each task small and finish one before starting the next.
 - After every backend change, test the affected API manually or with automated tests.
 - After every frontend change, run lint/build and manually check the affected page.
-- Do not rely on frontend route protection alone. Backend authorization remains the real security boundary.
-- Supplier privacy is a core business rule, not just a UI decision.
-- Customer-facing pages should present ShopZone as the seller/service provider.
-- Seller-facing pages should never expose customer contact information unless ShopZone intentionally allows it for a specific fulfillment process.
+- When showing fixes in chat, show `Find this:` with the exact existing code, then `Replace with:` with the replacement.
+- Never create new files in chat instructions; provide code blocks for manual paste unless directly editing the project in the local workspace.
+- Toast remains bottom-left fixed and does not replace inline alerts.
+- Seller-facing work must never expose customer contact information unless ShopZone intentionally allows a fulfillment-safe subset.
+- Customer-facing work must present ShopZone as the service provider, not individual suppliers.
