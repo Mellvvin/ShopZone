@@ -8,7 +8,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { listProducts } from '../redux/slices/productSlice';
 import { addToCart, updateCartQty, removeFromCart } from '../redux/slices/cartSlice';
 import { showToast } from '../components/Toast/Toast';
@@ -49,7 +49,7 @@ const OfferCard = ({ product }) => {
 
     const discountPct = getDiscountPct(product.price, product.salePrice);
 
-    const handleCardClick = () => navigate(`/product/${product._id}`);
+    // Navigation handled by the Link wrapper around image + info
 
     const handleAddToCart = (e) => {
         e.stopPropagation();
@@ -78,15 +78,14 @@ const OfferCard = ({ product }) => {
     };
 
     return (
-        <article
-            className='offer-card'
-            onClick={handleCardClick}
-            role='button'
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && handleCardClick()}
-            aria-label={`View ${product.name}`}
-        >
-            {/* ── Discount % badge ──────────────────────────────────────── */}
+        <article className='offer-card' aria-label={product.name}>
+            {/* Link wraps discount badge, type badges, image and info */}
+            <Link
+                to={`/product/${product._id}`}
+                className='offer-card__link'
+                aria-label={`View ${product.name}`}
+            >
+                {/* ── Discount % badge ──────────────────────────────────────── */}
             {discountPct > 0 && (
                 <div className='offer-card__discount-badge' aria-label={`${discountPct}% off`}>
                     -{discountPct}%
@@ -155,11 +154,11 @@ const OfferCard = ({ product }) => {
                     </span>
                 )}
             </div>
-
+           
+           </Link>
             {/* ── Cart controls ─────────────────────────────────────────── */}
             <div
                 className='offer-card__cart-row'
-                onClick={(e) => e.stopPropagation()}
             >
                 {product.countInStock === 0 ? (
                     <button className='offer-cart-btn offer-cart-btn--disabled' disabled>

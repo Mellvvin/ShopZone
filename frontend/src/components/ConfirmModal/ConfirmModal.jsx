@@ -1,9 +1,6 @@
-// frontend/src/components/ConfirmModal/ConfirmModal.jsx
-// ─────────────────────────────────────────────────────
-// Shared confirmation modal — replaces all window.confirm usage.
-// Import and drop into any page that needs a branded confirm dialog.
-// ─────────────────────────────────────────────────────
+import { useEffect, useRef } from 'react';
 import { Modal, Button } from 'react-bootstrap';
+import './ConfirmModal.css';
 
 const ConfirmModal = ({
     show,
@@ -16,34 +13,34 @@ const ConfirmModal = ({
     cancelLabel = 'Cancel',
     confirmVariant = 'danger',
 }) => {
+    const cancelRef = useRef(null);
+
+    // Move focus to Cancel on open — safer default for destructive actions
+    useEffect(() => {
+        if (show) {
+            setTimeout(() => cancelRef.current?.focus(), 50);
+        }
+    }, [show]);
+
     return (
         <Modal show={show} onHide={onCancel} centered>
-            <Modal.Header style={{ backgroundColor: 'var(--oxford-blue)' }}>
-                <Modal.Title style={{ color: 'var(--tan)' }}>{title}</Modal.Title>
+            <Modal.Header className='confirm-modal-header' closeButton closeVariant='white'>
+                <Modal.Title className='confirm-modal-title'>{title}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {message && <p>{message}</p>}
-                {subMessage && (
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{subMessage}</p>
-                )}
+                {subMessage && <p className='confirm-modal-sub'>{subMessage}</p>}
             </Modal.Body>
             <Modal.Footer>
                 <Button
                     variant='light'
+                    className='confirm-modal-cancel'
                     onClick={onCancel}
-                    style={{ borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}
+                    ref={cancelRef}
                 >
                     {cancelLabel}
                 </Button>
-                <Button
-                    variant={confirmVariant}
-                    onClick={onConfirm}
-                    style={
-                        confirmVariant === 'primary-branded'
-                            ? { backgroundColor: 'var(--oxford-blue)', borderColor: 'var(--oxford-blue)', color: 'var(--tan)' }
-                            : {}
-                    }
-                >
+                <Button variant={confirmVariant} onClick={onConfirm}>
                     {confirmLabel}
                 </Button>
             </Modal.Footer>

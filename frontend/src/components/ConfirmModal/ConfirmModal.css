@@ -1,2 +1,26 @@
-/* ConfirmModal — styles inherited from Bootstrap + CSS variables */
-/* Add overrides here if needed */
+/* ConfirmModal.css */
+
+.confirm-modal-header {
+    background-color: var(--oxford-blue);
+    border-bottom: none;
+}
+
+.confirm-modal-title {
+    color: var(--tan);
+    font-weight: 700;
+}
+
+.confirm-modal-cancel {
+    border-color: var(--tan) !important;
+    color: var(--oxford-blue) !important;
+    background-color: var(--tan-light) !important;
+}
+
+.confirm-modal-cancel:hover {
+    background-color: var(--tan) !important;
+}
+
+.confirm-modal-sub {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}

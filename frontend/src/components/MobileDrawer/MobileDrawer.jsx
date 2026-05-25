@@ -18,7 +18,7 @@
 //   userInfo  {object|null} — from Redux auth
 //   onLogout  {function} — dispatches logout
 // ─────────────────────────────────────────────────────────────
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     FaTimes, FaSignOutAlt,
@@ -49,6 +49,44 @@ const CATEGORIES = [
 
 const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
     const navigate = useNavigate();
+    const drawerRef = useRef(null);
+    const previousFocusRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            // Store the element that had focus before drawer opened
+            previousFocusRef.current = document.activeElement;
+            // Focus the drawer panel so keyboard users are inside it
+            setTimeout(() => drawerRef.current?.focus(), 50);
+            // Prevent background scroll
+            document.body.style.overflow = 'hidden';
+        } else {
+            // Restore focus to the element that triggered the drawer
+            document.body.style.overflow = '';
+            setTimeout(() => previousFocusRef.current?.focus(), 50);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') { onClose(); return; }
+            if (e.key !== 'Tab') return;
+            const focusable = drawerRef.current?.querySelectorAll(
+                'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+            if (!focusable || focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey) {
+                if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+            } else {
+                if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
 
     // Navigate to category filtered page then close drawer
     const handleCategory = (value) => {
@@ -73,7 +111,11 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
             {/* ── Drawer panel ────────────────────────────────── */}
             <div
                 className={`mobile-drawer ${isOpen ? 'mobile-drawer--open' : ''}`}
-                aria-hidden={!isOpen}
+                role='dialog'
+                aria-modal='true'
+                aria-label='Navigation menu'
+                tabIndex={-1}
+                ref={drawerRef}
             >
 
                 {/* ── Close button ──────────────────────────────── */}
@@ -151,17 +193,17 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
                         href='mailto:support@shopzone.com'
                         onClick={onClose}
                     >
-                        <FaEnvelope size={13} style={{ marginRight: '0.5rem' }} />
+                        <FaEnvelope className='drawer-support-icon' aria-hidden='true' />
                         Contact Support
                     </a>
-                <button className='drawer-nav-link' onClick={onClose}>
-                    <FaQuestionCircle size={13} style={{ marginRight: '0.5rem' }} />
-                    FAQ
-                </button>
-                <button className='drawer-nav-link' onClick={onClose}>
-                    <FaStore size={13} style={{ marginRight: '0.5rem' }} />
-                    Become a Seller
-                </button>
+                    <button className='drawer-nav-link' onClick={onClose}>
+                        <FaQuestionCircle className='drawer-support-icon' aria-hidden='true' />
+                        FAQ
+                    </button>
+                    <button className='drawer-nav-link' onClick={onClose}>
+                        <FaStore className='drawer-support-icon' aria-hidden='true' />
+                        Become a Seller
+                    </button>
             </nav>
 
             {/* ════════════════════════════════════════════════
@@ -172,15 +214,18 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
                     <hr className='drawer-divider' />
                     <p className='drawer-section-title'>Admin</p>
                     <nav className='drawer-nav'>
-                        <button className='drawer-nav-link' onClick={() => go('/admin/products')}>
-                            <FaCog size={13} style={{ marginRight: '0.5rem' }} /> Products
-                        </button>
-                        <button className='drawer-nav-link' onClick={() => go('/admin/orders')}>
-                            <FaBox size={13} style={{ marginRight: '0.5rem' }} /> Orders
-                        </button>
-                        <button className='drawer-nav-link' onClick={() => go('/admin/users')}>
-                            <FaUsers size={13} style={{ marginRight: '0.5rem' }} /> Users
-                        </button>
+                            {/* Products — inline style removed, now uses drawer-support-icon class */}
+                            <button className='drawer-nav-link' onClick={() => go('/admin/products')}>
+                                <FaCog className='drawer-support-icon' aria-hidden='true' /> Products
+                            </button>
+                            {/* Orders */}
+                            <button className='drawer-nav-link' onClick={() => go('/admin/orders')}>
+                                <FaBox className='drawer-support-icon' aria-hidden='true' /> Orders
+                            </button>
+                            {/* Users */}
+                            <button className='drawer-nav-link' onClick={() => go('/admin/users')}>
+                                <FaUsers className='drawer-support-icon' aria-hidden='true' /> Users
+                            </button>
                     </nav>
                 </>
             )}

@@ -134,7 +134,7 @@ const Header = () => {
               <FaShoppingCart size={22} />
               <span className='header-icon-label'>Cart</span>
               {totalItems > 0 && (
-                <Badge className='header-cart-badge'>{totalItems}</Badge>
+                <Badge bg='' className='header-cart-badge'>{totalItems}</Badge>
               )}
             </Link>
 
@@ -188,7 +188,7 @@ const Header = () => {
             <Link to='/cart' className='nav-icon-link header-icon-cart' aria-label='Cart'>
               <FaShoppingCart size={22} />
               {totalItems > 0 && (
-                <Badge className='header-cart-badge'>{totalItems}</Badge>
+                <Badge bg='' className='header-cart-badge'>{totalItems}</Badge>
               )}
             </Link>
 

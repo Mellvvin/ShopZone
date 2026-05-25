@@ -497,3 +497,124 @@
         padding: 0 16px;
     }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE CARD OVERRIDES  (≤ 480px)
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+
+    /* Keep 2-col grid but tighten the gap */
+    .offers-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    /* Tighter card info padding */
+    .offer-card__info {
+        padding: 8px 10px 6px;
+        gap: 2px;
+    }
+
+    /* Smaller name */
+    .offer-card__name {
+        font-size: 0.76rem;
+    }
+
+    /* Smaller price */
+    .offer-card__price {
+        font-size: 0.88rem;
+    }
+
+    /* Savings line — keep it but smaller */
+    .offer-card__saving {
+        font-size: 0.65rem;
+    }
+
+    /* Badges — tighter positioning, show max 1 type badge */
+    .offer-card__type-badges {
+        top: 6px;
+        left: 6px;
+    }
+
+    .offer-card__type-badge {
+        font-size: 0.58rem;
+        padding: 2px 5px;
+    }
+
+    .offer-card__type-badges .offer-card__type-badge:nth-child(n+2) {
+        display: none;
+    }
+
+    /* Discount badge — smaller */
+    .offer-card__discount-badge {
+        top: 6px;
+        right: 6px;
+        font-size: 0.65rem;
+        padding: 3px 6px;
+    }
+
+    /* Cart row tighter */
+    .offer-card__cart-row {
+        padding: 0 10px 10px;
+    }
+
+    /* Add to Cart button — compact */
+    .offer-cart-btn--add {
+        font-size: 0.68rem;
+        padding: 7px 8px;
+        gap: 5px;
+    }
+
+    /* Stepper — tighter */
+    .offer-cart-stepper {
+        height: 32px;
+    }
+
+    .offer-stepper-btn {
+        width: 30px;
+        height: 32px;
+    }
+
+    .offer-stepper-qty {
+        font-size: 0.8rem;
+    }
+
+    /* Hero — tighter on very small screens */
+    .offers-hero {
+        padding: 28px 16px 24px;
+    }
+
+    .offers-hero__title {
+        font-size: 1.4rem;
+    }
+
+    .offers-hero__subtitle {
+        font-size: 0.82rem;
+    }
+
+    /* Tab bar — smaller padding so all three tabs fit */
+    .offers-tab {
+        padding: 12px 12px;
+        font-size: 0.78rem;
+        gap: 5px;
+    }
+
+    .offers-tab__count {
+        min-width: 18px;
+        height: 18px;
+        font-size: 0.62rem;
+    }
+}
+
+/* ── Card link wrapper — covers discount badge, image and info ── */
+.offer-card__link {
+    display: contents;
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+}
+
+.offer-card__link:focus-visible .offer-card__img-wrap {
+    outline: 2px solid var(--tan);
+    outline-offset: 2px;
+}

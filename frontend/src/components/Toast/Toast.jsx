@@ -53,7 +53,7 @@ const ToastItem = ({ id, message, type, onRemove }) => {
                 }`}
         >
             {/* ── Icon ────────────────────────────────────────────── */}
-            <span className='sz-toast-icon'>
+            <span className='sz-toast-icon' aria-hidden='true'>
                 {type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}
             </span>
 
@@ -98,18 +98,21 @@ const Toast = () => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
     };
 
+    const politeToasts = toasts.filter((t) => t.type !== 'error');
+    const assertiveToasts = toasts.filter((t) => t.type === 'error');
+
     return (
-        // sz-toast-container — NOT toast-container, to avoid Bootstrap conflict
-        <div className='sz-toast-container' aria-live='polite'>
-            {toasts.map((toast) => (
-                <ToastItem
-                    key={toast.id}
-                    id={toast.id}
-                    message={toast.message}
-                    type={toast.type}
-                    onRemove={removeToast}
-                />
-            ))}
+        <div className='sz-toast-container'>
+            <div aria-live='polite' aria-atomic='false'>
+                {politeToasts.map((toast) => (
+                    <ToastItem key={toast.id} id={toast.id} message={toast.message} type={toast.type} onRemove={removeToast} />
+                ))}
+            </div>
+            <div aria-live='assertive' aria-atomic='true'>
+                {assertiveToasts.map((toast) => (
+                    <ToastItem key={toast.id} id={toast.id} message={toast.message} type={toast.type} onRemove={removeToast} />
+                ))}
+            </div>
         </div>
     );
 };

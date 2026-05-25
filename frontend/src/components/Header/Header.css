@@ -15,6 +15,7 @@
 /* ── Top bar — Oxford Blue background ────────────────────── */
 .header-top-bar {
     background-color: var(--oxford-blue);
+    background: var(--oxford-blue);
 }
 
 /* ── Shared inner container ──────────────────────────────── */
@@ -101,7 +102,6 @@
 /* ── Responsive breakpoint ───────────────────────────────── */
 @media (max-width: 991px) {
 
-    /* Hide desktop elements */
     .header-desktop-search {
         display: none;
     }
@@ -110,71 +110,43 @@
         display: none;
     }
 
-    /* Show mobile elements */
     .header-mobile-icons {
         display: flex;
     }
 
-    /* Tan accent line at the bottom of the top bar on mobile */
-    .header-top-bar {
-        border-bottom: 2px solid rgba(210, 180, 140, 0.4);
-    }
+   /* Gradient depth on mobile top bar */
+   .header-top-bar {
+       background: linear-gradient(135deg, #001830 0%, #002d5e 50%, #001830 100%) !important;
+       border-bottom: 2px solid rgba(210, 180, 140, 0.5);
+   }
 
-    /* More breathing room in the container on mobile */
+    /* More breathing room */
     .header-container {
-        padding: 0.65rem 1rem;
+        padding: 0.7rem 1rem;
     }
 
-    /* Larger tap targets for mobile icons */
+    /* Icons spread across available space */
     .header-mobile-icons {
-        gap: 0.85rem;
+        gap: 1.1rem;
     }
 
     .header-mobile-btn {
         padding: 4px;
     }
 
-    /* Make cart badge slightly larger on mobile for visibility */
+    /* Tan cart badge */
     .header-cart-badge {
+        background-color: var(--tan) !important;
+        color: var(--oxford-blue) !important;
         top: -10px !important;
         right: -12px !important;
         min-width: 20px !important;
         height: 20px !important;
         font-size: 0.7rem !important;
+        border: 1.5px solid var(--oxford-blue) !important;
     }
 }
 
-/* ── Mobile context strip ────────────────────────────────── */
-/* Thin strip below the top bar on mobile showing ShopZone tagline
-   and a subtle welcome — gives the header visual depth */
-.header-mobile-search-panel {
-    background-color: #001835;
-    padding: 0.75rem 0;
-    border-top: 1px solid rgba(210, 180, 140, 0.2);
-}
-
-@media (max-width: 991px) {
-
-    /* Add a subtle gradient to the top bar for depth */
-    .header-top-bar {
-        background: linear-gradient(135deg,
-                #002147 0%,
-                #002d5e 60%,
-                #002147 100%);
-    }
-}
-
-@media (max-width: 480px) {
-
-    /* Tighter padding on very small screens */
-    .header-container {
-        padding: 0.55rem 0.75rem;
-    }
-
-    .header-mobile-icons {
-        gap: 0.65rem;
-    }
-}
 
 /* ── Icon labels — text sits to the right of the icon ───────── */
 .header-icon-label {
@@ -197,4 +169,14 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
+}
+
+@media (max-width: 480px) {
+    .header-container {
+        padding: 0.55rem 0.75rem;
+    }
+
+    .header-mobile-icons {
+        gap: 0.75rem;
+    }
 }

@@ -46,6 +46,8 @@
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .homepage__section-wrapper--banner {
@@ -451,7 +453,9 @@
   .hp-deals-banner {
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 8px;
   }
 
   .hp-deals-banner__cta {
@@ -716,4 +720,17 @@
   font-weight: 700;
   color: var(--oxford-blue);
   user-select: none;
+}
+
+/* ── Card link wrapper — covers badges, image and info only ── */
+.hp-product-card__link {
+  display: contents;
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+}
+
+.hp-product-card__link:focus-visible .hp-product-card__img-wrap {
+  outline: 2px solid var(--tan);
+  outline-offset: 2px;
 }

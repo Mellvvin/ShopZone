@@ -49,9 +49,7 @@ const ProductCard = ({ product }) => {
 
   const isDiscounted = product.isOnSale && product.salePrice;
 
-  // Navigate to product page — only fires when card body is clicked,
-  // not when the cart buttons are clicked (they call stopPropagation)
-  const handleCardClick = () => navigate(`/product/${product._id}`);
+  // Navigation handled by the Link wrapper around image + info sections, so cart buttons don't interfere with that
 
   // Add to cart — adds 1 unit, fires toast, does not navigate
   const handleAddToCart = (e) => {
@@ -82,15 +80,14 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <article
-      className='hp-product-card'
-      onClick={handleCardClick}
-      role='button'
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && handleCardClick()}
-      aria-label={`View ${product.name}`}
-    >
-      {/* ── Badges ────────────────────────────────────────────────── */}
+    <article className='hp-product-card' aria-label={product.name}>
+      {/* Link wraps badges, image and info — not the cart row */}
+      <Link
+        to={`/product/${product._id}`}
+        className='hp-product-card__link'
+        aria-label={`View ${product.name}`}
+      >
+        {/* ── Badges ────────────────────────────────────────────────── */}
       <div className='hp-product-card__badges' aria-hidden='true'>
         {product.isFeatured && (
           <span className='hp-badge hp-badge--featured'>
@@ -143,12 +140,12 @@ const ProductCard = ({ product }) => {
           <span className='hp-product-card__out-of-stock'>Out of stock</span>
         )}
       </div>
+      </Link>
 
       {/* ── Cart controls ─────────────────────────────────────────── */}
-      {/* Shown at the bottom of the card, separate from the clickable body */}
+      {/* Cart row is outside the Link so clicks don't navigate */}
       <div
-        className='hp-product-card__cart-row'
-        onClick={(e) => e.stopPropagation()} // isolate entire row from card click
+        className='hp-product-card__cart-row' 
       >
         {product.countInStock === 0 ? (
           // Out of stock — disabled button
