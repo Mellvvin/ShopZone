@@ -92,6 +92,73 @@ const Particle = ({ style }) => (
     <div className='bs-particle' style={style} aria-hidden='true' />
 );
 
+// ── SVG Seller illustration ───────────────────────────────────────────────────
+const SellerIllustration = () => (
+    <svg
+        className='bs-illustration'
+        viewBox='0 0 360 320'
+        fill='none'
+        xmlns='http://www.w3.org/2000/svg'
+        aria-hidden='true'
+    >
+        {/* Background circles */}
+        <circle cx='180' cy='160' r='120' fill='rgba(210,180,140,0.06)' stroke='rgba(210,180,140,0.14)' strokeWidth='1.5' />
+        <circle cx='180' cy='160' r='82' fill='rgba(210,180,140,0.05)' stroke='rgba(210,180,140,0.1)' strokeWidth='1' />
+
+        {/* Shop storefront */}
+        {/* Roof */}
+        <path d='M100 148 L180 108 L260 148 Z' fill='rgba(210,180,140,0.25)' stroke='rgba(210,180,140,0.5)' strokeWidth='2' strokeLinejoin='round' />
+        {/* Roof ridge line */}
+        <line x1='100' y1='148' x2='260' y2='148' stroke='rgba(210,180,140,0.4)' strokeWidth='1.5' />
+        {/* Building body */}
+        <rect x='112' y='148' width='136' height='90' rx='3' fill='rgba(210,180,140,0.1)' stroke='rgba(210,180,140,0.35)' strokeWidth='1.5' />
+        {/* Door */}
+        <rect x='162' y='188' width='36' height='50' rx='3' fill='rgba(210,180,140,0.2)' stroke='rgba(210,180,140,0.45)' strokeWidth='1.5' />
+        {/* Door knob */}
+        <circle cx='192' cy='214' r='3' fill='rgba(210,180,140,0.7)' />
+        {/* Left window */}
+        <rect x='124' y='160' width='28' height='22' rx='3' fill='rgba(210,180,140,0.15)' stroke='rgba(210,180,140,0.4)' strokeWidth='1.5' />
+        <line x1='138' y1='160' x2='138' y2='182' stroke='rgba(210,180,140,0.3)' strokeWidth='1' />
+        <line x1='124' y1='171' x2='152' y2='171' stroke='rgba(210,180,140,0.3)' strokeWidth='1' />
+        {/* Right window */}
+        <rect x='208' y='160' width='28' height='22' rx='3' fill='rgba(210,180,140,0.15)' stroke='rgba(210,180,140,0.4)' strokeWidth='1.5' />
+        <line x1='222' y1='160' x2='222' y2='182' stroke='rgba(210,180,140,0.3)' strokeWidth='1' />
+        <line x1='208' y1='171' x2='236' y2='171' stroke='rgba(210,180,140,0.3)' strokeWidth='1' />
+        {/* Shop sign above door */}
+        <rect x='150' y='152' width='60' height='18' rx='4' fill='rgba(210,180,140,0.2)' stroke='rgba(210,180,140,0.4)' strokeWidth='1.5' />
+        <line x1='158' y1='159' x2='202' y2='159' stroke='rgba(210,180,140,0.5)' strokeWidth='1.5' strokeLinecap='round' />
+        <line x1='162' y1='165' x2='198' y2='165' stroke='rgba(210,180,140,0.35)' strokeWidth='1' strokeLinecap='round' />
+
+        {/* Floating coins / money — top left */}
+        <circle cx='72' cy='100' r='14' fill='rgba(210,180,140,0.15)' stroke='rgba(210,180,140,0.4)' strokeWidth='1.5' className='bs-svg-float-1' />
+        <text x='67' y='105' fontSize='11' fill='rgba(210,180,140,0.7)' fontWeight='800' className='bs-svg-float-1'>KES</text>
+
+        {/* Floating coins — top right */}
+        <circle cx='290' cy='88' r='11' fill='rgba(210,180,140,0.12)' stroke='rgba(210,180,140,0.35)' strokeWidth='1.5' className='bs-svg-float-2' />
+        <text x='284' y='93' fontSize='10' fill='rgba(210,180,140,0.6)' fontWeight='800' className='bs-svg-float-2'>$</text>
+
+        {/* Upward arrow — growth */}
+        <path d='M310 200 L310 160 L298 172' stroke='rgba(210,180,140,0.45)' strokeWidth='2.5' fill='none' strokeLinecap='round' strokeLinejoin='round' className='bs-svg-float-3' />
+        <path d='M310 160 L322 172' stroke='rgba(210,180,140,0.45)' strokeWidth='2.5' fill='none' strokeLinecap='round' className='bs-svg-float-3' />
+
+        {/* Shield — protection */}
+        <path d='M52 175 Q52 155 68 148 Q84 155 84 175 Q84 192 68 198 Q52 192 52 175 Z' fill='rgba(210,180,140,0.1)' stroke='rgba(210,180,140,0.35)' strokeWidth='1.5' className='bs-svg-float-2' />
+        <path d='M62 175 L66 180 L76 168' stroke='rgba(210,180,140,0.6)' strokeWidth='2' fill='none' strokeLinecap='round' strokeLinejoin='round' className='bs-svg-float-2' />
+
+        {/* Star — quality */}
+        <path d='M288 228 L291 237 L300 237 L293 243 L296 252 L288 246 L280 252 L283 243 L276 237 L285 237 Z' fill='rgba(210,180,140,0.2)' stroke='rgba(210,180,140,0.45)' strokeWidth='1.2' className='bs-svg-float-1' />
+
+        {/* Orbit ring */}
+        <circle cx='180' cy='160' r='124' stroke='rgba(210,180,140,0.07)' strokeWidth='1' strokeDasharray='8 5' />
+
+        {/* Orbit dots */}
+        <circle cx='180' cy='33' r='4.5' fill='rgba(210,180,140,0.35)' />
+        <circle cx='307' cy='160' r='3.5' fill='rgba(210,180,140,0.28)' />
+        <circle cx='180' cy='287' r='4.5' fill='rgba(210,180,140,0.35)' />
+        <circle cx='53' cy='160' r='3.5' fill='rgba(210,180,140,0.28)' />
+    </svg>
+);
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 const STATS = [
     { value: 1000, suffix: '+', label: 'Products listed', icon: FaBoxOpen },
@@ -277,6 +344,7 @@ const BecomeSellerPage = () => {
                 <div className='bs-hero__orb bs-hero__orb--3' aria-hidden='true' />
 
                 <div className='bs-hero__inner'>
+                    <div className='bs-hero__text-col'>
                     <div className='bs-hero__eyebrow'>
                         <FaBolt aria-hidden='true' />
                         Seller Programme
@@ -315,6 +383,12 @@ const BecomeSellerPage = () => {
                             <FaWhatsapp aria-hidden='true' />
                             WhatsApp Us First
                         </a>
+                    </div>
+                    </div>{/* /bs-hero__text-col */}
+
+                    {/* Illustration */}
+                    <div className='bs-hero__illustration' aria-hidden='true'>
+                        <SellerIllustration />
                     </div>
 
                     {/* Quick trust row */}

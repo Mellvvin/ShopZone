@@ -179,9 +179,20 @@
 .bs-hero__inner {
     position: relative;
     z-index: 1;
-    max-width: 780px;
+    max-width: 1100px;
     width: 100%;
     animation: bsHeroIn 1s ease both;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 48px;
+    align-items: center;
+}
+
+/* Left text column */
+.bs-hero__text-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 @keyframes bsHeroIn {
@@ -1164,5 +1175,80 @@
 
     .bs-stats__inner {
         grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ── Hero illustration ───────────────────────────────────────────────────── */
+.bs-hero__illustration {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: bsHeroIn 1s ease 0.4s both;
+}
+
+.bs-illustration {
+    width: 100%;
+    max-width: 340px;
+    filter: drop-shadow(0 20px 48px rgba(0, 0, 0, 0.35));
+}
+
+/* Floating animations for SVG elements */
+.bs-svg-float-1 {
+    animation: bsSvgFloat1 4s ease-in-out infinite;
+}
+
+.bs-svg-float-2 {
+    animation: bsSvgFloat2 5.5s ease-in-out infinite;
+}
+
+.bs-svg-float-3 {
+    animation: bsSvgFloat3 3.5s ease-in-out infinite;
+}
+
+@keyframes bsSvgFloat1 {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes bsSvgFloat2 {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-12px);
+    }
+}
+
+@keyframes bsSvgFloat3 {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Responsive — hide illustration on smaller screens */
+@media (max-width: 960px) {
+    .bs-hero__inner {
+        grid-template-columns: 1fr;
+        max-width: 780px;
+    }
+
+    .bs-hero__illustration {
+        display: none;
     }
 }

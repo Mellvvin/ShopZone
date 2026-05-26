@@ -36,6 +36,7 @@ import SpecialOffersPage from './pages/SpecialOffersPage';
 import FAQPage from './pages/FAQPage';
 import ContactPage from './pages/ContactPage';
 import BecomeSellerPage from './pages/BecomeSellerPage';
+import ShippingPolicyPage from './pages/ShippingPolicyPage';
 
 
 
@@ -62,6 +63,7 @@ const App = () => {
           <Route path='/faq' element={<FAQPage />} />
           <Route path='/contact' element={<ContactPage />} />
           <Route path='/become-seller' element={<BecomeSellerPage />} />
+          <Route path='/shipping-policy' element={<ShippingPolicyPage />} />
           
 
           {/* ── Protected Routes ── */}
