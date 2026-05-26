@@ -64,6 +64,9 @@ const AdminOrderListPage = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Admin: Order List — ShopZone'; }, []);
+
   // ── Tab state ────────────────────────────────────────────────────────────
   // 'all' | 'quotes' | 'payouts'
   const [activeTab, setActiveTab] = useState('all');

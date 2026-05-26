@@ -17,6 +17,9 @@ const AdminUserListPage = () => {
     const navigate = useNavigate();
     const { userInfo } = useSelector((state) => state.auth);
 
+    // ── Page title ─────────────────────────────────────────────
+    useEffect(() => { document.title = 'Admin: User List — ShopZone'; }, []);
+
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

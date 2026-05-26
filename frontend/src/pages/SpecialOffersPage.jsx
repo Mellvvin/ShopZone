@@ -220,6 +220,9 @@ const SpecialOffersPage = () => {
 
     const { products, loadingList, errorList } = useSelector((state) => state.products);
 
+    // ── Page title ─────────────────────────────────────────────
+    useEffect(() => { document.title = 'Special Offers — ShopZone'; }, []);
+
     // Fetch all deals on mount — backend returns isOnSale OR isClearance products
     useEffect(() => {
         dispatch(listProducts({ deals: 'true' }));

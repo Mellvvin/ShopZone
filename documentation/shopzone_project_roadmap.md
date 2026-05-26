@@ -10,29 +10,58 @@ The operating model is:
 
 - Customers buy from ShopZone.
 - Suppliers and sellers sell through ShopZone.
-- ShopZone controls pricing, customer communication, delivery promises, quality control, support, disputes, and payouts.
+- ShopZone controls customer communication, delivery promises, quality control, support, disputes, payouts, platform fees, and the safety rules around seller actions.
+- Approved sellers should be allowed to manage low-risk parts of their own catalog, including price changes, without waiting for admin approval when the change does not create a security issue, expose private data, mislead buyers, alter existing orders, or create buyer/payment/dispute risk.
 - Customers never see supplier names, supplier contacts, supplier locations, supplier cost prices, or direct seller identifiers.
 - Sellers never contact customers directly through the platform.
-- Public listings show ShopZone-controlled information only.
+- Public listings use ShopZone-approved presentation and privacy rules only, even when an approved seller is allowed to self-manage eligible price or stock fields.
 
 ## Current Implemented Baseline
 
 These items are already present and should not be repeated as active roadmap tasks unless regression testing shows a problem:
 
-- React/Vite frontend, Node/Express backend, MongoDB/Mongoose data layer, JWT auth, bcryptjs password hashing in controllers, Multer uploads, Redux Toolkit, React Bootstrap, Axios, React Icons.
-- Customer browsing, product detail pages, cart, registration, login, shipping, payment method selection, order placement, profile, order history, product reviews, admin APIs, and upload route.
-- Secure order access in `backend/controllers/orderController.js`, where only the order owner or admin can view an order by ID.
-- Central error middleware in `backend/middleware/errorMiddleware.js`, registered in `backend/server.js`.
-- Foundation admin pages: product list, product edit, order list, and user list.
-- Product merchandising fields in `backend/models/Product.js`: `tags`, `isFeatured`, `isOnSale`, `isClearance`, and `salePrice`.
-- Expanded customer categories in the header/category surfaces.
-- Search across product name, category, description, and tags in `backend/controllers/productController.js`.
-- Homepage redesign with hero, category cards, product sections, deals banner, product cards, and cart controls.
-- Special Offers page and `/offers` route for sale and clearance products.
-- Mobile header fixes, tan cart badge override, mobile deals banner containment, and mobile Special Offers card overrides.
-- Shared `ConfirmModal` replacing `window.confirm` usage.
-- Toast live region improvements, MobileDrawer focus trap, dialog semantics, Escape close, and no inline icon styles in drawer support/admin links.
-- Atomic stock protection during order creation, stock restore on cancellation/rejected delivery quote, server-side item price verification, VAT-inclusive extraction, county-based shipping, Tier 2 delivery quote flow, seller delivery quote submission, platform commission tracking, and lightweight payout release flag.
+- Architecture and stack:
+  - React/Vite frontend, Node/Express backend, MongoDB/Mongoose data layer, JWT auth, bcryptjs password hashing in controllers, Multer uploads, Redux Toolkit, React Bootstrap, Axios, React Icons.
+  - Root scripts currently support running the frontend/backend dev setup, while frontend already has build, lint, and preview scripts.
+  - Uploads are local through the existing upload route and `backend/uploads`, which is acceptable for development but still needs production storage later.
+
+- Customer-facing frontend:
+  - Public browsing starts at the redesigned homepage with hero content, category cards, product sections, deals banner, product cards, search/category entry points, and cart controls.
+  - Product detail pages support product information, pricing, stock state, quantity selection, review display, and review submission.
+  - Cart, login, registration, shipping, payment method selection, place order, order detail, profile, and order history flows are implemented.
+  - Special Offers page and `/offers` route are implemented for sale and clearance products.
+  - Expanded customer categories are present across header/category surfaces.
+  - Mobile header fixes, tan cart badge override, mobile deals banner containment, and mobile Special Offers card overrides are already applied.
+  - Chat widget, toast notifications, footer, scroll-to-top behavior, category bar/cards, desktop dropdown menu, search bar, and shared logo component are present.
+
+- Admin-facing frontend:
+  - Foundation admin pages are present: product list, product edit, order list, and user list.
+  - Admin product editing includes merchandising fields for tags, featured placement, sale state, clearance state, sale price, unit, stock, image, category, and description.
+  - Admin order views include operational order handling for payment/delivery state and the newer Tier 2 delivery quote and payout concepts.
+
+- Backend API and data model:
+  - Product model includes core product fields, reviews, stock, wholesale unit, `tags`, `isFeatured`, `isOnSale`, `isClearance`, and `salePrice`.
+  - Order model includes order item price snapshots, county shipping address, shipping tier, shipping zone, Tier 2 delivery quote fields, seller quote fields, platform commission, payout release fields, payment state, delivery state, and lifecycle status.
+  - User model supports customer account data and admin checks.
+  - Product search covers product name, category, description, and tags in `backend/controllers/productController.js`.
+  - Secure order access exists in `backend/controllers/orderController.js`, where only the order owner or admin can view an order by ID.
+  - Central error middleware exists in `backend/middleware/errorMiddleware.js` and is registered in `backend/server.js`.
+
+- Order integrity and pricing protections:
+  - Order creation uses atomic stock checks/decrements and restores stock if a later item fails.
+  - Stock is restored on order cancellation and rejected delivery quote.
+  - Server-side item price verification prevents frontend price tampering at checkout.
+  - Order items snapshot `priceAtPurchase`, so later product price changes do not change historical orders.
+  - VAT is treated as inclusive and extracted using `price * 16 / 116`.
+  - County-based shipping is calculated server-side instead of trusting the frontend.
+  - Tier 2 delivery quote flow exists for bulk/heavy goods, including quote send, buyer approve, buyer reject, and quote queues.
+  - Platform commission tracking and a lightweight payout release flag are present.
+
+- Current accessibility and interaction baseline:
+  - Shared `ConfirmModal` replaces direct `window.confirm` usage in the reviewed flows.
+  - Toast live region improvements are present.
+  - `MobileDrawer` has focus trap work, dialog semantics, Escape close behavior, and CSS-backed icon styling in drawer support/admin links.
+  - Lighthouse desktop accessibility score from the May 25, 2026 run is 95, with remaining issues documented in Step 2.
 
 ## Non-Negotiable Rules
 
@@ -46,6 +75,9 @@ These items are already present and should not be repeated as active roadmap tas
 - Avoid inline `style={{}}` props in JSX. Move styling to component CSS files except where a Bootstrap override is genuinely unavoidable.
 - Each component keeps its own CSS file in its own folder. `index.css` stays for global variables and globals only.
 - Backend authorization is the real security boundary. Frontend route hiding is not enough.
+- Seller autonomy should be the default for low-risk seller-owned operations. Admin approval should be reserved for actions that can affect buyer safety, existing orders, public trust, security, supplier privacy, payouts, disputes, or platform liability.
+- Existing orders must never be silently changed by later seller edits. Product price changes affect future orders only because orders snapshot `priceAtPurchase`.
+- Sellers may choose aggressive prices, including KES 0.00, for their own eligible products if the change is confirmed and does not violate buyer-safety, fraud, content, payment, or platform rules.
 
 ## Step 1: Clean Corrupted Characters And Text Encoding
 
@@ -94,8 +126,17 @@ Priority: High
 
 The first accessibility pass has been started, but several semantics and layout details still need tightening before building more features on top.
 
+Latest audit context:
+
+- Lighthouse was run on May 25, 2026 at 3:47 PM GMT+3 using Lighthouse 13.0.2, Chromium 148.0.0.0, emulated desktop, single page session, initial page load, and custom throttling.
+- Accessibility score was 95.
+- The run reported that clearing the browser cache timed out, so the audit should be repeated after fixes to confirm the score.
+- Automated Lighthouse checks only cover part of accessibility. Manual keyboard and screen-reader review remains required.
+
 Issues to address:
 
+- Fix the Lighthouse contrast warning by reviewing foreground/background pairs on the audited page and raising low-contrast text, icons, badges, muted labels, and sale/deal elements to WCAG-friendly contrast.
+- Fix the Lighthouse heading order warning caused by `h6.footer-col-heading`. Footer column headings should not skip heading levels; use a semantically appropriate heading level or style non-heading text when the footer label is not part of the page heading outline.
 - `MobileDrawer` remains mounted as a dialog even when closed. Hide it from assistive technology when closed or render it only when open while preserving exit animation if needed.
 - Product cards use `display: contents` link wrappers. This can be inconsistent for focus rings and assistive technology. Convert clickable product content to a normal block link, with cart controls outside the link.
 - `ShopZoneLogo.jsx` still uses inline `style` props for gap, font size, and color. Move size/color variants into CSS classes or CSS variables.
@@ -110,15 +151,22 @@ Checklist:
 - Review `frontend/src/components/MobileDrawer/MobileDrawer.jsx` for closed-state semantics.
 - Review `frontend/src/pages/HomePage.jsx` and `frontend/src/pages/SpecialOffersPage.jsx` for card link/button structure.
 - Review `frontend/src/components/ShopZoneLogo/ShopZoneLogo.jsx` and move inline visual styling into CSS.
+- Review `frontend/src/components/Footer/Footer.jsx` and `frontend/src/components/Footer/Footer.css` for footer heading semantics and contrast.
+- Review `frontend/src/index.css`, page CSS files, header/footer CSS, and product-card/deals CSS for low-contrast color combinations.
 - Run a keyboard-only pass through header, search, drawer, product cards, cart controls, checkout, admin pages, modal, and toast dismissal.
+- Run a manual screen-reader-oriented pass for heading order, landmark clarity, dialog names, drawer state, toast announcement behavior, and product-card link/button labels.
 - Test mobile width around 360px, 390px, 430px, 768px, and desktop.
+- Re-run Lighthouse after changes and record the new date, score, and remaining warnings in this roadmap.
 
 Acceptance criteria:
 
+- Lighthouse no longer reports contrast failures on the audited page.
+- Footer headings no longer skip heading levels.
 - Keyboard users can open, navigate, and close the drawer without escaping into background content.
 - Product cards have predictable focus rings and semantic links.
 - No avoidable inline visual styles remain in the reviewed components.
 - Full-width pages are not unintentionally squeezed by the global Bootstrap container.
+- Manual review confirms that automated Lighthouse success did not hide keyboard, focus, dialog, heading, or announcement issues.
 
 ## Step 3: Fix Dead Links And Add Core Content Pages
 
@@ -212,7 +260,7 @@ Seller dashboard scope:
 - Seller profile summary.
 - Private product submissions.
 - Stock update requests.
-- Price update requests.
+- Seller-owned price updates for eligible products, applied directly after confirmation when the change is low-risk and affects future orders only.
 - Lead time updates.
 - Delivery quote submissions for Tier 2 orders.
 - Payout tracking.
@@ -223,24 +271,38 @@ Privacy rules:
 - Sellers cannot see customer contact details.
 - Sellers cannot message customers.
 - Sellers cannot see full buyer profile data unless ShopZone intentionally exposes a fulfillment-safe subset.
-- Sellers cannot set final public selling price.
+- Sellers can set their own eligible product prices, including KES 0.00, when the product belongs to them and the change does not alter existing orders, bypass payment rules, mislead buyers, or violate platform policy.
+- Price changes must use a confirmation modal and must be logged for admin review/audit.
 - Seller-uploaded photos must be reviewed before public use.
 - Seller submissions must not expose phone numbers, WhatsApp numbers, shop signs, supplier invoices, watermarks, or warehouse addresses.
+
+Seller autonomy policy:
+
+- Default to allowing seller actions when they are low-risk, reversible, auditable, and limited to the seller's own catalog or fulfillment data.
+- Require admin approval for actions that publish new public listings, change public product identity/content in a way that could mislead buyers, expose supplier/customer information, modify existing orders, change payout/payment state, affect disputes/refunds, bypass delivery rules, or create security/compliance risk.
+- Price and stock changes should not require admin approval by default, because existing order price snapshots and stock checks protect buyers. The UI should make risky values obvious with confirmation, but not block seller business decisions solely because the price is very low.
+- Keep structured inputs wherever possible for delivery quotes and fulfillment data so sellers cannot leak direct contact details through free text.
 
 Checklist:
 
 - Add seller dashboard route and page.
 - Add seller-specific API routes.
 - Add private seller product submission model or fields.
-- Add seller stock/price/lead-time update flow.
+- Add seller stock update flow.
+- Add seller direct price update flow for eligible products, with confirmation, audit log, and future-orders-only behavior.
+- Add seller lead-time update flow.
 - Add seller order/fulfillment request list that hides customer identity.
 - Add seller payout status display.
+- Add backend ownership checks so sellers can only update products/orders assigned to them.
+- Add admin review/audit view for seller self-service actions so admin can monitor behavior without approving every normal change.
 
 Acceptance criteria:
 
 - Approved sellers can manage their private supply information.
-- Seller submissions do not appear publicly without admin approval.
+- Approved sellers can update eligible product prices and stock without admin approval, and existing orders remain unchanged.
+- Seller submissions that create new public products or public content do not appear publicly without the required approval.
 - Customer identity remains protected.
+- Admin workload is reduced because normal seller-owned updates are self-service, while genuinely risky actions still require review.
 
 ## Step 6: Seller Approval System And Trust Badges
 
@@ -270,6 +332,28 @@ Priority: High
 
 Admin needs full control over seller data, supplier cost, and public product approval.
 
+Important operating decision:
+
+- Admin should not approve every seller action. Admin control should focus on sensitive seller data, supplier cost visibility, public product approval, privacy, disputes, payouts, suspicious behavior, and policy enforcement.
+- Routine seller-owned changes that do not harm buyers or the platform, such as price updates and stock updates on eligible products, should be self-service with confirmation and audit history.
+
+Admin seller focus:
+
+- Seller approval, suspension, rejection, reactivation, verification, and document review.
+- Public product approval for new listings, product images, descriptions, categories, titles, and any content that could mislead buyers or expose supplier identity.
+- Seller behavior monitoring: cancellations, late fulfillment, inaccurate stock, repeated unavailable items, poor delivery quote behavior, complaint patterns, and suspicious price activity.
+- Disputes, refunds, damaged goods, missing goods, buyer complaints, and seller accountability.
+- Payout release, payout holds, payout disputes, fraud checks, and commission reconciliation.
+- Privacy and policy enforcement: phone numbers, WhatsApp details, shop signs, supplier addresses, invoice photos, watermarks, direct-contact attempts, and off-platform transaction attempts.
+- Pricing abuse only when it becomes a buyer/platform risk, such as bait pricing, hidden charges, repeated confusing KES 0.00 listings, fake discounts, or attempts to bypass payment and order rules.
+- Sponsored placement approval so paid visibility supports the business without destroying buyer trust.
+
+Reasoning:
+
+- Admin time should be spent where human judgment protects buyers, ShopZone, and the private supplier model.
+- Normal seller updates should be logged and reversible rather than manually approved one by one.
+- The system should reduce admin workload while still giving admin strong override, audit, and suspension tools when a seller becomes risky.
+
 Checklist:
 
 - Add admin seller list page.
@@ -278,14 +362,17 @@ Checklist:
 - Show seller private catalog to admin.
 - Let admin convert seller submissions into public ShopZone listings.
 - Add product submission statuses: `draft`, `submitted`, `needs_changes`, `approved`, `rejected`, `archived`.
-- Let admin set final public title, description, category, images, sale price, ShopZone price, stock, availability, and delivery classification.
+- Let admin set or override public title, description, category, images, sale price, ShopZone price, stock, availability, and delivery classification when approval, correction, or policy enforcement is needed.
 - Add rejection reasons and change requests.
+- Add audit history for seller self-service actions: price changes, stock changes, lead-time changes, delivery quote submissions, and profile edits.
+- Add admin override/suspend controls for sellers who abuse self-service permissions.
 
 Acceptance criteria:
 
 - Seller products are private until approved.
 - Admin controls public listings.
 - Supplier cost and contact data remain private.
+- Admin can monitor seller changes without approving every normal low-risk update.
 
 ## Step 8: Request Goods Flow - Manual RFQ First
 
@@ -383,13 +470,13 @@ Customer-facing example:
 - 3-9 cartons: KES 1,850 each.
 - 10+ cartons: request quote.
 
-Admin-only pricing:
+Internal pricing controls:
 
 - Supplier cost.
 - ShopZone margin.
 - Transport estimate.
 - Handling cost.
-- Final selling price.
+- Final selling price owner/override rules: admin can set or override; approved sellers can self-manage eligible product prices when allowed by seller autonomy rules.
 
 Checklist:
 
@@ -401,7 +488,7 @@ Checklist:
 - Show tier table on product detail page.
 - Show applied tier in cart and checkout.
 - Support quote-required tier such as `10+ request quote`.
-- Keep supplier cost hidden from customers and sellers unless admin-only.
+- Keep supplier cost hidden from customers and from unrelated sellers; only admin and the owning seller context should see cost data where intentionally supported.
 
 Acceptance criteria:
 
@@ -590,11 +677,58 @@ Acceptance criteria:
 - Disputed orders cannot be paid out accidentally.
 - Sellers can eventually see payout status without seeing customer details.
 
-## Step 17: Product Filtering, Sorting, And Pagination
+## Step 17: Product Filtering, Sorting, Ranking, Pagination, And Sponsored Visibility
 
 Priority: Medium
 
-Search and category filters exist, but full filtering and pagination are still needed for scale.
+Search and category filters exist, but full filtering, ranking, fair seller visibility, sponsored placement, and pagination are still needed for scale.
+
+Search bar and filter scope:
+
+- The search bar should support product keyword search plus filters so buyers can narrow results without leaving the search flow.
+- Filters should include price range, category, unit type, MOQ, in-stock only, sale/clearance, rating or ShopZone quality signal, delivery region, lead time, and featured/verified flags where appropriate.
+- Sorting should include relevance, ShopZone recommended, newest, price low-to-high, price high-to-low, stock availability, lead time, and rating/quality signal where appropriate.
+
+Ranking principle:
+
+- Search should not be fully random.
+- Fully random results can reduce buyer trust because weaker or less relevant products may appear above clearly better matches.
+- Pure seller rating or badge ranking is also risky because it can permanently lock new sellers out of visibility.
+- The recommended model is hybrid ranking: relevance first, availability second, trust/reliability third, then controlled fair-visibility rotation and limited sponsored placement.
+
+Recommended ranking model:
+
+- Relevance first: products that directly match the searched item should rank above vague or loosely related products.
+- Availability second: in-stock products, complete listings, clear units, reliable lead times, and deliverable regions should receive a ranking boost.
+- Trust and reliability third: internal seller reliability, cancellation rate, fulfillment accuracy, dispute rate, stock accuracy, and response time should improve ranking, but should not permanently dominate search.
+- Fair visibility rotation: reserve a small number of result slots for eligible newer or lower-exposure sellers who still meet minimum quality and policy standards.
+- Sponsored placement: allow paid visibility as a business model, but label it clearly and cap it so search does not become pay-to-win.
+
+Suggested top-results mix:
+
+- For the first 10 search results, use a controlled mix such as 6 strong organic results, 2 rotating eligible sellers, 1 new seller discovery slot, and 1 clearly labeled sponsored result.
+- The exact numbers can be adjusted after testing, but the principle should remain: buyers see relevant, trustworthy results while new sellers still get a real chance.
+- Rotation should never override basic quality gates. A seller should not receive rotation visibility if the listing is out of stock, misleading, unapproved, policy-risky, or has serious unresolved reliability issues.
+
+Buyer-facing trust signals:
+
+- Do not expose seller identity, seller names, seller contact details, or raw seller ratings on customer-facing pages.
+- Use ShopZone-level signals instead, such as `Verified by ShopZone`, `Fast fulfillment`, `Bulk ready`, `High stock confidence`, `Quality checked`, or `Sponsored`.
+- Internally, those signals can be powered by seller badges, seller reliability, fulfillment history, and admin review, but customers should still experience ShopZone as the service provider.
+
+Personalization and fairness:
+
+- Different buyers can see slightly different ranking based on county, delivery availability, stock, buying context, previous behavior, and fair-visibility rotation.
+- Personalization should be controlled and explainable internally. It should improve relevance without making search feel arbitrary.
+- New sellers should receive visibility opportunities, but not at the expense of buyer trust or product relevance.
+
+Sponsored visibility rules:
+
+- Sponsored products must be clearly labeled as sponsored.
+- Sponsored placement should be category/search relevant; a seller should not buy visibility for unrelated searches.
+- Sponsored results should be capped per page and should not occupy all top positions.
+- Sponsored eligibility should require approved seller status, compliant listings, sufficient stock, and acceptable reliability.
+- Admin should be able to pause, reject, or remove sponsored placements that create buyer confusion, policy risk, or poor customer experience.
 
 Checklist:
 
@@ -602,8 +736,12 @@ Checklist:
 - Add backend pagination for admin orders.
 - Add backend pagination for users.
 - Add backend pagination for seller products.
-- Add filters for category, unit type, MOQ, price range, rating, in-stock status, delivery region, sale, clearance, and featured.
-- Add sort by newest, price, rating, stock, and lead time.
+- Add filters for search keyword, category, unit type, MOQ, price range, in-stock status, delivery region, lead time, sale, clearance, featured, and ShopZone quality signals.
+- Add sort by relevance, ShopZone recommended, newest, price, rating/quality signal, stock, and lead time.
+- Add backend ranking logic that combines relevance, availability, internal seller reliability, listing completeness, and delivery suitability.
+- Add fair-visibility rotation for eligible new or lower-exposure sellers.
+- Add sponsored placement support with clear labeling, eligibility checks, category relevance, and admin controls.
+- Add analytics for search impressions, clicks, add-to-cart, quote requests, conversion, sponsored impressions, and seller exposure distribution.
 - Preserve filters/search while paginating.
 - Keep URL query params shareable.
 
@@ -612,6 +750,10 @@ Acceptance criteria:
 - Large product and admin lists load efficiently.
 - Customers can narrow results accurately.
 - Search, filters, sorting, and pagination work together.
+- Search results prioritize relevant and available products without permanently locking out new sellers.
+- Sponsored results are clearly labeled and do not dominate organic search.
+- Customer-facing ranking signals protect seller privacy and present ShopZone as the service provider.
+- Admin can monitor seller visibility, sponsored placements, and search quality.
 
 ## Step 18: Bulk Excel Product Upload
 
@@ -752,7 +894,7 @@ Checklist:
 - Validate quote request fields.
 - Validate order creation payload.
 - Validate shipping address fields.
-- Validate prices and quantities as positive numbers.
+- Validate quantities as positive numbers and prices as non-negative numbers where KES 0.00 is intentionally allowed by seller/admin policy.
 - Validate sale price lower than normal price when sale/clearance is active.
 - Validate review rating between 1 and 5.
 - Validate ObjectId params before database calls.
@@ -835,6 +977,11 @@ Priority: Low
 
 Only add this after product and seller workflows are stable.
 
+Search placement note:
+
+- Sponsored search/category visibility can become part of the ad system, but it must follow the Step 17 ranking rules.
+- Paid placement should create revenue and seller opportunity without weakening buyer trust, hiding better matches, or exposing seller identity.
+
 Checklist:
 
 - Define ad placements.
@@ -843,12 +990,16 @@ Checklist:
 - Add start/end dates.
 - Add active/inactive state.
 - Add click tracking if needed.
+- Add sponsored search/category placement rules after the ranking system exists.
+- Require sponsored products to be relevant, approved, in stock, and policy-compliant.
+- Clearly label sponsored placements in customer-facing UI.
 - Ensure ads do not crowd operational pages.
 
 Acceptance criteria:
 
 - Admin can manage promotional placements.
 - Ads do not interfere with checkout or core browsing.
+- Sponsored search/category placements remain limited, relevant, and transparent.
 
 ## Step 28: Swahili Language Option
 
@@ -1054,7 +1205,7 @@ Use this as the Notion step checklist.
 14. Expand order statuses.
 15. Add support tickets and dispute system.
 16. Build lightweight escrow and payout hold UI/rules.
-17. Add product filtering, sorting, and pagination.
+17. Add product filtering, sorting, ranking, pagination, and sponsored visibility.
 18. Add bulk Excel product upload.
 19. Add seller reputation system.
 20. Integrate M-Pesa STK Push.

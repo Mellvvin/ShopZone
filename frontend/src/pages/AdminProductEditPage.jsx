@@ -75,6 +75,9 @@ const AdminProductEditPage = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Admin: Edit Product — ShopZone'; }, []);
+
   // ── Form field state ──────────────────────────────────────
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');

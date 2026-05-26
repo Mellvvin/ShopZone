@@ -79,6 +79,10 @@ const PlaceOrderPage = () => {
 
   // ── Redux state ─────────────────────────────────────────────────────────
   const { cartItems, shippingAddress, paymentMethod } = useSelector((state) => state.cart);
+
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Place Order — ShopZone'; }, []);
+
   const { userInfo } = useSelector((state) => state.auth);
 
   // ── Loading / error state for the place order API call ──────────────────

@@ -35,6 +35,8 @@ const RegisterPage = () => {
 
   // ── Redux state ───────────────────────────────────────────
   const { userInfo, loading, error } = useSelector((state) => state.auth);
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Register — ShopZone'; }, []);
 
   // ── Form field state ──────────────────────────────────────
   const [name, setName] = useState('');

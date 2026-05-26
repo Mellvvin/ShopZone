@@ -45,6 +45,10 @@ const PaymentPage = () => {
   const navigate = useNavigate();
 
   const { shippingAddress } = useSelector((state) => state.cart);
+
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Payment — ShopZone'; }, []);
+
   const { userInfo } = useSelector((state) => state.auth);
 
   const [paymentMethod, setPaymentMethod] = useState('MPesa');

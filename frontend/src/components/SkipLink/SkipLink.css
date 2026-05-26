@@ -1,0 +1,33 @@
+/* src/components/SkipLink/SkipLink.css
+   ─────────────────────────────────────────────────────────────
+   Skip link — visually hidden until focused by keyboard.
+   Appears as a high-contrast banner at the very top of the
+   page when a keyboard user presses Tab on page load.
+   ───────────────────────────────────────────────────────────── */
+
+.skip-link {
+    /* Hidden off-screen by default */
+    position: absolute;
+    top: -100%;
+    left: 0;
+    z-index: 99999;
+
+    /* High contrast so it's unmissable when it appears */
+    background: var(--tan);
+    color: var(--oxford-blue);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 0 0 8px 0;
+
+    /* Smooth slide down on focus */
+    transition: top 0.15s ease;
+}
+
+/* Slides into view when focused by keyboard */
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid var(--oxford-blue);
+    outline-offset: 2px;
+}

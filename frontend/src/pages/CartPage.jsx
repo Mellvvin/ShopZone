@@ -4,7 +4,7 @@
 // Shows all cart items with quantity controls and order summary.
 // Toast added for item removal.
 // ─────────────────────────────────────────────────────────────
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -20,6 +20,10 @@ const CartPage = () => {
   const navigate = useNavigate();
 
   const { cartItems } = useSelector((state) => state.cart);
+
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Your Cart — ShopZone'; }, []);
+  
   const { userInfo } = useSelector((state) => state.auth);
 
  

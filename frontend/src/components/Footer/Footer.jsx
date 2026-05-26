@@ -60,7 +60,8 @@ const Footer = () => {
 
         {/* ── Column 2 — Quick Links ── */}
         <Col lg={2} md={6} sm={6} className='mb-4'>
-          <h6 className='footer-col-heading'>Quick Links</h6>
+            {/* Changed from h6 to p — footer labels are not part of page heading outline */}
+            <p className='footer-col-heading'>Quick Links</p>
           <ul className='footer-link-list'>
             {[
               { label: 'Home', to: '/' },
@@ -80,7 +81,8 @@ const Footer = () => {
 
         {/* ── Column 3 — Categories ── */}
         <Col lg={2} md={6} sm={6} className='mb-4'>
-          <h6 className='footer-col-heading'>Categories</h6>
+            {/* Changed from h6 to p — footer labels are not part of page heading outline */}
+            <p className='footer-col-heading'>Categories</p>
           <ul className='footer-link-list'>
             {[
                 'Electronics',
@@ -101,7 +103,8 @@ const Footer = () => {
 
         {/* ── Column 4 — Contact ── */}
         <Col lg={4} md={6} className='mb-4'>
-          <h6 className='footer-col-heading'>Contact Us</h6>
+            {/* Changed from h6 to p — footer labels are not part of page heading outline */}
+            <p className='footer-col-heading'>Contact Us</p>
           <ul className='footer-contact-list'>
             {[
               { icon: <FaMapMarkerAlt size={14} />, text: 'Nairobi, Kenya' },

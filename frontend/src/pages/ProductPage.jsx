@@ -93,6 +93,16 @@ const ProductPage = () => {
     dispatch(listProductDetails(id));
   }, [dispatch, id, reviewSuccess]);
 
+  // ── Page title — set once product name is available ────────
+  // Runs whenever product changes so the tab updates after load
+  useEffect(() => {
+    if (product?.name) {
+      document.title = `${product.name} — ShopZone`;
+    } else {
+      document.title = 'Product — ShopZone';
+    }
+  }, [product?.name]);
+
   // ── Quantity input handler ────────────────────────────────
   // Allows typing a number directly or using +/- buttons.
   const handleQtyChange = (value) => {

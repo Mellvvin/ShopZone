@@ -16,9 +16,9 @@
     padding: 3rem 1rem 2rem;
 }
 
-/* ── Brand tagline ──────────────────────────────────────────── */
+/* ── Brand tagline — raised from 0.7 opacity to pass WCAG AA contrast on oxford-blue */
 .footer-tagline {
-    color: rgba(210, 180, 140, 0.7);
+    color: rgba(210, 180, 140, 0.9);
     font-size: 0.88rem;
     line-height: 1.7;
     margin-bottom: 1.2rem;
@@ -70,9 +70,9 @@
     margin-bottom: 0.5rem;
 }
 
-/* ── Shared link style — used on <a> and <span> ─────────────── */
+/* ── Shared link style —— used on <a>and <span> raised from 0.7 opacity to pass WCAG AA contrast on oxford-blue */
 .footer-link {
-    color: rgba(210, 180, 140, 0.7);
+    color: rgba(210, 180, 140, 0.9);
     text-decoration: none;
     font-size: 0.875rem;
     transition: color 0.2s ease;
@@ -111,9 +111,9 @@
     flex-shrink: 0;
 }
 
-/* Plain text (no href) contact items */
+/* Plain text (no href) contact items — raised from 0.7 opacity to pass WCAG AA contrast on oxford-blue */
 .footer-contact-text {
-    color: rgba(210, 180, 140, 0.7);
+    color: rgba(210, 180, 140, 0.9);
     font-size: 0.875rem;
 }
 
@@ -127,16 +127,16 @@
     padding: 1rem;
 }
 
-/* Copyright text */
+/* Copyright text — raised from 0.5 opacity to pass WCAG AA contrast on oxford-blue */
 .footer-copyright {
     margin: 0;
-    color: rgba(210, 180, 140, 0.5);
+    color: rgba(210, 180, 140, 0.85);
     font-size: 0.8rem;
 }
 
-/* Legal links row */
+/* Legal links row — raised from 0.5 opacity to pass WCAG AA contrast on oxford-blue */
 .footer-legal {
-    color: rgba(210, 180, 140, 0.5);
+    color: rgba(210, 180, 140, 0.85);
     font-size: 0.8rem;
 }
 

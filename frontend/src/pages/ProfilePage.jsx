@@ -42,6 +42,9 @@ const ProfilePage = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
 
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Profile — ShopZone'; }, []);
+
   // ── Form field state ──────────────────────────────────────
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

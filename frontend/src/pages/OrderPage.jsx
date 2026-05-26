@@ -177,6 +177,9 @@ const OrderPage = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
 
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Order Details — ShopZone'; }, []);
+
   // ── Local state ─────────────────────────────────────────────────────────
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);

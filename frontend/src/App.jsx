@@ -1,18 +1,22 @@
 // src/App.jsx
 // ─────────────────────────────────────────────────────────────
-// Root app component. Updated imports to match new folder structure.
+// Root app component.
+// Container removed from main — full-width pages (HomePage,
+// SpecialOffersPage) manage their own max-width internally.
+// Pages that need a container import it themselves.
 // ─────────────────────────────────────────────────────────────
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import SkipLink from './components/SkipLink/SkipLink';
 
-// ── Components — updated paths to match new subfolder structure ──
+// ── Components ───────────────────────────────────────────────
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import ChatWidget from './components/ChatWidget/ChatWidget';
 import Toast from './components/Toast/Toast';
 
-// ── Pages ────────────────────────────────────────────────────────
+// ── Pages ────────────────────────────────────────────────────
 import HomePage from './pages/HomePage';
 import ProductPage from './pages/ProductPage';
 import CartPage from './pages/CartPage';
@@ -29,40 +33,56 @@ import AdminProductEditPage from './pages/AdminProductEditPage';
 import AdminOrderListPage from './pages/AdminOrderListPage';
 import AdminUserListPage from './pages/AdminUserListPage';
 import SpecialOffersPage from './pages/SpecialOffersPage';
+import FAQPage from './pages/FAQPage';
+import ContactPage from './pages/ContactPage';
+import BecomeSellerPage from './pages/BecomeSellerPage';
+
+
 
 const App = () => {
   return (
     <Router>
+      {/* Skip link — first focusable element on every page for keyboard users */}
+      <SkipLink />
       <ScrollToTop />
       <Header />
-      <main className='py-3'>
+
+      {/* id="main-content" is the target for the skip link */}
+      {/* Container restored — full-width pages manage their own width internally */}
+      <main id='main-content' className='py-3'>
         <Container>
           <Routes>
-            {/* ── Public Routes ── */}
-            <Route path='/' element={<HomePage />} />
-            <Route path='/product/:id' element={<ProductPage />} />
-            <Route path='/cart' element={<CartPage />} />
-            <Route path='/login' element={<LoginPage />} />
-            <Route path='/register' element={<RegisterPage />} />
-            <Route path='/offers' element={<SpecialOffersPage />} />
+          {/* ── Public Routes ── */}
+          <Route path='/' element={<HomePage />} />
+          <Route path='/product/:id' element={<ProductPage />} />
+          <Route path='/cart' element={<CartPage />} />
+          <Route path='/login' element={<LoginPage />} />
+          <Route path='/register' element={<RegisterPage />} />
+          <Route path='/offers' element={<SpecialOffersPage />} />
+          <Route path='/faq' element={<FAQPage />} />
+          <Route path='/contact' element={<ContactPage />} />
+          <Route path='/become-seller' element={<BecomeSellerPage />} />
+          
 
-            {/* ── Protected Routes ── */}
-            <Route path='/shipping' element={<ShippingPage />} />
-            <Route path='/payment' element={<PaymentPage />} />
-            <Route path='/placeorder' element={<PlaceOrderPage />} />
-            <Route path='/order/:id' element={<OrderPage />} />
-            <Route path='/profile' element={<ProfilePage />} />
+          {/* ── Protected Routes ── */}
+          <Route path='/shipping' element={<ShippingPage />} />
+          <Route path='/payment' element={<PaymentPage />} />
+          <Route path='/placeorder' element={<PlaceOrderPage />} />
+          <Route path='/order/:id' element={<OrderPage />} />
+          <Route path='/profile' element={<ProfilePage />} />
 
-            {/* ── Admin Routes ── */}
-            <Route path='/admin/products' element={<AdminProductListPage />} />
-            <Route path='/admin/product/:id/edit' element={<AdminProductEditPage />} />
-            <Route path='/admin/orders' element={<AdminOrderListPage />} />
-            <Route path='/admin/users' element={<AdminUserListPage />} />
-            {/* ── 404 ── */}
-            <Route path='*' element={<NotFoundPage />} />
-          </Routes>
+          {/* ── Admin Routes ── */}
+          <Route path='/admin/products' element={<AdminProductListPage />} />
+          <Route path='/admin/product/:id/edit' element={<AdminProductEditPage />} />
+          <Route path='/admin/orders' element={<AdminOrderListPage />} />
+          <Route path='/admin/users' element={<AdminUserListPage />} />
+
+          {/* ── 404 ── */}
+          <Route path='*' element={<NotFoundPage />} />
+        </Routes>
         </Container>
       </main>
+
       <Footer />
       <ChatWidget />
       <Toast />

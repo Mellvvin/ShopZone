@@ -362,3 +362,19 @@ h1.page-title {
 .col-md-6 {
   contain: layout style;
 }
+
+/* ── Visually hidden — screen reader only ───────────────────── */
+/* Hides content visually but keeps it accessible to screen readers.
+   Do not use display:none or visibility:hidden — those hide from
+   screen readers too. This pattern is the WCAG-safe approach. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

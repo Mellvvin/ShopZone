@@ -18,6 +18,9 @@ const AdminProductListPage = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Admin: Product List — ShopZone'; }, []);
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

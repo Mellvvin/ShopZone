@@ -74,6 +74,10 @@ const ShippingPage = () => {
 
   // Pull existing shipping address from cart Redux state (pre-fill if returning)
   const { shippingAddress, cartItems } = useSelector((state) => state.cart);
+
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Shipping — ShopZone'; }, []);
+
   const { userInfo } = useSelector((state) => state.auth);
 
   // ── Form state ──────────────────────────────────────────────────────────

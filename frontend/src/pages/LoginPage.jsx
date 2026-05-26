@@ -23,6 +23,8 @@ const LoginPage = () => {
   const location = useLocation();
 
   const { userInfo, loading, error } = useSelector((state) => state.auth);
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Login — ShopZone'; }, []);
 
   // If the user was redirected here from a protected page,
   // send them back there after login. Otherwise go to home.

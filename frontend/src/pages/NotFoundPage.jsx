@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 const NotFoundPage = () => {
+
+  // ── Page title ─────────────────────────────────────────────
+  useEffect(() => { document.title = 'Not Found — ShopZone'; }, []);
+
   return (
     <div
       className='text-center'

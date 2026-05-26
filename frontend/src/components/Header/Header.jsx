@@ -52,9 +52,18 @@ const Header = () => {
 
   // Ref for desktop dropdown outside-click detection
   const dropdownRef = useRef(null);
+  // Ref for hamburger button — focus returns here when dropdown closes
+  const hamburgerRef = useRef(null);
 
   // ── Cart badge count ───────────────────────────────────────
   const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
+
+  // ── Cart announcement for screen readers ───────────────────
+  // Visually hidden span with aria-live announces cart changes
+  // without interrupting the user — rendered in the JSX below
+  const cartAnnouncement = totalItems > 0
+    ? `Cart updated, ${totalItems} item${totalItems !== 1 ? 's' : ''}`
+    : 'Cart is empty';
 
   // ── Clear search + close mobile search on route change ─────
   useEffect(() => {
@@ -63,15 +72,20 @@ const Header = () => {
   }, [location.pathname]);
 
   // ── Close desktop dropdown on outside click ────────────────
+  // Returns focus to hamburger button when dropdown closes via outside click
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowDropdown(false);
+        if (showDropdown) {
+          setShowDropdown(false);
+          // Restore focus to the button that opened the dropdown
+          setTimeout(() => hamburgerRef.current?.focus(), 50);
+        }
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [showDropdown]);
 
   // ── Handlers ───────────────────────────────────────────────
 
@@ -104,6 +118,10 @@ const Header = () => {
 
   return (
     <header className='site-header'>
+      {/* Visually hidden live region — announces cart quantity changes to screen readers */}
+      <span className='visually-hidden' aria-live='polite' aria-atomic='true'>
+        {cartAnnouncement}
+      </span>
 
       {/* ══════════════════════════════════════════════════════
           TOP BAR — Oxford Blue background
@@ -157,6 +175,7 @@ const Header = () => {
                 onClick={() => setShowDropdown(!showDropdown)}
                 aria-label='Open menu'
                 aria-expanded={showDropdown}
+                ref={hamburgerRef}
               >
                 <FaBars size={22} />
               </button>

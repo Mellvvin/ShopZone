@@ -293,6 +293,9 @@ const HomePage = () => {
 
   const { products, loadingList, errorList } = useSelector((state) => state.products);
 
+  // ── Page title for screen readers and browser tab ──────────
+  useEffect(() => { document.title = 'ShopZone — Kenya\'s B2B Wholesale Platform'; }, []);
+
   useEffect(() => {
     if (isBrowsingMode) {
       const filters = {};
