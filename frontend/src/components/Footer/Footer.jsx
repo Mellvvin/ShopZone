@@ -67,8 +67,8 @@ const Footer = () => {
               { label: 'Home', to: '/' },
               { label: 'My Profile', to: '/profile' },
               { label: 'My Orders', to: '/profile' },
-              { label: 'Become a Seller', to: '/' },
-              { label: 'FAQ', to: '/' },
+              { label: 'Become a Seller', to: '/become-seller' },
+              { label: 'FAQ', to: '/faq' },
             ].map((link) => (
               <li key={link.label}>
                 <Link to={link.to} className='footer-link'>
@@ -84,7 +84,7 @@ const Footer = () => {
             {/* Changed from h6 to p — footer labels are not part of page heading outline */}
             <p className='footer-col-heading'>Categories</p>
           <ul className='footer-link-list'>
-            {[
+           {[
                 'Electronics',
                 'Fashion & Apparel',
                 'Home & Kitchen',
@@ -93,9 +93,12 @@ const Footer = () => {
                 'Hardware & Tools',
             ].map((cat) => (
               <li key={cat}>
-                <span className='footer-link footer-link--span'>
+                <Link
+                  to={`/?category=${encodeURIComponent(cat)}`}
+                  className='footer-link'
+                >
                   › {cat}
-                </span>
+                </Link>
               </li>
             ))}
           </ul>

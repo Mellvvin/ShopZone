@@ -156,9 +156,9 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
         ════════════════════════════════════════════════ */}
                 <p className='drawer-section-title'>Browse</p>
                 <nav className='drawer-nav'>
-                    <button className='drawer-nav-link' onClick={() => go('/?deals=true')}>Deals</button>
+                    <button className='drawer-nav-link' onClick={() => go('/offers')}>Deals</button>
                     <button className='drawer-nav-link' onClick={() => go('/brands')}>Brands</button>
-                    <button className='drawer-nav-link' onClick={() => go('/contact')}>Bulk Orders</button>
+                    <button className='drawer-nav-link' onClick={() => go('/bulk-orders')}>Bulk Orders</button>
                 </nav>
 
                 <hr className='drawer-divider' />
@@ -188,22 +188,18 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
         ════════════════════════════════════════════════ */}
                 <p className='drawer-section-title'>Support</p>
                 <nav className='drawer-nav'>
-                    <a
-                        className='drawer-nav-link'
-                        href='mailto:support@shopzone.com'
-                        onClick={onClose}
-                    >
+                   <button className='drawer-nav-link' onClick={() => go('/contact')}>
                         <FaEnvelope className='drawer-support-icon' aria-hidden='true' />
                         Contact Support
-                    </a>
-                    <button className='drawer-nav-link' onClick={onClose}>
-                        <FaQuestionCircle className='drawer-support-icon' aria-hidden='true' />
-                        FAQ
                     </button>
-                    <button className='drawer-nav-link' onClick={onClose}>
-                        <FaStore className='drawer-support-icon' aria-hidden='true' />
-                        Become a Seller
-                    </button>
+                    <button className='drawer-nav-link' onClick={() => go('/faq')}>
+                    <FaQuestionCircle className='drawer-support-icon' aria-hidden='true' />
+                    FAQ
+                </button>
+                <button className='drawer-nav-link' onClick={() => go('/become-seller')}>
+                    <FaStore className='drawer-support-icon' aria-hidden='true' />
+                    Become a Seller
+                </button>
             </nav>
 
             {/* ════════════════════════════════════════════════

@@ -37,7 +37,9 @@ import FAQPage from './pages/FAQPage';
 import ContactPage from './pages/ContactPage';
 import BecomeSellerPage from './pages/BecomeSellerPage';
 import ShippingPolicyPage from './pages/ShippingPolicyPage';
-
+import ReturnsPolicyPage from './pages/ReturnsPolicyPage';
+import BrandsPage from './pages/BrandsPage';
+import BulkOrdersPage from './pages/BulkOrdersPage';
 
 
 const App = () => {
@@ -64,6 +66,10 @@ const App = () => {
           <Route path='/contact' element={<ContactPage />} />
           <Route path='/become-seller' element={<BecomeSellerPage />} />
           <Route path='/shipping-policy' element={<ShippingPolicyPage />} />
+          <Route path='/returns-policy' element={<ReturnsPolicyPage />} />
+          <Route path='/brands' element={<BrandsPage />} />
+          <Route path='/bulk-orders' element={<BulkOrdersPage />} />
+
           
 
           {/* ── Protected Routes ── */}

@@ -220,7 +220,7 @@ const CategoryBar = () => {
                     <Link to='/brands' className='catbar-link'>Brands</Link>
 
                     {/* ── Bulk Orders ────────────────────────────────── */}
-                    <Link to='/contact' className='catbar-link'>Bulk Orders</Link>
+                    <Link to='/bulk-orders' className='catbar-link'>Bulk Orders</Link>
 
                     {/* ── More ───────────────────────────────────────── */}
                     <div
