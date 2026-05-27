@@ -188,11 +188,12 @@
     align-items: center;
 }
 
-/* Left text column */
+/* Left-aligns all text inside the text column including the typewriter line */
 .bs-hero__text-col {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    text-align: left;
 }
 
 @keyframes bsHeroIn {
