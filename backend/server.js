@@ -19,13 +19,19 @@ const userRoutes    = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes   = require('./routes/orderRoutes');
 const uploadRoutes  = require('./routes/uploadRoutes');
+// Enquiry routes — handles all form submissions site-wide
+// (bulk orders, seller applications, contact, support)
+const enquiryRoutes = require('./routes/enquiryRoutes');
 
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
-app.use('/api/users',    userRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders',   orderRoutes);
-app.use('/api/upload',   uploadRoutes);
+app.use('/api/users',     userRoutes);
+app.use('/api/products',  productRoutes);
+app.use('/api/orders',    orderRoutes);
+app.use('/api/upload',    uploadRoutes);
+// Enquiry endpoint — catch-all for all forms until dedicated
+// models exist in Steps 6, 8, and 15
+app.use('/api/enquiries', enquiryRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 

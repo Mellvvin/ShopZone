@@ -266,6 +266,31 @@ const OrderPage = () => {
     }
   };
 
+// ── Admin: mark order as paid (manual — until M-Pesa Step 20 is built) ──
+  // This lets admin confirm payment received via bank transfer, cash,
+  // or any manual method. M-Pesa will automate this in Step 20.
+  const markPaidHandler = async () => {
+    try {
+      setDeliverLoading(true);
+      await axios.put(
+        `/api/orders/${orderId}/pay`,
+        {
+          id: 'MANUAL_ADMIN',
+          status: 'COMPLETED',
+          update_time: new Date().toISOString(),
+          payer: { email_address: userInfo.email },
+        },
+        config
+      );
+      showToast('Order marked as paid', 'success');
+      fetchOrder();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to mark as paid', 'error');
+    } finally {
+      setDeliverLoading(false);
+    }
+  };
+
   // ── Admin: mark order as delivered ───────────────────────────────────────
   const markDeliveredHandler = async () => {
     try {
@@ -682,7 +707,21 @@ const OrderPage = () => {
                 </button>
               )}
 
-            {/* Admin: mark as delivered */}
+            {/* Admin: mark as paid — manual confirmation until M-Pesa (Step 20) */}
+            {userInfo?.isAdmin &&
+              !order.isPaid &&
+              order.status !== 'cancelled' && (
+                <button
+                  className='order-action-btn order-action-btn--paid'
+                  onClick={markPaidHandler}
+                  disabled={deliverLoading}
+                  aria-label='Mark order as paid'
+                >
+                  {deliverLoading ? 'Updating…' : 'Mark as Paid'}
+                </button>
+              )}
+
+            {/* Admin: mark as delivered — only available after payment confirmed */}
             {userInfo?.isAdmin &&
               order.isPaid &&
               !order.isDelivered &&

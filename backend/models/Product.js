@@ -3,13 +3,24 @@
 // Product model — defines the shape of every product document
 // stored in MongoDB.
 //
-// New fields added in Step 9:
+// Fields added in Step 9:
 //   tags        — array of keyword strings for tag-based search
 //   isFeatured  — true = show in Featured Products on homepage
 //   isOnSale    — true = show in Deals / On Sale section
 //   isClearance — true = show in Clearance section
 //   salePrice   — discounted price shown when on sale or clearance
+//
+// Fields added in Block A (wholesale clarity + brand):
+//   brand               — product brand name e.g. "Unilever", "Samsung"
+//   unitType            — richer unit enum replacing the old unit field
+//   minimumOrderQuantity — MOQ — minimum units a buyer must order
+//   itemsPerUnit        — how many pieces inside one carton/bale/sack
+//   weightPerUnit       — weight of one unit in kg
+//   dimensions          — physical size string e.g. "40 x 30 x 20 cm"
+//   isBulkOnly          — if true, cannot be bought as single pieces
+//   leadTimeDays        — days from confirmed order to dispatch
 // ─────────────────────────────────────────────────────────────
+
 const mongoose = require('mongoose');
 
 // ── Review sub-schema ─────────────────────────────────────────
@@ -91,18 +102,115 @@ const productSchema = mongoose.Schema(
       default: null,
     },
 
-    // ── Inventory ────────────────────────────────────────────
+  // ── Inventory ────────────────────────────────────────────
     // How many units are currently in stock
     countInStock: {
       type: Number,
       default: 0,
     },
-    // Wholesale unit type shown as a pill on product cards
-    // e.g. 'Per Unit', 'Bale', 'Carton', 'Dozen', 'Kg', 'Box', 'Sack'
+
+    // ── Legacy unit field — kept for backward compatibility ──
+    // The old unit field is preserved so existing products and
+    // any code still referencing product.unit does not break.
+    // New products should use unitType instead.
     unit: {
       type: String,
       default: 'Per Unit',
       enum: ['Per Unit', 'Bale', 'Carton', 'Dozen', 'Kg', 'Box', 'Sack'],
+    },
+
+    // ── NEW: Brand ───────────────────────────────────────────
+    // The product brand name e.g. "Unilever", "Samsung", "Bidco".
+    // Used by the BrandsPage to group and filter products by brand.
+    // Optional — products without a brand set simply won't appear
+    // on the BrandsPage brand filter.
+    brand: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+
+    // ── NEW: Rich unit type ──────────────────────────────────
+    // Replaces the old unit enum with a more complete wholesale
+    // unit set. Shown prominently on product cards and detail pages
+    // so buyers know exactly what one unit means before ordering.
+    unitType: {
+      type: String,
+      default: 'Per Unit',
+      enum: [
+        'Per Unit',   // single item
+        'Bale',       // compressed fabric or clothing bundle
+        'Carton',     // sealed cardboard box of items
+        'Sack',       // large woven bag e.g. 50kg maize sack
+        'Dozen',      // 12 pieces
+        'Kg',         // sold by weight
+        'Box',        // generic box
+        'Roll',       // fabric, wire, or sheet material on a roll
+        'Litre',      // liquid products
+        'Pallet',     // full pallet load
+        'Piece',      // individual piece within a larger unit
+        'Pack',       // sealed multi-item pack
+      ],
+    },
+
+    // ── NEW: Minimum Order Quantity ──────────────────────────
+    // The minimum number of units a buyer must add to cart.
+    // Enforced at the cart and checkout level — buyers cannot
+    // proceed below this quantity. Defaults to 1 (no minimum).
+    minimumOrderQuantity: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+
+    // ── NEW: Items per unit ──────────────────────────────────
+    // How many individual pieces are inside one unit.
+    // Example: a carton of Sunlight soap contains 24 bars.
+    // Shown on the product detail page to help buyers calculate
+    // cost per piece. Optional — leave null if not applicable.
+    itemsPerUnit: {
+      type: Number,
+      default: null,
+    },
+
+    // ── NEW: Weight per unit ─────────────────────────────────
+    // The weight of one unit in kilograms.
+    // Used by the Tier 2 delivery quote system to calculate
+    // shipping costs for heavy or bulk orders.
+    // Optional — leave null if not applicable.
+    weightPerUnit: {
+      type: Number,
+      default: null,
+    },
+
+    // ── NEW: Dimensions ──────────────────────────────────────
+    // Physical dimensions of one unit as a human-readable string.
+    // Example: "60 x 40 x 30 cm" or "50kg sack, 80cm tall".
+    // Shown on product detail page. Optional.
+    dimensions: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+
+    // ── NEW: Bulk only flag ───────────────────────────────────
+    // If true, this product cannot be purchased as single pieces.
+    // The product detail page and cart will enforce the MOQ and
+    // make it clear this is a wholesale-only listing.
+    isBulkOnly: {
+      type: Boolean,
+      default: false,
+    },
+
+    // ── NEW: Lead time in days ───────────────────────────────
+    // Number of days from a confirmed order to dispatch.
+    // Example: 2 means the seller needs 2 days to prepare the
+    // goods before handing to courier. Shown on product detail
+    // page so buyers can plan their restocking schedules.
+    // Optional — null means lead time is not specified.
+    leadTimeDays: {
+      type: Number,
+      default: null,
     },
 
     // ── Reviews ──────────────────────────────────────────────

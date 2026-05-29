@@ -428,9 +428,11 @@
   color: #27ae60;
 }
 
+/* Unpaid badge — darkened for WCAG contrast compliance */
 .order-badge--unpaid {
-  background: rgba(0, 33, 71, 0.05);
-  color: #888;
+  background: rgba(0, 33, 71, 0.08);
+  color: #555;
+  border: 1px solid rgba(0, 33, 71, 0.15);
 }
 
 .order-badge--payout-done {
@@ -662,6 +664,17 @@
 
 .order-action-btn--cancel:hover:not(:disabled) {
   background: #fdf0f0;
+}
+
+/* Mark as Paid — green, clearly visible */
+.order-action-btn--paid {
+  background: #27ae60;
+  color: #fff;
+  font-weight: 700;
+}
+
+.order-action-btn--paid:hover:not(:disabled) {
+  background: #219a52;
 }
 
 /* Mark delivered — Oxford Blue */
