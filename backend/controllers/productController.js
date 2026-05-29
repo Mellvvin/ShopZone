@@ -2,14 +2,23 @@
 // ─────────────────────────────────────────────────────────────
 // Handles all product-related logic:
 //   getProducts, getProductById, createProduct,
-//   updateProduct, deleteProduct, createProductReview
+//   updateProduct, deleteProduct, createProductReview,
+//   getProductBrands, getPlatformStats
 //
 // Step 10 update:
 //   getProducts now searches across name, category,
 //   description and tags simultaneously using a single
 //   MongoDB $or query instead of name-only search.
+//
+// Block A update:
+//   Added brand filter support to getProducts.
+//   Added getProductBrands endpoint for BrandsPage.
+//   Added getPlatformStats endpoint for all stats strips.
 // ─────────────────────────────────────────────────────────────
 const Product = require('../models/Product');
+const Order   = require('../models/Order');
+const User    = require('../models/User');
+const Enquiry = require('../models/Enquiry');
 
 // @desc    Fetch all products with optional filters
 // @route   GET /api/products
@@ -81,12 +90,24 @@ const getProducts = async (req, res) => {
       filter.isClearance = true;
     }
 
-    // ── Tag filter ────────────────────────────────────────────
+   // ── Tag filter ────────────────────────────────────────────
     // Returns products that contain a specific tag in their
     // tags array. Stored and matched in lowercase.
     // Example: GET /api/products?tag=bulk
     if (req.query.tag) {
       filter.tags = { $in: [req.query.tag.toLowerCase()] };
+    }
+
+    // ── Brand filter ──────────────────────────────────────────
+    // Returns products matching a specific brand name.
+    // Case-insensitive regex so "unilever" and "Unilever" match.
+    // Used by BrandsPage when a buyer clicks a brand card.
+    // Example: GET /api/products?brand=Unilever
+    if (req.query.brand) {
+      filter.brand = {
+        $regex:   req.query.brand,
+        $options: 'i',
+      };
     }
 
     // ── Fetch matching products from MongoDB ──────────────────
@@ -258,6 +279,82 @@ const createProductReview = async (req, res) => {
   }
 };
 
+// @desc    Get distinct brand names with product count per brand
+// @route   GET /api/products/brands
+// @access  Public
+//
+// Returns an array of objects: [{ brand: 'Unilever', count: 12 }, ...]
+// Used by BrandsPage to build the brand card grid.
+// Only returns brands where the brand field is not empty.
+const getProductBrands = async (req, res) => {
+  try {
+    const brands = await Product.aggregate([
+      // Only include products that have a brand set
+      { $match: { brand: { $exists: true, $ne: '' } } },
+      // Group by brand name and count products per brand
+      { $group: { _id: '$brand', count: { $sum: 1 } } },
+      // Sort alphabetically by brand name
+      { $sort: { _id: 1 } },
+      // Rename _id to brand for cleaner API response
+      { $project: { _id: 0, brand: '$_id', count: 1 } },
+    ]);
+
+    res.json(brands);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get real platform-wide stats for all stats strips
+// @route   GET /api/stats
+// @access  Public
+//
+// Returns live counts from the database so stats strips across
+// the site always show accurate numbers instead of hardcoded values.
+// countiesServed is static at 47 — Kenya has exactly 47 counties.
+const getPlatformStats = async (req, res) => {
+  try {
+    // Run all queries in parallel for performance
+    const [
+      totalProducts,
+      totalOrdersFulfilled,
+      totalApprovedSellers,
+      totalBulkEnquiries,
+      categoriesResult,
+    ] = await Promise.all([
+
+      // Total number of products in the catalogue
+      Product.countDocuments({}),
+
+      // Orders that have been fully delivered and paid
+      Order.countDocuments({ status: 'delivered', isPaid: true }),
+
+      // Approved sellers — requires isSeller and sellerStatus fields
+      // from Step 4. Until then this returns 0 which is honest.
+      User.countDocuments({ isSeller: true, sellerStatus: 'approved' }),
+
+      // Bulk order enquiries submitted through the BulkOrders form
+      Enquiry.countDocuments({ type: 'bulk_order' }),
+
+      // Distinct category count — how many unique categories exist
+      Product.distinct('category'),
+    ]);
+
+    res.json({
+      totalProducts,
+      totalOrdersFulfilled,
+      totalApprovedSellers,
+      // countiesServed is always 47 — Kenya has exactly 47 counties
+      countiesServed: 47,
+      totalBulkEnquiries,
+      totalCategories: categoriesResult.length,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ── Exports ───────────────────────────────────────────────────
 module.exports = {
   getProducts,
@@ -266,4 +363,6 @@ module.exports = {
   updateProduct,
   deleteProduct,
   createProductReview,
+  getProductBrands,
+  getPlatformStats,
 };
