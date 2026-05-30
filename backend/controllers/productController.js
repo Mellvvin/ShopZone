@@ -172,7 +172,7 @@ const createProduct = async (req, res) => {
 // @access  Private/Admin
 const updateProduct = async (req, res) => {
   try {
-    const {
+ const {
       name,
       price,
       salePrice,
@@ -185,6 +185,15 @@ const updateProduct = async (req, res) => {
       isFeatured,
       isOnSale,
       isClearance,
+      // ── NEW: Wholesale and brand fields ───────────────────
+      brand,
+      unitType,
+      minimumOrderQuantity,
+      itemsPerUnit,
+      weightPerUnit,
+      dimensions,
+      isBulkOnly,
+      leadTimeDays,
     } = req.body;
 
     const product = await Product.findById(req.params.id);
@@ -204,13 +213,24 @@ const updateProduct = async (req, res) => {
     product.countInStock = countInStock;
     product.unit         = unit;
     // Store tags in lowercase for consistent matching
-    product.tags         = tags
+   product.tags         = tags
       ? tags.map((t) => t.toLowerCase().trim())
       : [];
     product.isFeatured   = isFeatured  ?? false;
     product.isOnSale     = isOnSale    ?? false;
     product.isClearance  = isClearance ?? false;
 
+    // ── NEW: Wholesale and brand fields ───────────────────────
+    // All optional — undefined values leave the field unchanged
+    if (brand             !== undefined) product.brand               = brand.trim();
+    if (unitType          !== undefined) product.unitType            = unitType;
+    if (minimumOrderQuantity !== undefined) product.minimumOrderQuantity = Number(minimumOrderQuantity) || 1;
+    if (itemsPerUnit      !== undefined) product.itemsPerUnit        = itemsPerUnit !== null ? Number(itemsPerUnit) : null;
+    if (weightPerUnit     !== undefined) product.weightPerUnit       = weightPerUnit !== null ? Number(weightPerUnit) : null;
+    if (dimensions        !== undefined) product.dimensions          = dimensions.trim();
+    if (isBulkOnly        !== undefined) product.isBulkOnly         = isBulkOnly ?? false;
+    if (leadTimeDays      !== undefined) product.leadTimeDays        = leadTimeDays !== null ? Number(leadTimeDays) : null;
+    
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } catch (error) {

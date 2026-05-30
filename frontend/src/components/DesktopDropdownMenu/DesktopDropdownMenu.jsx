@@ -28,6 +28,7 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
         { icon: <FaCog size={13} />, label: 'Products', to: '/admin/products' },
         { icon: <FaBox size={13} />, label: 'Orders', to: '/admin/orders' },
         { icon: <FaUsers size={13} />, label: 'Users', to: '/admin/users' },
+        { icon: <FaEnvelope size={13} />, label: 'Enquiries', to: '/admin/enquiries' },
     ];
 
     // ── General links — shown to all users ─────────────────────

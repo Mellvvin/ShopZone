@@ -222,6 +222,10 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
                             <button className='drawer-nav-link' onClick={() => go('/admin/users')}>
                                 <FaUsers className='drawer-support-icon' aria-hidden='true' /> Users
                             </button>
+                            {/* Enquiries */}
+                            <button className='drawer-nav-link' onClick={() => go('/admin/enquiries')}>
+                                <FaEnvelope className='drawer-support-icon' aria-hidden='true' /> Enquiries
+                            </button>
                     </nav>
                 </>
             )}

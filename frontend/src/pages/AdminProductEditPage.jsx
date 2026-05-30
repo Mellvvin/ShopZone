@@ -58,14 +58,33 @@ const CATEGORY_TAGS = {
 
 // ── Unit hints — shown below the unit dropdown ────────────────
 const UNIT_HINTS = {
-  'Per Unit': 'Single item — e.g. one phone, one chair',
-  'Bale': 'Compressed bundle — e.g. 50 pieces of fabric per bale',
-  'Carton': 'Sealed box — e.g. 24 tins per carton',
-  'Dozen': '12 pieces per dozen',
-  'Kg': 'Price per kilogram — e.g. maize flour, sugar',
-  'Box': 'Open box — e.g. 100 pens per box',
-  'Sack': 'Large bag — e.g. 50kg sack of rice',
+  'Per Unit':  'Single item — e.g. one phone, one chair',
+  'Bale':      'Compressed bundle — e.g. 50 pieces of fabric per bale',
+  'Carton':    'Sealed box — e.g. 24 tins per carton',
+  'Dozen':     '12 pieces per dozen',
+  'Kg':        'Price per kilogram — e.g. maize flour, sugar',
+  'Box':       'Open box — e.g. 100 pens per box',
+  'Sack':      'Large bag — e.g. 50kg sack of rice',
+  'Roll':      'Roll of material — e.g. fabric, wire, polythene sheet',
+  'Litre':     'Price per litre — e.g. cooking oil, paint',
+  'Pallet':    'Full pallet load — for very large bulk orders',
+  'Piece':     'Individual piece within a larger unit',
+  'Pack':      'Sealed multi-item pack — e.g. pack of 5 notebooks',
 };
+
+// ── Lead time options ─────────────────────────────────────────
+const LEAD_TIME_OPTIONS = [
+  { value: '', label: 'Not specified' },
+  { value: 1,  label: '1 day' },
+  { value: 2,  label: '2 days' },
+  { value: 3,  label: '3 days' },
+  { value: 5,  label: '5 days' },
+  { value: 7,  label: '7 days' },
+  { value: 10, label: '10 days' },
+  { value: 14, label: '14 days' },
+  { value: 21, label: '21 days' },
+  { value: 30, label: '30 days' },
+];
 
 // ── Default values that mean the product was never properly filled ─
 const INVALID_NAMES = ['new product', 'sample product', 'product name', 'enter product name', 'draft product'];
@@ -78,7 +97,7 @@ const AdminProductEditPage = () => {
   // ── Page title ─────────────────────────────────────────────
   useEffect(() => { document.title = 'Admin: Edit Product — ShopZone'; }, []);
 
-  // ── Form field state ──────────────────────────────────────
+// ── Form field state ──────────────────────────────────────
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [salePrice, setSalePrice] = useState('');
@@ -90,6 +109,17 @@ const AdminProductEditPage = () => {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isOnSale, setIsOnSale] = useState(false);
   const [isClearance, setIsClearance] = useState(false);
+
+  // ── NEW: Wholesale and brand fields (Block A) ─────────────
+  // These map to the new fields added to the Product model.
+  const [brand, setBrand] = useState('');
+  const [unitType, setUnitType] = useState('Per Unit');
+  const [minimumOrderQuantity, setMinimumOrderQuantity] = useState(1);
+  const [itemsPerUnit, setItemsPerUnit] = useState('');
+  const [weightPerUnit, setWeightPerUnit] = useState('');
+  const [dimensions, setDimensions] = useState('');
+  const [isBulkOnly, setIsBulkOnly] = useState(false);
+  const [leadTimeDays, setLeadTimeDays] = useState('');
 
   // Tags stored as an array of strings for chip rendering
   const [tagList, setTagList] = useState([]);
@@ -143,6 +173,17 @@ const AdminProductEditPage = () => {
       setIsClearance(data.isClearance || false);
       // Tags come as array from backend
       setTagList(data.tags || []);
+
+      // ── NEW: Wholesale and brand fields ───────────────────
+      setBrand(data.brand || '');
+      setUnitType(data.unitType || 'Per Unit');
+      setMinimumOrderQuantity(data.minimumOrderQuantity || 1);
+      setItemsPerUnit(data.itemsPerUnit ?? '');
+      setWeightPerUnit(data.weightPerUnit ?? '');
+      setDimensions(data.dimensions || '');
+      setIsBulkOnly(data.isBulkOnly || false);
+      setLeadTimeDays(data.leadTimeDays ?? '');
+
       setLoading(false);
     } catch (err) {
       const msg = err.response?.data?.message || err.message;
@@ -280,17 +321,26 @@ const AdminProductEditPage = () => {
         `/api/products/${id}`,
         {
           name,
-          price: Number(price),
-          salePrice: salePrice !== '' ? Number(salePrice) : null,
+          price:        Number(price),
+          salePrice:    salePrice !== '' ? Number(salePrice) : null,
           image,
           category,
           description,
           countInStock: Number(countInStock),
           unit,
-          tags: tagList,
+          tags:         tagList,
           isFeatured,
           isOnSale,
           isClearance,
+          // ── NEW: Wholesale and brand fields ───────────────
+          brand:                  brand.trim(),
+          unitType,
+          minimumOrderQuantity:   Number(minimumOrderQuantity) || 1,
+          itemsPerUnit:           itemsPerUnit !== '' ? Number(itemsPerUnit) : null,
+          weightPerUnit:          weightPerUnit !== '' ? Number(weightPerUnit) : null,
+          dimensions:             dimensions.trim(),
+          isBulkOnly,
+          leadTimeDays:           leadTimeDays !== '' ? Number(leadTimeDays) : null,
         },
         config
       );
@@ -389,6 +439,20 @@ const AdminProductEditPage = () => {
                       onChange={(e) => setName(e.target.value)}
                       required
                     />
+                  </Form.Group>
+
+                  {/* Brand — used by BrandsPage and brand filtering */}
+                  <Form.Group className='mb-3'>
+                    <Form.Label>Brand</Form.Label>
+                    <Form.Control
+                      type='text'
+                      placeholder='e.g. Unilever, Samsung, Bidco, Generic'
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
+                    />
+                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                      Used to group products on the Brands page. Leave blank if no specific brand.
+                    </Form.Text>
                   </Form.Group>
 
                   {/* Price */}
@@ -541,6 +605,129 @@ const AdminProductEditPage = () => {
                         : 'Select a category first to get suggested tags.'}
                     </Form.Text>
                   </Form.Group>
+
+                 {/* ── Wholesale fields ──────────────────────────────── */}
+                  {/* These fields clarify buying units for B2B buyers     */}
+                  <div style={{
+                    background: '#f0f4f8',
+                    border: '1px solid #d0dce8',
+                    borderRadius: '10px',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                  }}>
+                    <p style={{
+                      color: 'var(--oxford-blue)',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '0.75rem',
+                    }}>
+                      Wholesale Details
+                    </p>
+
+                    {/* Unit type — richer than the legacy unit field */}
+                    <Form.Group className='mb-3'>
+                      <Form.Label>Unit Type</Form.Label>
+                      <Form.Select
+                        value={unitType}
+                        onChange={(e) => setUnitType(e.target.value)}
+                      >
+                        {Object.keys(UNIT_HINTS).map((u) => (
+                          <option key={u} value={u}>{u}</option>
+                        ))}
+                      </Form.Select>
+                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                        {UNIT_HINTS[unitType]}
+                      </Form.Text>
+                    </Form.Group>
+
+                    {/* Minimum order quantity */}
+                    <Form.Group className='mb-3'>
+                      <Form.Label>Minimum Order Quantity (MOQ)</Form.Label>
+                      <Form.Control
+                        type='number'
+                        placeholder='e.g. 5'
+                        value={minimumOrderQuantity}
+                        min='1'
+                        onChange={(e) => setMinimumOrderQuantity(e.target.value)}
+                      />
+                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                        Minimum units a buyer must order. Defaults to 1.
+                      </Form.Text>
+                    </Form.Group>
+
+                    {/* Items per unit */}
+                    <Form.Group className='mb-3'>
+                      <Form.Label>Items Per Unit</Form.Label>
+                      <Form.Control
+                        type='number'
+                        placeholder='e.g. 24 (bars of soap per carton)'
+                        value={itemsPerUnit}
+                        min='1'
+                        onChange={(e) => setItemsPerUnit(e.target.value)}
+                      />
+                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                        How many individual pieces are inside one unit. Optional.
+                      </Form.Text>
+                    </Form.Group>
+
+                    {/* Weight per unit */}
+                    <Form.Group className='mb-3'>
+                      <Form.Label>Weight Per Unit (kg)</Form.Label>
+                      <Form.Control
+                        type='number'
+                        placeholder='e.g. 12.5'
+                        value={weightPerUnit}
+                        min='0'
+                        step='0.1'
+                        onChange={(e) => setWeightPerUnit(e.target.value)}
+                      />
+                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                        Used for Tier 2 delivery quote calculations.
+                      </Form.Text>
+                    </Form.Group>
+
+                    {/* Dimensions */}
+                    <Form.Group className='mb-3'>
+                      <Form.Label>Dimensions</Form.Label>
+                      <Form.Control
+                        type='text'
+                        placeholder='e.g. 60 x 40 x 30 cm'
+                        value={dimensions}
+                        onChange={(e) => setDimensions(e.target.value)}
+                      />
+                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                        Physical size of one unit. Optional.
+                      </Form.Text>
+                    </Form.Group>
+
+                    {/* Lead time */}
+                    <Form.Group className='mb-3'>
+                      <Form.Label>Lead Time</Form.Label>
+                      <Form.Select
+                        value={leadTimeDays}
+                        onChange={(e) => setLeadTimeDays(e.target.value)}
+                      >
+                        {LEAD_TIME_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </Form.Select>
+                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                        Days from confirmed order to dispatch.
+                      </Form.Text>
+                    </Form.Group>
+
+                    {/* Bulk only flag */}
+                    <Form.Check
+                      type='checkbox'
+                      label='Bulk only — cannot be bought as single pieces'
+                      checked={isBulkOnly}
+                      onChange={(e) => setIsBulkOnly(e.target.checked)}
+                    />
+                  </div>
 
                   {/* Merchandising flags */}
                   <div style={{

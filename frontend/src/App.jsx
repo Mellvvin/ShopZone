@@ -32,6 +32,7 @@ import AdminProductListPage from './pages/AdminProductListPage';
 import AdminProductEditPage from './pages/AdminProductEditPage';
 import AdminOrderListPage from './pages/AdminOrderListPage';
 import AdminUserListPage from './pages/AdminUserListPage';
+import AdminEnquiriesPage from './pages/AdminEnquiriesPage';
 import SpecialOffersPage from './pages/SpecialOffersPage';
 import FAQPage from './pages/FAQPage';
 import ContactPage from './pages/ContactPage';
@@ -40,6 +41,7 @@ import ShippingPolicyPage from './pages/ShippingPolicyPage';
 import ReturnsPolicyPage from './pages/ReturnsPolicyPage';
 import BrandsPage from './pages/BrandsPage';
 import BulkOrdersPage from './pages/BulkOrdersPage';
+
 
 
 const App = () => {
@@ -84,7 +86,7 @@ const App = () => {
           <Route path='/admin/product/:id/edit' element={<AdminProductEditPage />} />
           <Route path='/admin/orders' element={<AdminOrderListPage />} />
           <Route path='/admin/users' element={<AdminUserListPage />} />
-
+          <Route path='/admin/enquiries' element={<AdminEnquiriesPage />} />
           {/* ── 404 ── */}
           <Route path='*' element={<NotFoundPage />} />
         </Routes>

@@ -33,6 +33,43 @@ app.use('/api/upload',    uploadRoutes);
 // models exist in Steps 6, 8, and 15
 app.use('/api/enquiries', enquiryRoutes);
 
+// Convenience alias — /api/stats maps to the same handler as
+// /api/products/stats so frontend components can call it cleanly
+// without knowing it lives in the products controller
+app.get('/api/stats', async (req, res) => {
+  try {
+    const Product = require('./models/Product');
+    const Order   = require('./models/Order');
+    const User    = require('./models/User');
+    const Enquiry = require('./models/Enquiry');
+
+    const [
+      totalProducts,
+      totalOrdersFulfilled,
+      totalApprovedSellers,
+      totalBulkEnquiries,
+      categoriesResult,
+    ] = await Promise.all([
+      Product.countDocuments({}),
+      Order.countDocuments({ status: 'delivered', isPaid: true }),
+      User.countDocuments({ isSeller: true, sellerStatus: 'approved' }),
+      Enquiry.countDocuments({ type: 'bulk_order' }),
+      Product.distinct('category'),
+    ]);
+
+    res.json({
+      totalProducts,
+      totalOrdersFulfilled,
+      totalApprovedSellers,
+      countiesServed: 47,
+      totalBulkEnquiries,
+      totalCategories: categoriesResult.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 app.get('/', (req, res) => {
