@@ -5,6 +5,7 @@
 // topic cards, split form layout, scroll reveals.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import {
     FaHeadset, FaShoppingBag, FaBoxOpen, FaStore,
     FaEnvelope, FaWhatsapp, FaPhone, FaClock,
@@ -142,9 +143,12 @@ const CONTACT_INFO = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 const ContactPage = () => {
-    const [selectedTopic, setSelectedTopic] = useState('');
+   const [selectedTopic, setSelectedTopic] = useState('');
     const [formData, setFormData] = useState({ name: '', email: '', topic: '', message: '' });
     const [submitted, setSubmitted] = useState(false);
+    // Loading and error state for the form submission
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitError, setSubmitError] = useState('');
 
     // Typewriter
     const fullText = 'Talk to Us.';
@@ -179,12 +183,34 @@ const ContactPage = () => {
 
     const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-    const handleSubmit = (e) => {
+   // ── Form submission — posts to /api/enquiries ─────────────
+    // No longer opens a mailto link. Data is stored in the database
+    // and visible in the admin enquiries page at /admin/enquiries.
+    // When Step 15 (Support Tickets) is built, contact enquiries
+    // will migrate to the ticket model automatically.
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const subject = encodeURIComponent(`ShopZone Enquiry: ${TOPICS.find(t => t.id === formData.topic)?.label || formData.topic}`);
-        const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`);
-        window.open(`mailto:support@shopzone.com?subject=${subject}&body=${body}`);
-        setSubmitted(true);
+        setSubmitLoading(true);
+        setSubmitError('');
+        try {
+            await axios.post('/api/enquiries', {
+                type:    'contact',
+                name:    formData.name,
+                email:   formData.email,
+                message: formData.message,
+                // Store topic in the structured data field so admin
+                // can filter by it and it migrates cleanly to tickets
+                data: {
+                    topic:      formData.topic,
+                    topicLabel: TOPICS.find(t => t.id === formData.topic)?.label || formData.topic,
+                },
+            });
+            setSubmitted(true);
+        } catch (err) {
+            setSubmitError(err.response?.data?.message || 'Failed to send message. Please try again.');
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     return (
@@ -323,12 +349,12 @@ const ContactPage = () => {
                         {submitted ? (
                             <div className='contact-success'>
                                 <div className='contact-success__icon-wrap'><FaCheckCircle aria-hidden='true' /></div>
-                                <h2 className='contact-success__title'>Message sent!</h2>
+                                <h2 className='contact-success__title'>Message received!</h2>
                                 <p className='contact-success__text'>
-                                    Your email client should have opened with your message ready to send.
-                                    If not, email us directly at <a href='mailto:support@shopzone.com'>support@shopzone.com</a>.
+                                    Thank you for reaching out. Our support team will get back to you
+                                    within 4 business hours. Check your email for a confirmation.
                                 </p>
-                                <button className='contact-success__reset' onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', topic: '', message: '' }); setSelectedTopic(''); }}>
+                                <button className='contact-success__reset' onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', topic: '', message: '' }); setSelectedTopic(''); setSubmitError(''); }}>
                                     Send another message
                                 </button>
                             </div>
@@ -360,8 +386,17 @@ const ContactPage = () => {
                                         <label htmlFor='contact-message'>Message</label>
                                         <textarea id='contact-message' name='message' placeholder='Tell us as much detail as possible...' rows={6} value={formData.message} onChange={handleChange} required />
                                     </div>
-                                    <button type='submit' className='contact-form__submit' disabled={!formData.name || !formData.email || !formData.topic || !formData.message}>
-                                        <FaPaperPlane aria-hidden='true' /> Send Message
+                                    {/* Inline error message if submission fails */}
+                                    {submitError && (
+                                        <p className='contact-form__error' role='alert'>{submitError}</p>
+                                    )}
+                                    <button
+                                        type='submit'
+                                        className='contact-form__submit'
+                                        disabled={!formData.name || !formData.email || !formData.topic || !formData.message || submitLoading}
+                                    >
+                                        <FaPaperPlane aria-hidden='true' />
+                                        {submitLoading ? 'Sending…' : 'Send Message'}
                                     </button>
                                     <p className='contact-form__note'>All communication goes through ShopZone — your details are never shared with third parties.</p>
                                 </form>

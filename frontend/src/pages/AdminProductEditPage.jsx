@@ -1,189 +1,263 @@
 // frontend/src/pages/AdminProductEditPage.jsx
 // ─────────────────────────────────────────────────────────────────────────────
-// CHANGES FROM PREVIOUS VERSION:
-//   • Predefined tags per category — auto-populate when category changes
-//   • Sale price field hidden unless isOnSale is ticked
-//   • Validation: name cannot be default, price > 0, description min 30 chars,
-//     image required, stock > 0 on creation
-//   • Tags rendered as removable chips with add-your-own input
-//   • Unit type hints added
-//   • Sale price validation and confirmation dialog preserved from last update
+// Admin product create / edit form.
+//
+// Confirm modal behaviour:
+//   - On load, every field is snapshotted into originalSnapshot ref.
+//   - On save, current values are diffed against the snapshot.
+//   - One modal lists all changes. After save, snapshot advances.
+//   - If nothing changed, save runs silently.
+//
+// Fixes applied:
+//   - config object moved inside executeSave (no stale token risk)
+//   - Field-level error highlighting via fieldErrors state
+//   - Tag count capped at 15 with frontend warning
+//   - Description and name diffs show truncated previews
+//   - Help modals use infoOnly prop (no cancel button)
+//   - Legacy unit dropdown labelled to avoid admin confusion
 // ─────────────────────────────────────────────────────────────────────────────
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Form, Button, Card, Alert,
   Spinner, Row, Col, Image,
 } from 'react-bootstrap';
+import { FaQuestionCircle } from 'react-icons/fa';
 import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
+import './AdminProductEditPage.css';
 
-// ── Category options — match MongoDB exactly ──────────────────
+// ── Constants ─────────────────────────────────────────────────
 const CATEGORIES = [
-  'Electronics',
-  'Fashion & Apparel',
-  'Fabric & Textiles',
-  'Home & Kitchen',
-  'Food & Grocery',
-  'Beauty & Personal Care',
-  'Hardware & Tools',
-  'Office & Stationery',
-  'Agriculture & Garden',
-  'Baby & Kids',
-  'Sports & Outdoors',
-  'Health & Wellness',
-  'General Merchandise',
+  'Electronics','Fashion & Apparel','Fabric & Textiles','Home & Kitchen',
+  'Food & Grocery','Beauty & Personal Care','Hardware & Tools',
+  'Office & Stationery','Agriculture & Garden','Baby & Kids',
+  'Sports & Outdoors','Health & Wellness','General Merchandise',
 ];
 
-// ── Predefined tags per category ──────────────────────────────
-// Auto-populated when seller selects a category.
-// Seller can remove irrelevant ones or add their own.
 const CATEGORY_TAGS = {
-  'Electronics': ['electronics', 'gadgets', 'wholesale', 'bulk', 'accessories', 'cables', 'tech'],
-  'Fashion & Apparel': ['fashion', 'clothing', 'wholesale', 'bulk', 'apparel', 'garments', 'uniforms'],
-  'Fabric & Textiles': ['fabric', 'textiles', 'wholesale', 'bulk', 'material', 'cotton', 'thread'],
-  'Home & Kitchen': ['home', 'kitchen', 'household', 'wholesale', 'bulk', 'utensils', 'cookware'],
-  'Food & Grocery': ['food', 'grocery', 'wholesale', 'bulk', 'packaged', 'beverages', 'staples'],
-  'Beauty & Personal Care': ['beauty', 'cosmetics', 'wholesale', 'bulk', 'skincare', 'haircare', 'grooming'],
-  'Hardware & Tools': ['hardware', 'tools', 'wholesale', 'bulk', 'industrial', 'construction', 'fittings'],
-  'Office & Stationery': ['office', 'stationery', 'wholesale', 'bulk', 'school', 'supplies', 'paper'],
-  'Agriculture & Garden': ['agriculture', 'garden', 'wholesale', 'bulk', 'farming', 'seeds', 'fertiliser'],
-  'Baby & Kids': ['baby', 'kids', 'children', 'wholesale', 'bulk', 'toys', 'feeding'],
-  'Sports & Outdoors': ['sports', 'outdoor', 'wholesale', 'bulk', 'fitness', 'equipment', 'activewear'],
-  'Health & Wellness': ['health', 'wellness', 'wholesale', 'bulk', 'supplements', 'vitamins', 'hygiene'],
-  'General Merchandise': ['general', 'merchandise', 'wholesale', 'bulk', 'variety', 'assorted'],
+  'Electronics':            ['electronics','gadgets','wholesale','bulk','accessories','cables','tech'],
+  'Fashion & Apparel':      ['fashion','clothing','wholesale','bulk','apparel','garments','uniforms'],
+  'Fabric & Textiles':      ['fabric','textiles','wholesale','bulk','material','cotton','thread'],
+  'Home & Kitchen':         ['home','kitchen','household','wholesale','bulk','utensils','cookware'],
+  'Food & Grocery':         ['food','grocery','wholesale','bulk','packaged','beverages','staples'],
+  'Beauty & Personal Care': ['beauty','cosmetics','wholesale','bulk','skincare','haircare','grooming'],
+  'Hardware & Tools':       ['hardware','tools','wholesale','bulk','industrial','construction','fittings'],
+  'Office & Stationery':    ['office','stationery','wholesale','bulk','school','supplies','paper'],
+  'Agriculture & Garden':   ['agriculture','garden','wholesale','bulk','farming','seeds','fertiliser'],
+  'Baby & Kids':            ['baby','kids','children','wholesale','bulk','toys','feeding'],
+  'Sports & Outdoors':      ['sports','outdoor','wholesale','bulk','fitness','equipment','activewear'],
+  'Health & Wellness':      ['health','wellness','wholesale','bulk','supplements','vitamins','hygiene'],
+  'General Merchandise':    ['general','merchandise','wholesale','bulk','variety','assorted'],
 };
 
-// ── Unit hints — shown below the unit dropdown ────────────────
 const UNIT_HINTS = {
-  'Per Unit':  'Single item — e.g. one phone, one chair',
-  'Bale':      'Compressed bundle — e.g. 50 pieces of fabric per bale',
-  'Carton':    'Sealed box — e.g. 24 tins per carton',
-  'Dozen':     '12 pieces per dozen',
-  'Kg':        'Price per kilogram — e.g. maize flour, sugar',
-  'Box':       'Open box — e.g. 100 pens per box',
-  'Sack':      'Large bag — e.g. 50kg sack of rice',
-  'Roll':      'Roll of material — e.g. fabric, wire, polythene sheet',
-  'Litre':     'Price per litre — e.g. cooking oil, paint',
-  'Pallet':    'Full pallet load — for very large bulk orders',
-  'Piece':     'Individual piece within a larger unit',
-  'Pack':      'Sealed multi-item pack — e.g. pack of 5 notebooks',
+  'Per Unit': 'Single item — e.g. one phone, one chair',
+  'Bale':     'Compressed bundle — e.g. 50 pieces of fabric per bale',
+  'Carton':   'Sealed box — e.g. 24 tins per carton',
+  'Dozen':    '12 pieces per dozen',
+  'Kg':       'Price per kilogram — e.g. maize flour, sugar',
+  'Box':      'Open box — e.g. 100 pens per box',
+  'Sack':     'Large bag — e.g. 50kg sack of rice',
+  'Roll':     'Roll of material — e.g. fabric, wire, polythene sheet',
+  'Litre':    'Price per litre — e.g. cooking oil, paint',
+  'Pallet':   'Full pallet load — for very large bulk orders',
+  'Piece':    'Individual piece within a larger unit',
+  'Pack':     'Sealed multi-item pack — e.g. pack of 5 notebooks',
 };
 
-// ── Lead time options ─────────────────────────────────────────
 const LEAD_TIME_OPTIONS = [
-  { value: '', label: 'Not specified' },
-  { value: 1,  label: '1 day' },
-  { value: 2,  label: '2 days' },
-  { value: 3,  label: '3 days' },
-  { value: 5,  label: '5 days' },
-  { value: 7,  label: '7 days' },
-  { value: 10, label: '10 days' },
-  { value: 14, label: '14 days' },
-  { value: 21, label: '21 days' },
-  { value: 30, label: '30 days' },
+  { value: '',  label: 'Not specified' },
+  { value: 1,   label: '1 day' },
+  { value: 2,   label: '2 days' },
+  { value: 3,   label: '3 days' },
+  { value: 5,   label: '5 days' },
+  { value: 7,   label: '7 days' },
+  { value: 10,  label: '10 days' },
+  { value: 14,  label: '14 days' },
+  { value: 21,  label: '21 days' },
+  { value: 30,  label: '30 days' },
 ];
 
-// ── Default values that mean the product was never properly filled ─
-const INVALID_NAMES = ['new product', 'sample product', 'product name', 'enter product name', 'draft product'];
+const INVALID_NAMES = [
+  'new product','sample product','product name','enter product name','draft product',
+];
+
+// ── Max tags allowed per product ──────────────────────────────
+const MAX_TAGS = 15;
+
+// ── Field help content ────────────────────────────────────────
+const FIELD_HELP = {
+  name:        { title: 'Product Name',           body: 'The public name buyers see on listings and search results. Use a clear, descriptive name. Required before saving.' },
+  brand:       { title: 'Brand',                  body: 'The manufacturer or supplier brand name, e.g. Unilever, Bidco, Samsung. Used on the Brands page and in brand filtering. Leave blank if no specific brand.' },
+  price:       { title: 'Price (KES)',             body: 'The regular selling price in Kenyan Shillings. VAT is inclusive — do not add VAT on top. Must be greater than zero.' },
+  salePrice:   { title: 'Sale Price (KES)',        body: 'A discounted price shown when this product is marked as On Sale. Must be lower than the regular price.' },
+  category:    { title: 'Category',               body: 'Determines where this product appears in browse and filter views. Changing category replaces suggested tags automatically.' },
+  unit:        { title: 'Display Unit Type',      body: 'Legacy display field — how this product appears on cards and at checkout. Use the Wholesale Unit Type inside the Wholesale Details section for new products.' },
+  countInStock:{ title: 'Count In Stock',         body: 'How many units are available right now. Decremented automatically when orders are placed and restored on cancellation.' },
+  tags:        { title: 'Search Tags',            body: `Keywords that help buyers find this product. Suggested tags are auto-added from the category. Maximum ${MAX_TAGS} tags per product.` },
+  unitType:    { title: 'Wholesale Unit Type',    body: 'The wholesale selling unit for this product. Used for B2B buyer clarity and Tier 2 delivery calculations. This is the primary unit field — use this for new products.' },
+  moq:         { title: 'Minimum Order Quantity', body: 'The minimum number of units a buyer must order. Defaults to 1.' },
+  itemsPerUnit:{ title: 'Items Per Unit',         body: 'How many individual pieces are inside one unit, e.g. 24 bars of soap per carton.' },
+  weight:      { title: 'Weight Per Unit (kg)',   body: 'The weight of one unit in kilograms. Used by the Tier 2 delivery quote system.' },
+  dimensions:  { title: 'Dimensions',             body: 'Physical size of one unit, e.g. 60 x 40 x 30 cm. Used for storage planning and Tier 2 delivery quotes.' },
+  leadTime:    { title: 'Lead Time',              body: 'Days from confirmed order to dispatch. Shown on product detail pages.' },
+  bulkOnly:    { title: 'Bulk Only',              body: 'Tick this if the product cannot be bought as individual pieces — complete units only.' },
+  featured:    { title: 'Featured',               body: 'Featured products appear in the Featured Products section on the homepage. Use sparingly for high-quality, well-stocked items.' },
+  onSale:      { title: 'On Sale',                body: 'Marks this product as a sale item. Appears in Special Offers under the Sale tab with a discount badge. Requires a valid sale price lower than the regular price.' },
+  clearance:   { title: 'Clearance',              body: 'Marks this product as clearance. Appears under the Clearance tab on Special Offers. Use for end-of-line or overstocked items.' },
+  image:       { title: 'Product Image',          body: 'Upload a clear, high-quality product photo. JPG or PNG only. Required before the product can be saved.' },
+  imageUrl:    { title: 'Image URL',              body: 'Auto-filled after upload. You can also paste a direct image URL if the image is already hosted.' },
+  description: { title: 'Description',            body: 'Visible to all buyers. Minimum 30 characters. Include key specs, unit contents, and who this product is for. Good descriptions improve search ranking.' },
+};
+
+// ── Truncate helper for diff display ─────────────────────────
+const trunc = (str, len) => {
+  if (!str) return '—';
+  const s = String(str).trim();
+  return s.length > len ? s.slice(0, len) + '…' : s;
+};
+
+// ── Human-readable change labels ──────────────────────────────
+const CHANGE_LABELS = {
+  name:                 (o, n) => `Name: "${trunc(o, 40)}" → "${trunc(n, 40)}"`,
+  brand:                (o, n) => `Brand: "${o || 'none'}" → "${n || 'none'}"`,
+  price:                (o, n) => `Price: KES ${o} → KES ${n}`,
+  salePrice:            (o, n) => `Sale price: KES ${o || '—'} → KES ${n || '—'}`,
+  category:             (o, n) => `Category: ${o || 'none'} → ${n}`,
+  unit:                 (o, n) => `Display unit type: ${o} → ${n}`,
+  countInStock:         (o, n) => `Stock: ${o} → ${n} units`,
+  tags:                 (o, n) => `Search tags updated (${n.length} tag${n.length !== 1 ? 's' : ''})`,
+  unitType:             (o, n) => `Wholesale unit type: ${o} → ${n}`,
+  minimumOrderQuantity: (o, n) => `MOQ: ${o} → ${n}`,
+  itemsPerUnit:         (o, n) => `Items per unit: ${o || '—'} → ${n || '—'}`,
+  weightPerUnit:        (o, n) => `Weight per unit: ${o || '—'} → ${n || '—'} kg`,
+  dimensions:           (o, n) => `Dimensions: "${o || '—'}" → "${n || '—'}"`,
+  leadTimeDays:         (o, n) => `Lead time: ${o || 'not set'} → ${n || 'not set'}`,
+  isBulkOnly:           (o, n) => n ? 'Marked as bulk only' : 'Removed bulk only restriction',
+  isFeatured:           (o, n) => n ? 'Marked as featured' : 'Removed from featured',
+  isOnSale:             (o, n) => n ? 'Listed as ON SALE' : 'Removed from sale',
+  isClearance:          (o, n) => n ? 'Listed as CLEARANCE' : 'Removed from clearance',
+  image:                (o, n) => 'Product image updated',
+  description:          (o, n) => `Description: "${trunc(o, 60)}" → "${trunc(n, 60)}"`,
+};
 
 const AdminProductEditPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
-  // ── Page title ─────────────────────────────────────────────
   useEffect(() => { document.title = 'Admin: Edit Product — ShopZone'; }, []);
 
-// ── Form field state ──────────────────────────────────────
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [salePrice, setSalePrice] = useState('');
-  const [image, setImage] = useState('');
-  const [category, setCategory] = useState('');
+  // ── Form field state ──────────────────────────────────────
+  const [name, setName]               = useState('');
+  const [price, setPrice]             = useState('');
+  const [salePrice, setSalePrice]     = useState('');
+  const [image, setImage]             = useState('');
+  const [category, setCategory]       = useState('');
   const [description, setDescription] = useState('');
   const [countInStock, setCountInStock] = useState('');
-  const [unit, setUnit] = useState('Per Unit');
-  const [isFeatured, setIsFeatured] = useState(false);
-  const [isOnSale, setIsOnSale] = useState(false);
+  const [unit, setUnit]               = useState('Per Unit');
+  const [isFeatured, setIsFeatured]   = useState(false);
+  const [isOnSale, setIsOnSale]       = useState(false);
   const [isClearance, setIsClearance] = useState(false);
-
-  // ── NEW: Wholesale and brand fields (Block A) ─────────────
-  // These map to the new fields added to the Product model.
-  const [brand, setBrand] = useState('');
-  const [unitType, setUnitType] = useState('Per Unit');
+  const [brand, setBrand]             = useState('');
+  const [unitType, setUnitType]       = useState('Per Unit');
   const [minimumOrderQuantity, setMinimumOrderQuantity] = useState(1);
-  const [itemsPerUnit, setItemsPerUnit] = useState('');
+  const [itemsPerUnit, setItemsPerUnit]   = useState('');
   const [weightPerUnit, setWeightPerUnit] = useState('');
-  const [dimensions, setDimensions] = useState('');
-  const [isBulkOnly, setIsBulkOnly] = useState(false);
-  const [leadTimeDays, setLeadTimeDays] = useState('');
-
-  // Tags stored as an array of strings for chip rendering
-  const [tagList, setTagList] = useState([]);
-  // Custom tag input field
+  const [dimensions, setDimensions]       = useState('');
+  const [isBulkOnly, setIsBulkOnly]       = useState(false);
+  const [leadTimeDays, setLeadTimeDays]   = useState('');
+  const [tagList, setTagList]   = useState([]);
   const [tagInput, setTagInput] = useState('');
 
   // ── UI state ──────────────────────────────────────────────
-  const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
+  const [uploading, setUploading]     = useState(false);
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState(null);
   const [uploadError, setUploadError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
+  const [successMsg, setSuccessMsg]   = useState(null);
+  const [isNewUnsaved, setIsNewUnsaved] = useState(false);
 
-  // ── Auth header ───────────────────────────────────────────
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${userInfo.token}`,
-    },
-  };
+  // ── Field-level error state ───────────────────────────────
+  // Keys match field names. A truthy value means that field
+  // failed validation and should show a red border.
+  const [fieldErrors, setFieldErrors] = useState({});
 
-  // ── Fetch existing product data ───────────────────────────
+  // ── Confirm modal state ───────────────────────────────────
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [changeList, setChangeList]   = useState([]);
+
+  // ── Field help modal ──────────────────────────────────────
+  const [helpField, setHelpField] = useState(null);
+
+  // ── Original snapshot ref ─────────────────────────────────
+  // Every field's last-saved value. Updated on load and after
+  // each successful save. Diff at save time compares against this.
+  const originalSnapshot = useRef(null);
+
+  // ── Fetch product ─────────────────────────────────────────
   useEffect(() => {
     if (!userInfo || !userInfo.isAdmin) { navigate('/login'); return; }
     fetchProduct();
   }, [userInfo, navigate]);
 
-  // Track whether this product was freshly created and never saved
-  // Used by the Back button to delete it if admin abandons the form
-  const [isNewUnsaved, setIsNewUnsaved] = useState(false);
-  const [showSaleModal, setShowSaleModal] = useState(false);
-  const [pendingSaveData, setPendingSaveData] = useState(null);
-
   const fetchProduct = async () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/products/${id}`);
-      // If name and image are both empty this is a brand new unsaved product
+
+      const loaded = {
+        name:                 data.name === 'Draft Product' ? '' : data.name,
+        price:                data.price ?? '',
+        salePrice:            data.salePrice ?? '',
+        image:                data.image ?? '',
+        category:             data.category ?? '',
+        description:          data.description === 'Draft — please complete all fields before saving.'
+                                ? '' : (data.description ?? ''),
+        countInStock:         data.countInStock ?? '',
+        unit:                 data.unit || 'Per Unit',
+        isFeatured:           data.isFeatured || false,
+        isOnSale:             data.isOnSale || false,
+        isClearance:          data.isClearance || false,
+        brand:                data.brand || '',
+        unitType:             data.unitType || 'Per Unit',
+        minimumOrderQuantity: data.minimumOrderQuantity || 1,
+        itemsPerUnit:         data.itemsPerUnit ?? '',
+        weightPerUnit:        data.weightPerUnit ?? '',
+        dimensions:           data.dimensions || '',
+        isBulkOnly:           data.isBulkOnly || false,
+        leadTimeDays:         data.leadTimeDays ?? '',
+        tags:                 data.tags || [],
+      };
+
       setIsNewUnsaved(data.name === 'Draft Product' && !data.image);
-      setName(data.name === 'Draft Product' ? '' : data.name);
-      setPrice(data.price ?? '');
-      setSalePrice(data.salePrice ?? '');
-      setImage(data.image ?? '');
-      setCategory(data.category ?? '');
-      setDescription(data.description === 'Draft — please complete all fields before saving.' ? '' : (data.description ?? ''));
-      setCountInStock(data.countInStock ?? '');
-      setUnit(data.unit || 'Per Unit');
-      setIsFeatured(data.isFeatured || false);
-      setIsOnSale(data.isOnSale || false);
-      setIsClearance(data.isClearance || false);
-      // Tags come as array from backend
-      setTagList(data.tags || []);
+      setName(loaded.name);
+      setPrice(loaded.price);
+      setSalePrice(loaded.salePrice);
+      setImage(loaded.image);
+      setCategory(loaded.category);
+      setDescription(loaded.description);
+      setCountInStock(loaded.countInStock);
+      setUnit(loaded.unit);
+      setIsFeatured(loaded.isFeatured);
+      setIsOnSale(loaded.isOnSale);
+      setIsClearance(loaded.isClearance);
+      setBrand(loaded.brand);
+      setUnitType(loaded.unitType);
+      setMinimumOrderQuantity(loaded.minimumOrderQuantity);
+      setItemsPerUnit(loaded.itemsPerUnit);
+      setWeightPerUnit(loaded.weightPerUnit);
+      setDimensions(loaded.dimensions);
+      setIsBulkOnly(loaded.isBulkOnly);
+      setLeadTimeDays(loaded.leadTimeDays);
+      setTagList(loaded.tags);
 
-      // ── NEW: Wholesale and brand fields ───────────────────
-      setBrand(data.brand || '');
-      setUnitType(data.unitType || 'Per Unit');
-      setMinimumOrderQuantity(data.minimumOrderQuantity || 1);
-      setItemsPerUnit(data.itemsPerUnit ?? '');
-      setWeightPerUnit(data.weightPerUnit ?? '');
-      setDimensions(data.dimensions || '');
-      setIsBulkOnly(data.isBulkOnly || false);
-      setLeadTimeDays(data.leadTimeDays ?? '');
-
+      originalSnapshot.current = loaded;
       setLoading(false);
     } catch (err) {
       const msg = err.response?.data?.message || err.message;
@@ -193,29 +267,35 @@ const AdminProductEditPage = () => {
     }
   };
 
-  // ── Auto-populate tags when category changes ──────────────
-  // Only pre-fills if tagList is currently empty so we don't
-  // overwrite tags the seller already set on an existing product
-  const handleCategoryChange = (value) => {
-    setCategory(value);
-    // Always replace tags when category changes — prevents cross-category tag pollution
-    if (CATEGORY_TAGS[value]) {
-      setTagList(CATEGORY_TAGS[value]);
-    } else {
-      setTagList([]);
-    }
+  // ── Clear a specific field error when the user edits it ───
+  // Called from onChange on every validated field so the red
+  // border disappears as soon as the admin starts correcting it.
+  const clearFieldError = (field) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev; // nothing to clear
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
-  // ── Tag chip management ───────────────────────────────────
-  // Remove a tag by clicking the × on its chip
+  // ── Category change ───────────────────────────────────────
+  const handleCategoryChange = (value) => {
+    setCategory(value);
+    clearFieldError('category');
+    setTagList(CATEGORY_TAGS[value] ? [...CATEGORY_TAGS[value]] : []);
+  };
+
+  // ── Tag management ────────────────────────────────────────
   const removeTag = (tagToRemove) => {
     setTagList((prev) => prev.filter((t) => t !== tagToRemove));
   };
 
-  // Add a custom tag — fired on Enter or comma
   const handleTagInputKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
+      // Enforce cap
+      if (tagList.length >= MAX_TAGS) return;
       const newTag = tagInput.trim().toLowerCase().replace(/,/g, '');
       if (newTag && !tagList.includes(newTag)) {
         setTagList((prev) => [...prev, newTag]);
@@ -224,7 +304,7 @@ const AdminProductEditPage = () => {
     }
   };
 
-  // ── Image upload handler ──────────────────────────────────
+  // ── Image upload ──────────────────────────────────────────
   const uploadImageHandler = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -233,14 +313,14 @@ const AdminProductEditPage = () => {
     try {
       setUploading(true);
       setUploadError(null);
-      const uploadConfig = {
+      const { data } = await axios.post('/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${userInfo.token}`,
         },
-      };
-      const { data } = await axios.post('/api/upload', formData, uploadConfig);
+      });
       setImage(data);
+      clearFieldError('image');
       setUploading(false);
       showToast('Image uploaded successfully.', 'success');
     } catch (err) {
@@ -251,99 +331,184 @@ const AdminProductEditPage = () => {
     }
   };
 
-  // ── Save handler ──────────────────────────────────────────
+  // ── Back / cancel ─────────────────────────────────────────
+  const handleBack = async () => {
+    if (isNewUnsaved) {
+      try {
+        await axios.delete(`/api/products/${id}`, {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+      } catch (err) {
+        console.error('Could not delete unsaved product:', err.message);
+      }
+    }
+    navigate('/admin/products');
+  };
+
+  // ── Build current values object ───────────────────────────
+  // Plain function — not memoised. Called only inside submit
+  // and executeSave so there is no stale closure risk.
+  const buildCurrentValues = () => ({
+    name:                 name.trim(),
+    price:                String(price),
+    salePrice:            String(salePrice),
+    image,
+    category,
+    description:          description.trim(),
+    countInStock:         String(countInStock),
+    unit,
+    isFeatured,
+    isOnSale,
+    isClearance,
+    brand:                brand.trim(),
+    unitType,
+    minimumOrderQuantity: String(minimumOrderQuantity),
+    itemsPerUnit:         String(itemsPerUnit),
+    weightPerUnit:        String(weightPerUnit),
+    dimensions:           dimensions.trim(),
+    isBulkOnly,
+    leadTimeDays:         String(leadTimeDays),
+    tags:                 tagList,
+  });
+
+  // ── Diff current vs snapshot ──────────────────────────────
+  const buildChangeList = (current, snap) => {
+    // Normalise snapshot numeric fields to strings for fair comparison
+    const normalised = {
+      ...snap,
+      price:                String(snap.price ?? ''),
+      salePrice:            String(snap.salePrice ?? ''),
+      countInStock:         String(snap.countInStock ?? ''),
+      minimumOrderQuantity: String(snap.minimumOrderQuantity ?? ''),
+      itemsPerUnit:         String(snap.itemsPerUnit ?? ''),
+      weightPerUnit:        String(snap.weightPerUnit ?? ''),
+      leadTimeDays:         String(snap.leadTimeDays ?? ''),
+    };
+
+    const changes = [];
+    Object.keys(CHANGE_LABELS).forEach((key) => {
+      const oldVal = key === 'tags' ? (normalised.tags || []) : normalised[key];
+      const newVal = key === 'tags' ? current.tags : current[key];
+      const oldStr = Array.isArray(oldVal) ? [...oldVal].sort().join(',') : String(oldVal ?? '');
+      const newStr = Array.isArray(newVal) ? [...newVal].sort().join(',') : String(newVal ?? '');
+      if (oldStr !== newStr) {
+        changes.push(CHANGE_LABELS[key](oldVal, newVal));
+      }
+    });
+    return changes;
+  };
+
+  // ── Submit — validate → diff → modal or silent save ───────
   const submitHandler = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // ── Validation ────────────────────────────────────────────
+    // Collect all field errors in one pass so every failing
+    // field highlights at once instead of one at a time.
+    const errors = {};
+
     if (!name || INVALID_NAMES.includes(name.toLowerCase().trim())) {
-      showToast('Please enter a proper product name.', 'error');
-      setError('Please enter a proper product name.');
-      return;
+      errors.name = true;
     }
     if (!price || Number(price) <= 0) {
-      showToast('Price must be greater than 0.', 'error');
-      setError('Price must be greater than 0.');
-      return;
+      errors.price = true;
     }
     if (!category) {
-      showToast('Please select a category.', 'error');
-      setError('Please select a category.');
-      return;
+      errors.category = true;
     }
     if (!description || description.trim().length < 30) {
-      showToast('Description must be at least 30 characters.', 'error');
-      setError('Description must be at least 30 characters.');
-      return;
+      errors.description = true;
     }
     if (!image) {
-      showToast('Please upload a product image.', 'error');
-      setError('Please upload a product image.');
-      return;
+      errors.image = true;
     }
     if (!countInStock || Number(countInStock) < 1) {
-      showToast('Stock count must be at least 1.', 'error');
-      setError('Stock count must be at least 1.');
-      return;
+      errors.countInStock = true;
     }
-
-    // ── Sale price validation ─────────────────────────────────
     if (isOnSale) {
-      if (!salePrice || Number(salePrice) <= 0) {
-        showToast('Please enter a sale price before marking this product as on sale.', 'error');
-        setError('Please enter a sale price before marking this product as on sale.');
-        return;
-      }
-      if (Number(salePrice) >= Number(price)) {
-        showToast('Sale price must be lower than the regular price.', 'error');
-        setError('Sale price must be lower than the regular price.');
-        return;
-      }
+      if (!salePrice || Number(salePrice) <= 0) errors.salePrice = true;
+      if (salePrice && Number(salePrice) >= Number(price)) errors.salePrice = true;
     }
 
-    
-    // ── Confirmation for sale / clearance ─────────────────────
-    if (isOnSale || isClearance) {
-      setPendingSaveData(true);
-      setShowSaleModal(true);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      // Single toast summarising what needs fixing
+      const count = Object.keys(errors).length;
+      showToast(`${count} field${count > 1 ? 's need' : ' needs'} attention before saving.`, 'error');
+      setError(`Please fix the highlighted field${count > 1 ? 's' : ''} before saving.`);
       return;
     }
 
-    await executeSave();
+    // Clear any leftover field errors from a previous attempt
+    setFieldErrors({});
+
+    const current = buildCurrentValues();
+    const changes = originalSnapshot.current
+      ? buildChangeList(current, originalSnapshot.current)
+      : [];
+
+    if (changes.length === 0) {
+      await executeSave(current);
+      return;
+    }
+
+    setChangeList(changes);
+    setShowConfirm(true);
   };
 
-  const executeSave = async () => {
+  // ── Execute save ──────────────────────────────────────────
+  // Accepts the current values object so it never has to
+  // re-read state after the modal confirm delay.
+  // config is built here to always use the current token.
+  const executeSave = async (currentValues) => {
+    // If called from modal onConfirm, currentValues is undefined
+    // because React synthetic events don't pass arguments —
+    // rebuild from state in that case.
+    const current = currentValues && typeof currentValues === 'object' && !currentValues.nativeEvent
+      ? currentValues
+      : buildCurrentValues();
+
+    const authConfig = {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
+
     try {
       setSaving(true);
-      setShowSaleModal(false);
+      setShowConfirm(false);
+
       await axios.put(
         `/api/products/${id}`,
         {
-          name,
-          price:        Number(price),
-          salePrice:    salePrice !== '' ? Number(salePrice) : null,
-          image,
-          category,
-          description,
-          countInStock: Number(countInStock),
-          unit,
-          tags:         tagList,
-          isFeatured,
-          isOnSale,
-          isClearance,
-          // ── NEW: Wholesale and brand fields ───────────────
-          brand:                  brand.trim(),
-          unitType,
-          minimumOrderQuantity:   Number(minimumOrderQuantity) || 1,
-          itemsPerUnit:           itemsPerUnit !== '' ? Number(itemsPerUnit) : null,
-          weightPerUnit:          weightPerUnit !== '' ? Number(weightPerUnit) : null,
-          dimensions:             dimensions.trim(),
-          isBulkOnly,
-          leadTimeDays:           leadTimeDays !== '' ? Number(leadTimeDays) : null,
+          name:                 current.name,
+          price:                Number(current.price),
+          salePrice:            current.salePrice !== '' ? Number(current.salePrice) : null,
+          image:                current.image,
+          category:             current.category,
+          description:          current.description,
+          countInStock:         Number(current.countInStock),
+          unit:                 current.unit,
+          tags:                 current.tags,
+          isFeatured:           current.isFeatured,
+          isOnSale:             current.isOnSale,
+          isClearance:          current.isClearance,
+          brand:                current.brand,
+          unitType:             current.unitType,
+          minimumOrderQuantity: Number(current.minimumOrderQuantity) || 1,
+          itemsPerUnit:         current.itemsPerUnit !== '' ? Number(current.itemsPerUnit) : null,
+          weightPerUnit:        current.weightPerUnit !== '' ? Number(current.weightPerUnit) : null,
+          dimensions:           current.dimensions,
+          isBulkOnly:           current.isBulkOnly,
+          leadTimeDays:         current.leadTimeDays !== '' ? Number(current.leadTimeDays) : null,
         },
-        config
+        authConfig
       );
+
+      // Advance snapshot so next save only tracks new changes
+      originalSnapshot.current = { ...current, tags: [...current.tags] };
+
       setSuccessMsg('Product saved successfully!');
       setSaving(false);
       showToast('Product saved successfully!', 'success');
@@ -356,70 +521,89 @@ const AdminProductEditPage = () => {
     }
   };
 
-  const saleModalFlags = [
-    isOnSale ? `on sale at KES ${Number(salePrice || 0).toFixed(2)}` : null,
-    isClearance ? 'clearance' : null,
-  ].filter(Boolean).join(' and ');
+  // ── Help icon ─────────────────────────────────────────────
+  const HelpIcon = ({ field }) => (
+    <button
+      type='button'
+      className='ape-help-icon'
+      onClick={() => setHelpField(field)}
+      aria-label={`Help for ${FIELD_HELP[field]?.title}`}
+    >
+      <FaQuestionCircle />
+    </button>
+  );
+
+  // ── Field label with optional required star + help icon ───
+  const FieldLabel = ({ field, children, required: req }) => (
+    <Form.Label className='ape-field-label'>
+      {children}
+      {req && <span className='ape-required'>*</span>}
+      <HelpIcon field={field} />
+    </Form.Label>
+  );
+
+  // ── Change list JSX for the confirm modal ─────────────────
+  const changeListMessage = (
+    <div>
+      <p className='ape-modal-intro'>You are about to make the following changes:</p>
+      <ul className='ape-modal-change-list'>
+        {changeList.map((item, i) => (
+          <li key={i} className='ape-modal-change-item'>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
 
   if (loading) {
     return (
       <div className='text-center py-5'>
-        <Spinner animation='border' style={{ color: 'var(--oxford-blue)' }} />
+        <Spinner animation='border' className='ape-spinner' />
       </div>
     );
   }
 
   return (
     <>
-      
-      {/* ── Sale / Clearance Confirmation Modal ───────────── */}
+      {/* ── Field help modal — info only, no cancel button ── */}
+      {helpField && (
+        <ConfirmModal
+          show={!!helpField}
+          onConfirm={() => setHelpField(null)}
+          onCancel={() => setHelpField(null)}
+          title={FIELD_HELP[helpField]?.title}
+          message={FIELD_HELP[helpField]?.body}
+          confirmLabel='Got it'
+          confirmVariant='primary-branded'
+          infoOnly
+        />
+      )}
+
+      {/* ── Changes confirmation modal ────────────────────── */}
       <ConfirmModal
-        show={showSaleModal}
+        show={showConfirm}
         onConfirm={executeSave}
-        onCancel={() => { setShowSaleModal(false); setPendingSaveData(null); }}
-        title='Confirm Special Listing'
-        message={`You are about to list "${name}" as ${saleModalFlags}.`}
-        subMessage='This will make it visible on the Special Offers page immediately. Are you sure?'
-        confirmLabel='Yes, Confirm'
+        onCancel={() => setShowConfirm(false)}
+        title='Confirm Changes'
+        message={changeListMessage}
+        confirmLabel='Yes, Save Changes'
         confirmVariant='primary-branded'
       />
 
-        <button
-          className='btn btn-light mb-4'
-        style={{ borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}
-        onClick={async () => {
-          // If this product was never properly saved, delete it before going back
-          // This prevents junk "empty" products accumulating in the database
-          if (isNewUnsaved) {
-            try {
-              await axios.delete(`/api/products/${id}`, {
-                headers: { Authorization: `Bearer ${userInfo.token}` },
-              });
-            } catch (err) {
-              // Silent fail — product will still be cleaned up by admin tools
-              console.error('Could not delete unsaved product:', err.message);
-            }
-          }
-          navigate('/admin/products');
-        }}
-      >
+      {/* ── Back button ───────────────────────────────────── */}
+      <button type='button' className='btn ape-back-btn mb-4' onClick={handleBack}>
         ← Back to Products
       </button>
 
       <Row className='justify-content-center'>
         <Col lg={9}>
           <Card className='p-4 shadow-sm'>
-            <h2 className='page-title mb-4' style={{ color: 'var(--oxford-blue)' }}>
+            <h2 className='ape-page-title mb-4'>
               {name === 'New Product' ? 'Create Product' : `Edit — ${name}`}
             </h2>
 
-            {error && <Alert variant='danger'>{error}</Alert>}
+            {error       && <Alert variant='danger'>{error}</Alert>}
             {uploadError && <Alert variant='danger'>{uploadError}</Alert>}
-            {successMsg && (
-              <Alert style={{ backgroundColor: '#f7f0e6', borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}>
-                {successMsg} Redirecting...
-              </Alert>
-            )}
+            {successMsg  && <Alert className='ape-success-alert'>{successMsg} Redirecting...</Alert>}
 
             <Form onSubmit={submitHandler}>
               <Row>
@@ -429,63 +613,66 @@ const AdminProductEditPage = () => {
 
                   {/* Product name */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>
-                      Product Name <span style={{ color: '#c0392b' }}>*</span>
-                    </Form.Label>
+                    <FieldLabel field='name' required>Product Name</FieldLabel>
                     <Form.Control
                       type='text'
                       placeholder='e.g. Heavy Duty Steel Shelving Unit'
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => { setName(e.target.value); clearFieldError('name'); }}
+                      className={fieldErrors.name ? 'ape-field--error' : ''}
                       required
                     />
+                    {fieldErrors.name && (
+                      <Form.Text className='ape-error-text'>Please enter a proper product name.</Form.Text>
+                    )}
                   </Form.Group>
 
-                  {/* Brand — used by BrandsPage and brand filtering */}
+                  {/* Brand */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Brand</Form.Label>
+                    <FieldLabel field='brand'>Brand</FieldLabel>
                     <Form.Control
                       type='text'
                       placeholder='e.g. Unilever, Samsung, Bidco, Generic'
                       value={brand}
                       onChange={(e) => setBrand(e.target.value)}
                     />
-                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                    <Form.Text className='ape-hint'>
                       Used to group products on the Brands page. Leave blank if no specific brand.
                     </Form.Text>
                   </Form.Group>
 
                   {/* Price */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>
-                      Price (KES) <span style={{ color: '#c0392b' }}>*</span>
-                    </Form.Label>
+                    <FieldLabel field='price' required>Price (KES)</FieldLabel>
                     <Form.Control
                       type='number'
                       placeholder='e.g. 8500'
                       value={price}
                       min='1'
-                      onChange={(e) => setPrice(e.target.value)}
+                      onChange={(e) => { setPrice(e.target.value); clearFieldError('price'); }}
+                      className={fieldErrors.price ? 'ape-field--error' : ''}
                       required
                     />
+                    {fieldErrors.price && (
+                      <Form.Text className='ape-error-text'>Price must be greater than 0.</Form.Text>
+                    )}
                   </Form.Group>
 
-                  {/* Sale price — only visible when isOnSale is ticked */}
+                  {/* Sale price */}
                   {isOnSale && (
                     <Form.Group className='mb-3'>
-                      <Form.Label>
-                        Sale Price (KES) <span style={{ color: '#c0392b' }}>*</span>
-                      </Form.Label>
+                      <FieldLabel field='salePrice' required>Sale Price (KES)</FieldLabel>
                       <Form.Control
                         type='number'
                         placeholder='Must be lower than regular price'
                         value={salePrice}
                         min='1'
-                        onChange={(e) => setSalePrice(e.target.value)}
+                        onChange={(e) => { setSalePrice(e.target.value); clearFieldError('salePrice'); }}
+                        className={fieldErrors.salePrice ? 'ape-field--error' : ''}
                       />
-                      {salePrice && Number(salePrice) >= Number(price) && (
-                        <Form.Text style={{ color: '#c0392b', fontSize: '0.78rem' }}>
-                          Sale price must be lower than KES {price}
+                      {fieldErrors.salePrice && (
+                        <Form.Text className='ape-error-text'>
+                          Sale price must be greater than 0 and lower than KES {price}.
                         </Form.Text>
                       )}
                     </Form.Group>
@@ -493,95 +680,67 @@ const AdminProductEditPage = () => {
 
                   {/* Category */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>
-                      Category <span style={{ color: '#c0392b' }}>*</span>
-                    </Form.Label>
+                    <FieldLabel field='category' required>Category</FieldLabel>
                     <Form.Select
                       value={category}
                       onChange={(e) => handleCategoryChange(e.target.value)}
+                      className={fieldErrors.category ? 'ape-field--error' : ''}
                       required
                     >
                       <option value=''>Select a category...</option>
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
+                      {CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
                     </Form.Select>
+                    {fieldErrors.category && (
+                      <Form.Text className='ape-error-text'>Please select a category.</Form.Text>
+                    )}
                   </Form.Group>
 
-                  {/* Unit */}
+                  {/* Legacy unit */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Unit Type</Form.Label>
-                    <Form.Select
-                      value={unit}
-                      onChange={(e) => setUnit(e.target.value)}
-                    >
-                      {Object.keys(UNIT_HINTS).map((u) => (
-                        <option key={u} value={u}>{u}</option>
-                      ))}
+                    <FieldLabel field='unit'>Display Unit Type</FieldLabel>
+                    <Form.Select value={unit} onChange={(e) => setUnit(e.target.value)}>
+                      {Object.keys(UNIT_HINTS).map((u) => <option key={u} value={u}>{u}</option>)}
                     </Form.Select>
-                    {/* Unit hint below dropdown */}
-                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
+                    <Form.Text className='ape-hint'>
                       {UNIT_HINTS[unit]}
+                    </Form.Text>
+                    {/* Legacy field note — directs admins to the wholesale section */}
+                    <Form.Text className='ape-hint ape-hint--legacy'>
+                      Legacy display field. For new products, use Wholesale Unit Type below.
                     </Form.Text>
                   </Form.Group>
 
                   {/* Count in stock */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>
-                      Count In Stock <span style={{ color: '#c0392b' }}>*</span>
-                    </Form.Label>
+                    <FieldLabel field='countInStock' required>Count In Stock</FieldLabel>
                     <Form.Control
                       type='number'
                       placeholder='e.g. 50'
                       value={countInStock}
                       min='1'
-                      onChange={(e) => setCountInStock(e.target.value)}
+                      onChange={(e) => { setCountInStock(e.target.value); clearFieldError('countInStock'); }}
+                      className={fieldErrors.countInStock ? 'ape-field--error' : ''}
                       required
                     />
-                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                      How many units do you have available right now?
-                    </Form.Text>
+                    {fieldErrors.countInStock ? (
+                      <Form.Text className='ape-error-text'>Stock count must be at least 1.</Form.Text>
+                    ) : (
+                      <Form.Text className='ape-hint'>How many units do you have available right now?</Form.Text>
+                    )}
                   </Form.Group>
 
-                  {/* Tags — chip system */}
+                  {/* Tags */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>Search Tags</Form.Label>
-
-                    {/* Rendered tag chips */}
+                    <FieldLabel field='tags'>Search Tags</FieldLabel>
                     {tagList.length > 0 && (
-                      <div style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '6px',
-                        marginBottom: '8px',
-                      }}>
+                      <div className='ape-tag-list'>
                         {tagList.map((tag) => (
-                          <span
-                            key={tag}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              background: 'rgba(0,33,71,0.07)',
-                              color: 'var(--oxford-blue)',
-                              borderRadius: '999px',
-                              padding: '3px 10px',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                            }}
-                          >
+                          <span key={tag} className='ape-tag-chip'>
                             {tag}
                             <button
                               type='button'
+                              className='ape-tag-remove'
                               onClick={() => removeTag(tag)}
-                              style={{
-                                all: 'unset',
-                                cursor: 'pointer',
-                                color: '#c0392b',
-                                fontSize: '0.7rem',
-                                fontWeight: 700,
-                                lineHeight: 1,
-                              }}
                               aria-label={`Remove tag ${tag}`}
                             >
                               ×
@@ -590,61 +749,46 @@ const AdminProductEditPage = () => {
                         ))}
                       </div>
                     )}
-
-                    {/* Add custom tag input */}
                     <Form.Control
                       type='text'
-                      placeholder='Type a tag and press Enter to add'
+                      placeholder={
+                        tagList.length >= MAX_TAGS
+                          ? `Maximum ${MAX_TAGS} tags reached`
+                          : 'Type a tag and press Enter to add'
+                      }
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={handleTagInputKeyDown}
+                      disabled={tagList.length >= MAX_TAGS}
+                      className={tagList.length >= MAX_TAGS ? 'ape-field--disabled' : ''}
                     />
-                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                      {category
-                        ? 'Suggested tags auto-added from your category. Remove irrelevant ones or add your own.'
-                        : 'Select a category first to get suggested tags.'}
-                    </Form.Text>
+                    {tagList.length >= MAX_TAGS ? (
+                      <Form.Text className='ape-error-text'>
+                        Maximum {MAX_TAGS} tags reached. Remove a tag to add a new one.
+                      </Form.Text>
+                    ) : (
+                      <Form.Text className='ape-hint'>
+                        {category
+                          ? `Suggested tags auto-added from your category. Remove irrelevant ones or add your own. ${tagList.length}/${MAX_TAGS} tags.`
+                          : `Select a category first to get suggested tags. ${tagList.length}/${MAX_TAGS} tags.`}
+                      </Form.Text>
+                    )}
                   </Form.Group>
 
-                 {/* ── Wholesale fields ──────────────────────────────── */}
-                  {/* These fields clarify buying units for B2B buyers     */}
-                  <div style={{
-                    background: '#f0f4f8',
-                    border: '1px solid #d0dce8',
-                    borderRadius: '10px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                  }}>
-                    <p style={{
-                      color: 'var(--oxford-blue)',
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '0.75rem',
-                    }}>
-                      Wholesale Details
-                    </p>
+                  {/* ── Wholesale Details ──────────────────── */}
+                  <div className='ape-section-box ape-section-box--blue'>
+                    <p className='ape-section-label'>Wholesale Details</p>
 
-                    {/* Unit type — richer than the legacy unit field */}
                     <Form.Group className='mb-3'>
-                      <Form.Label>Unit Type</Form.Label>
-                      <Form.Select
-                        value={unitType}
-                        onChange={(e) => setUnitType(e.target.value)}
-                      >
-                        {Object.keys(UNIT_HINTS).map((u) => (
-                          <option key={u} value={u}>{u}</option>
-                        ))}
+                      <FieldLabel field='unitType'>Wholesale Unit Type</FieldLabel>
+                      <Form.Select value={unitType} onChange={(e) => setUnitType(e.target.value)}>
+                        {Object.keys(UNIT_HINTS).map((u) => <option key={u} value={u}>{u}</option>)}
                       </Form.Select>
-                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                        {UNIT_HINTS[unitType]}
-                      </Form.Text>
+                      <Form.Text className='ape-hint'>{UNIT_HINTS[unitType]}</Form.Text>
                     </Form.Group>
 
-                    {/* Minimum order quantity */}
                     <Form.Group className='mb-3'>
-                      <Form.Label>Minimum Order Quantity (MOQ)</Form.Label>
+                      <FieldLabel field='moq'>Minimum Order Quantity (MOQ)</FieldLabel>
                       <Form.Control
                         type='number'
                         placeholder='e.g. 5'
@@ -652,14 +796,11 @@ const AdminProductEditPage = () => {
                         min='1'
                         onChange={(e) => setMinimumOrderQuantity(e.target.value)}
                       />
-                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                        Minimum units a buyer must order. Defaults to 1.
-                      </Form.Text>
+                      <Form.Text className='ape-hint'>Minimum units a buyer must order. Defaults to 1.</Form.Text>
                     </Form.Group>
 
-                    {/* Items per unit */}
                     <Form.Group className='mb-3'>
-                      <Form.Label>Items Per Unit</Form.Label>
+                      <FieldLabel field='itemsPerUnit'>Items Per Unit</FieldLabel>
                       <Form.Control
                         type='number'
                         placeholder='e.g. 24 (bars of soap per carton)'
@@ -667,14 +808,11 @@ const AdminProductEditPage = () => {
                         min='1'
                         onChange={(e) => setItemsPerUnit(e.target.value)}
                       />
-                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                        How many individual pieces are inside one unit. Optional.
-                      </Form.Text>
+                      <Form.Text className='ape-hint'>How many individual pieces are inside one unit. Optional.</Form.Text>
                     </Form.Group>
 
-                    {/* Weight per unit */}
                     <Form.Group className='mb-3'>
-                      <Form.Label>Weight Per Unit (kg)</Form.Label>
+                      <FieldLabel field='weight'>Weight Per Unit (kg)</FieldLabel>
                       <Form.Control
                         type='number'
                         placeholder='e.g. 12.5'
@@ -683,94 +821,79 @@ const AdminProductEditPage = () => {
                         step='0.1'
                         onChange={(e) => setWeightPerUnit(e.target.value)}
                       />
-                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                        Used for Tier 2 delivery quote calculations.
-                      </Form.Text>
+                      <Form.Text className='ape-hint'>Used for Tier 2 delivery quote calculations.</Form.Text>
                     </Form.Group>
 
-                    {/* Dimensions */}
                     <Form.Group className='mb-3'>
-                      <Form.Label>Dimensions</Form.Label>
+                      <FieldLabel field='dimensions'>Dimensions</FieldLabel>
                       <Form.Control
                         type='text'
                         placeholder='e.g. 60 x 40 x 30 cm'
                         value={dimensions}
                         onChange={(e) => setDimensions(e.target.value)}
                       />
-                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                        Physical size of one unit. Optional.
-                      </Form.Text>
+                      <Form.Text className='ape-hint'>Physical size of one unit. Optional.</Form.Text>
                     </Form.Group>
 
-                    {/* Lead time */}
                     <Form.Group className='mb-3'>
-                      <Form.Label>Lead Time</Form.Label>
-                      <Form.Select
-                        value={leadTimeDays}
-                        onChange={(e) => setLeadTimeDays(e.target.value)}
-                      >
+                      <FieldLabel field='leadTime'>Lead Time</FieldLabel>
+                      <Form.Select value={leadTimeDays} onChange={(e) => setLeadTimeDays(e.target.value)}>
                         {LEAD_TIME_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </Form.Select>
-                      <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                        Days from confirmed order to dispatch.
-                      </Form.Text>
+                      <Form.Text className='ape-hint'>Days from confirmed order to dispatch.</Form.Text>
                     </Form.Group>
 
-                    {/* Bulk only flag */}
-                    <Form.Check
-                      type='checkbox'
-                      label='Bulk only — cannot be bought as single pieces'
-                      checked={isBulkOnly}
-                      onChange={(e) => setIsBulkOnly(e.target.checked)}
-                    />
+                    <div className='ape-checkbox-row'>
+                      <Form.Check
+                        type='checkbox'
+                        id='isBulkOnly'
+                        label=''
+                        checked={isBulkOnly}
+                        onChange={(e) => setIsBulkOnly(e.target.checked)}
+                      />
+                      <span className='ape-checkbox-label'>Bulk only — cannot be bought as single pieces</span>
+                      <HelpIcon field='bulkOnly' />
+                    </div>
                   </div>
 
-                  {/* Merchandising flags */}
-                  <div style={{
-                    background: '#f7f4ef',
-                    border: '1px solid #EAE0D5',
-                    borderRadius: '10px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                  }}>
-                    <p style={{
-                      color: 'var(--oxford-blue)',
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '0.75rem',
-                    }}>
-                      Merchandising
-                    </p>
-                    <Form.Check
-                      type='checkbox'
-                      label='Featured — show in Featured Products on homepage'
-                      checked={isFeatured}
-                      onChange={(e) => setIsFeatured(e.target.checked)}
-                      className='mb-2'
-                    />
-                    <Form.Check
-                      type='checkbox'
-                      label='On Sale — show in Deals section (sale price required)'
-                      checked={isOnSale}
-                      onChange={(e) => {
-                        setIsOnSale(e.target.checked);
-                        // Clear sale price if unchecking
-                        if (!e.target.checked) setSalePrice('');
-                      }}
-                      className='mb-2'
-                    />
-                    <Form.Check
-                      type='checkbox'
-                      label='Clearance — show in Clearance section'
-                      checked={isClearance}
-                      onChange={(e) => setIsClearance(e.target.checked)}
-                    />
+                  {/* ── Merchandising ──────────────────────── */}
+                  <div className='ape-section-box ape-section-box--tan'>
+                    <p className='ape-section-label'>Merchandising</p>
+
+                    <div className='ape-checkbox-row mb-2'>
+                      <Form.Check
+                        type='checkbox' id='isFeatured' label=''
+                        checked={isFeatured}
+                        onChange={(e) => setIsFeatured(e.target.checked)}
+                      />
+                      <span className='ape-checkbox-label'>Featured — show in Featured Products on homepage</span>
+                      <HelpIcon field='featured' />
+                    </div>
+
+                    <div className='ape-checkbox-row mb-2'>
+                      <Form.Check
+                        type='checkbox' id='isOnSale' label=''
+                        checked={isOnSale}
+                        onChange={(e) => {
+                          setIsOnSale(e.target.checked);
+                          if (!e.target.checked) { setSalePrice(''); clearFieldError('salePrice'); }
+                        }}
+                      />
+                      <span className='ape-checkbox-label'>On Sale — show in Deals section (sale price required)</span>
+                      <HelpIcon field='onSale' />
+                    </div>
+
+                    <div className='ape-checkbox-row'>
+                      <Form.Check
+                        type='checkbox' id='isClearance' label=''
+                        checked={isClearance}
+                        onChange={(e) => setIsClearance(e.target.checked)}
+                      />
+                      <span className='ape-checkbox-label'>Clearance — show in Clearance section</span>
+                      <HelpIcon field='clearance' />
+                    </div>
                   </div>
 
                 </Col>
@@ -780,39 +903,19 @@ const AdminProductEditPage = () => {
 
                   {/* Image upload */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>
-                      Product Image <span style={{ color: '#c0392b' }}>*</span>
-                    </Form.Label>
-                    <div style={{
-                      width: '100%',
-                      height: '200px',
-                      border: `2px dashed ${image ? 'var(--tan)' : '#EAE0D5'}`,
-                      borderRadius: '10px',
-                      overflow: 'hidden',
-                      backgroundColor: '#FAFAF9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: '0.75rem',
-                      transition: 'border-color 0.2s ease',
-                    }}>
+                    <FieldLabel field='image' required>Product Image</FieldLabel>
+                    <div className={`ape-image-drop${image ? ' ape-image-drop--filled' : ''}${fieldErrors.image ? ' ape-image-drop--error' : ''}`}>
                       {uploading ? (
                         <div className='text-center'>
-                          <Spinner animation='border' size='sm' style={{ color: 'var(--oxford-blue)' }} />
-                          <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.5rem' }}>Uploading...</p>
+                          <Spinner animation='border' size='sm' className='ape-spinner' />
+                          <p className='ape-image-uploading'>Uploading...</p>
                         </div>
                       ) : image ? (
-                        <Image
-                          src={image}
-                          alt='product preview'
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
+                        <Image src={image} alt='product preview' className='ape-image-preview' />
                       ) : (
                         <div className='text-center'>
-                          <p style={{ fontSize: '2rem', margin: 0 }}>📷</p>
-                          <p style={{ fontSize: '0.8rem', color: '#aaa', margin: '4px 0 0' }}>
-                            No image uploaded
-                          </p>
+                          <span className='ape-image-placeholder-icon'>📷</span>
+                          <p className='ape-image-placeholder-text'>No image uploaded</p>
                         </div>
                       )}
                     </div>
@@ -820,26 +923,26 @@ const AdminProductEditPage = () => {
                       type='file'
                       accept='image/jpeg,image/jpg,image/png'
                       onChange={uploadImageHandler}
-                      style={{ fontSize: '0.85rem' }}
+                      className='ape-file-input'
                     />
-                    <Form.Text style={{ color: '#888', fontSize: '0.75rem' }}>
-                      JPG or PNG only. Image is required before saving.
-                    </Form.Text>
+                    {fieldErrors.image ? (
+                      <Form.Text className='ape-error-text'>Please upload a product image before saving.</Form.Text>
+                    ) : (
+                      <Form.Text className='ape-hint'>JPG or PNG only. Image is required before saving.</Form.Text>
+                    )}
                   </Form.Group>
 
-                  {/* Image URL — auto filled after upload */}
+                  {/* Image URL */}
                   <Form.Group className='mb-3'>
-                    <Form.Label>
+                    <FieldLabel field='imageUrl'>
                       Image URL
-                      <span style={{ fontSize: '0.75rem', color: '#aaa', marginLeft: '0.5rem', fontWeight: 400 }}>
-                        (auto-filled after upload)
-                      </span>
-                    </Form.Label>
+                      <span className='ape-label-note'>(auto-filled after upload)</span>
+                    </FieldLabel>
                     <Form.Control
                       type='text'
                       placeholder='/uploads/image.jpg'
                       value={image}
-                      onChange={(e) => setImage(e.target.value)}
+                      onChange={(e) => { setImage(e.target.value); clearFieldError('image'); }}
                     />
                   </Form.Group>
 
@@ -848,55 +951,32 @@ const AdminProductEditPage = () => {
 
               {/* Description — full width */}
               <Form.Group className='mb-4'>
-                <Form.Label>
-                  Description <span style={{ color: '#c0392b' }}>*</span>
-                </Form.Label>
+                <FieldLabel field='description' required>Description</FieldLabel>
                 <Form.Control
                   as='textarea'
                   rows={4}
                   placeholder='Describe the product in detail — minimum 30 characters. Include key specs, what is included, and who this product is for.'
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => { setDescription(e.target.value); clearFieldError('description'); }}
+                  className={fieldErrors.description ? 'ape-field--error' : ''}
                   required
                 />
-                <Form.Text style={{
-                  color: description.length < 30 && description.length > 0 ? '#c0392b' : '#888',
-                  fontSize: '0.75rem',
-                }}>
-                  {description.length} / 30 characters minimum
-                </Form.Text>
+                {fieldErrors.description ? (
+                  <Form.Text className='ape-error-text'>
+                    Description must be at least 30 characters. Currently {description.length}.
+                  </Form.Text>
+                ) : (
+                  <Form.Text className={description.length < 30 && description.length > 0 ? 'ape-error-text' : 'ape-hint'}>
+                    {description.length} / 30 characters minimum
+                  </Form.Text>
+                )}
               </Form.Group>
 
               <div className='d-flex gap-3'>
-                <Button
-                  type='submit'
-                  variant='dark'
-                  className='w-100'
-                  disabled={saving || uploading}
-                  style={{ background: 'var(--oxford-blue)', borderColor: 'var(--oxford-blue)' }}
-                >
-                  {saving
-                    ? <Spinner animation='border' size='sm' />
-                    : 'Save Changes'}
+                <Button type='submit' className='w-100 ape-save-btn' disabled={saving || uploading}>
+                  {saving ? <Spinner animation='border' size='sm' /> : 'Save Changes'}
                 </Button>
-                <Button
-                  type='button'
-                  variant='light'
-                  className='w-100'
-                  onClick={async () => {
-                    if (isNewUnsaved) {
-                      try {
-                        await axios.delete(`/api/products/${id}`, {
-                          headers: { Authorization: `Bearer ${userInfo.token}` },
-                        });
-                      } catch (err) {
-                        console.error('Could not delete unsaved product:', err.message);
-                      }
-                    }
-                    navigate('/admin/products');
-                  }}
-                  style={{ borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}
-                >
+                <Button type='button' className='w-100 ape-cancel-btn' onClick={handleBack}>
                   Cancel
                 </Button>
               </div>

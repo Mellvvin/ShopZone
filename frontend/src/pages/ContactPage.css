@@ -954,3 +954,14 @@ a.contact-info-card__value:hover {
         align-items: flex-start;
     }
 }
+
+/* Form submission error message */
+.contact-form__error {
+    color: #c0392b;
+    font-size: 0.85rem;
+    background: #fdf0f0;
+    border: 1px solid #f5c6c2;
+    border-radius: 6px;
+    padding: 0.5rem 0.8rem;
+    margin-bottom: 0.8rem;
+}

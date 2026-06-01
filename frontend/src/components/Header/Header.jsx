@@ -44,11 +44,16 @@ const Header = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.cart);
 
-  // ── Local state ────────────────────────────────────────────
-  const [keyword, setKeyword] = useState('');   // search input
-  const [showSearch, setShowSearch] = useState(false);// mobile search slide-down
-  const [showDrawer, setShowDrawer] = useState(false);// mobile drawer
-  const [showDropdown, setShowDropdown] = useState(false);// desktop hamburger dropdown
+// ── Local state ────────────────────────────────────────────
+  const [keyword, setKeyword] = useState('');        // search input
+  const [showSearch, setShowSearch] = useState(false); // mobile search slide-down
+  const [showDrawer, setShowDrawer] = useState(false);  // mobile drawer
+  const [showDropdown, setShowDropdown] = useState(false); // desktop dropdown open
+  const [dropdownLocked, setDropdownLocked] = useState(false); // click-locked open
+
+  // Timer ref for hover close delay — prevents flicker when
+  // mouse briefly leaves the trigger before reaching the menu
+  const dropdownHoverTimer = useRef(null);
 
   // Ref for desktop dropdown outside-click detection
   const dropdownRef = useRef(null);
@@ -71,14 +76,14 @@ const Header = () => {
     setShowSearch(false);
   }, [location.pathname]);
 
-  // ── Close desktop dropdown on outside click ────────────────
-  // Returns focus to hamburger button when dropdown closes via outside click
+// ── Close desktop dropdown on outside click ────────────────
+  // Closes both hover and locked states when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         if (showDropdown) {
           setShowDropdown(false);
-          // Restore focus to the button that opened the dropdown
+          setDropdownLocked(false);
           setTimeout(() => hamburgerRef.current?.focus(), 50);
         }
       }
@@ -86,6 +91,38 @@ const Header = () => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showDropdown]);
+
+  // ── Dropdown hover handlers ────────────────────────────────
+  // Mouse enters the wrapper — open immediately, cancel any
+  // pending close timer
+  const handleDropdownMouseEnter = () => {
+    if (dropdownHoverTimer.current) clearTimeout(dropdownHoverTimer.current);
+    setShowDropdown(true);
+  };
+
+  // Mouse leaves the wrapper — close after 150ms delay UNLESS
+  // the dropdown has been locked open by a click
+  const handleDropdownMouseLeave = () => {
+    if (dropdownLocked) return;
+    dropdownHoverTimer.current = setTimeout(() => {
+      setShowDropdown(false);
+    }, 150);
+  };
+
+  // Click handler — toggle lock state
+  // First click: locks open so hover-close is ignored
+  // Second click: unlocks and closes
+  const handleHamburgerClick = () => {
+    if (dropdownLocked) {
+      // Unlock and close
+      setDropdownLocked(false);
+      setShowDropdown(false);
+    } else {
+      // Lock open
+      setDropdownLocked(true);
+      setShowDropdown(true);
+    }
+  };
 
   // ── Handlers ───────────────────────────────────────────────
 
@@ -168,23 +205,32 @@ const Header = () => {
               </span>
             </Link>
 
-            {/* Desktop hamburger with custom dropdown */}
-            <div className='header-dropdown-wrapper' ref={dropdownRef}>
+            {/* Desktop hamburger — hover opens, click locks open */}
+            <div
+              className='header-dropdown-wrapper'
+              ref={dropdownRef}
+              onMouseEnter={handleDropdownMouseEnter}
+              onMouseLeave={handleDropdownMouseLeave}
+            >
               <button
                 className='nav-icon-link header-hamburger-btn'
-                onClick={() => setShowDropdown(!showDropdown)}
+                onClick={handleHamburgerClick}
                 aria-label='Open menu'
                 aria-expanded={showDropdown}
+                aria-haspopup='true'
                 ref={hamburgerRef}
               >
                 <FaBars size={22} />
               </button>
 
-              {/* Dropdown menu — rendered when hamburger clicked */}
+              {/* Dropdown menu — shown on hover or when locked by click */}
               {showDropdown && (
                 <DesktopDropdownMenu
                   userInfo={userInfo}
-                  onClose={() => setShowDropdown(false)}
+                  onClose={() => {
+                    setShowDropdown(false);
+                    setDropdownLocked(false);
+                  }}
                   onLogout={logoutHandler}
                 />
               )}

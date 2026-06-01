@@ -15,6 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
     FaStore, FaShieldAlt, FaChartLine, FaTruck,
     FaUsers, FaLock, FaBolt, FaCheckCircle,
@@ -279,7 +280,9 @@ const BecomeSellerPage = () => {
         county: '',
         message: '',
     });
-    const [submitted, setSubmitted] = useState(false);
+const [submitted, setSubmitted]         = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [submitError, setSubmitError]     = useState('');
     const heroRef = useRef(null);
 
     useEffect(() => { document.title = 'Become a Seller — ShopZone'; }, []);
@@ -301,20 +304,42 @@ const BecomeSellerPage = () => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleSubmit = (e) => {
+    // ── Form submission — posts to /api/enquiries ─────────────
+    // Replaces the old mailto hack. Data is stored in MongoDB and
+    // visible in the admin enquiries page at /admin/enquiries.
+    // When Step 6 (Seller Approval) is built, seller_application
+    // enquiries will migrate to the dedicated seller application model.
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const subject = encodeURIComponent('ShopZone Seller Application');
-        const body = encodeURIComponent(
-            `Business Name: ${formData.businessName}\n` +
-            `Contact Name: ${formData.contactName}\n` +
-            `Email: ${formData.email}\n` +
-            `Phone: ${formData.phone}\n` +
-            `Products Supplied: ${formData.products}\n` +
-            `County: ${formData.county}\n\n` +
-            `Additional Info:\n${formData.message}`
-        );
-        window.open(`mailto:support@shopzone.com?subject=${subject}&body=${body}`);
-        setSubmitted(true);
+        setSubmitLoading(true);
+        setSubmitError('');
+        try {
+            await axios.post('/api/enquiries', {
+                type:     'seller_application',
+                name:     formData.contactName,
+                email:    formData.email,
+                phone:    formData.phone,
+                business: formData.businessName,
+                message:  formData.message,
+                // Store full application payload in the data field so
+                // nothing is lost when it migrates to the seller model
+                data: {
+                    businessName: formData.businessName,
+                    contactName:  formData.contactName,
+                    products:     formData.products,
+                    county:       formData.county,
+                    message:      formData.message,
+                },
+            });
+            setSubmitted(true);
+        } catch (err) {
+            setSubmitError(
+                err.response?.data?.message ||
+                'Failed to submit application. Please try again or WhatsApp us directly.'
+            );
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     // Generate random particles
@@ -642,21 +667,22 @@ const BecomeSellerPage = () => {
                     <Reveal delay={100}>
                         <div className='bs-apply__card'>
                             {submitted ? (
-                                <div className='bs-apply__success'>
+                              <div className='bs-apply__success'>
                                     <div className='bs-apply__success-icon'>
                                         <FaCheckCircle aria-hidden='true' />
                                     </div>
-                                    <h3>Application submitted!</h3>
+                                    <h3>Application received!</h3>
                                     <p>
-                                        Your email client should have opened with your application ready.
-                                        If not, email us directly at{' '}
-                                        <a href='mailto:support@shopzone.com'>support@shopzone.com</a>.
-                                        We will review your application within 48 hours.
+                                        Thank you for applying to sell on ShopZone. Our team reviews
+                                        every application personally and will get back to you within
+                                        48 hours. Keep an eye on your email at{' '}
+                                        <strong>{formData.email}</strong>.
                                     </p>
                                     <button
                                         className='bs-apply__reset'
                                         onClick={() => {
                                             setSubmitted(false);
+                                            setSubmitError('');
                                             setFormData({
                                                 businessName: '', contactName: '', email: '',
                                                 phone: '', products: '', county: '', message: '',
@@ -763,23 +789,30 @@ const BecomeSellerPage = () => {
                                         />
                                     </div>
 
+                                    {/* Inline error if submission fails */}
+                                    {submitError && (
+                                        <p className='bs-apply__error' role='alert'>
+                                            {submitError}
+                                        </p>
+                                    )}
+
                                     <button
                                         type='submit'
                                         className='bs-apply__submit'
                                         disabled={
                                             !formData.businessName || !formData.contactName ||
-                                            !formData.email || !formData.phone || !formData.products || !formData.county
+                                            !formData.email || !formData.phone || !formData.products ||
+                                            !formData.county || submitLoading
                                         }
                                     >
                                         <FaRocket aria-hidden='true' />
-                                        Submit My Application
+                                        {submitLoading ? 'Submitting…' : 'Submit My Application'}
                                     </button>
 
                                     <p className='bs-apply__privacy'>
                                         <FaLock aria-hidden='true' />
                                         Your information is only used to review your application. We never sell data.
                                     </p>
-
                                 </form>
                             )}
                         </div>

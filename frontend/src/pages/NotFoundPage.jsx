@@ -1,50 +1,22 @@
-import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+// frontend/src/pages/NotFoundPage/NotFoundPage.jsx
+// ─────────────────────────────────────────────────────────────
+// 404 page — all inline styles removed.
+// ─────────────────────────────────────────────────────────────
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import './NotFoundPage.css';
 
 const NotFoundPage = () => {
-
-  // ── Page title ─────────────────────────────────────────────
   useEffect(() => { document.title = 'Not Found — ShopZone'; }, []);
 
   return (
-    <div
-      className='text-center'
-      style={{ padding: '5rem 0' }}
-    >
-      <h1
-        style={{
-          fontSize: '8rem',
-          fontWeight: '800',
-          color: 'var(--oxford-blue)',
-          lineHeight: 1,
-        }}
-      >
-        404
-      </h1>
-      <h2
-        style={{
-          color: 'var(--tan-dark)',
-          marginBottom: '1rem',
-        }}
-      >
-        Page Not Found
-      </h2>
-      <p
-        style={{
-          color: 'var(--text-muted)',
-          fontSize: '1.1rem',
-          marginBottom: '2rem',
-          maxWidth: '400px',
-          margin: '0 auto 2rem',
-        }}
-      >
+    <div className='nfp-wrapper'>
+      <p className='nfp-code'>404</p>
+      <h2 className='nfp-title'>Page Not Found</h2>
+      <p className='nfp-message'>
         The page you are looking for does not exist or has been moved.
       </p>
-      <Link
-        to='/'
-        className='btn btn-dark btn-lg'
-        style={{ minWidth: '200px' }}
-      >
+      <Link to='/' className='btn btn-dark btn-lg nfp-btn'>
         Back to Shop
       </Link>
     </div>

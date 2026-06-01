@@ -1,0 +1,31 @@
+/* frontend/src/pages/NotFoundPage/NotFoundPage.css
+   ─────────────────────────────────────────────────── */
+
+.nfp-wrapper {
+    text-align: center;
+    padding: 5rem 0;
+}
+
+.nfp-code {
+    font-size: 8rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+    line-height: 1;
+    margin: 0;
+}
+
+.nfp-title {
+    color: var(--tan-dark);
+    margin-bottom: 1rem;
+}
+
+.nfp-message {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    max-width: 400px;
+    margin: 0 auto 2rem;
+}
+
+.nfp-btn {
+    min-width: 200px;
+}

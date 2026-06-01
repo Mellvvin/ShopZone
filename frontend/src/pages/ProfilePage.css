@@ -1,0 +1,97 @@
+/* frontend/src/pages/ProfilePage/ProfilePage.css
+   ───────────────────────────────────────────────── */
+
+.profile-title {
+    color: var(--oxford-blue);
+}
+
+.profile-spinner {
+    color: var(--oxford-blue);
+}
+
+.profile-hint {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.profile-error-text {
+    color: #c0392b;
+    font-size: 0.82rem;
+}
+
+.profile-link {
+    color: var(--oxford-blue);
+    font-weight: 600;
+}
+
+.profile-success-alert {
+    background-color: var(--tan-light);
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
+
+.profile-empty-alert {
+    background-color: var(--tan-light);
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
+
+.profile-account-type {
+    background: #f7f4ef;
+    border: 1px solid #EAE0D5;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
+
+.profile-account-type__label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    display: block;
+}
+
+.profile-account-type__value {
+    margin: 4px 0 0;
+    color: var(--oxford-blue);
+    font-weight: 600;
+}
+
+.profile-section-box {
+    background: #f7f4ef;
+    border: 1px solid #EAE0D5;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.profile-section-label {
+    color: var(--oxford-blue);
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+}
+
+.profile-orders-table {
+    font-size: 0.9rem;
+}
+
+.profile-thead-row {
+    background-color: var(--oxford-blue);
+}
+
+.profile-thead-row th {
+    color: var(--tan);
+}
+
+.profile-id-cell {
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+}
+
+.profile-badge--paid {
+    background-color: var(--oxford-blue) !important;
+    color: var(--tan) !important;
+}

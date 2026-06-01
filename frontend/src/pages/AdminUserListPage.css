@@ -1,0 +1,218 @@
+/* frontend/src/pages/AdminUserListPage/AdminUserListPage.css
+   ───────────────────────────────────────────────────────────── */
+
+.aul-page-title {
+    color: var(--oxford-blue);
+}
+
+.aul-spinner {
+    color: var(--oxford-blue);
+}
+
+.aul-user-count {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.aul-table {
+    font-size: 0.88rem;
+}
+
+.aul-thead-row {
+    background-color: var(--oxford-blue);
+}
+
+.aul-thead-row th {
+    color: var(--tan);
+}
+
+.aul-tbody-row {
+    background-color: white;
+    vertical-align: middle;
+}
+
+.aul-tbody-row--alt {
+    background-color: #FAFAF9;
+}
+
+.aul-tbody-row--self {
+    opacity: 0.7;
+}
+
+.aul-id-cell {
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.aul-name-cell {
+    font-weight: 500;
+    color: var(--oxford-blue);
+}
+
+.aul-you-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-left: 0.4rem;
+    font-weight: 400;
+}
+
+.aul-email-cell {
+    color: var(--text-muted);
+}
+
+.aul-email-link {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.aul-email-link:hover {
+    color: var(--oxford-blue);
+}
+
+.aul-muted-cell {
+    color: var(--text-muted);
+}
+
+.aul-current-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.aul-badge--admin {
+    background-color: var(--oxford-blue) !important;
+    color: var(--tan) !important;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.aul-badge--customer {
+    background-color: #F5F0EB !important;
+    color: var(--text-muted) !important;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #EAE0D5;
+}
+
+.aul-role-btn {
+    background-color: var(--oxford-blue) !important;
+    color: var(--tan) !important;
+    border: none !important;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.aul-action-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.aul-empty-alert {
+    background-color: var(--tan-light);
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
+
+/* ── Role modal (replaces Bootstrap Modal to remove inline styles) ── */
+.aul-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.aul-modal {
+    background: white;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 8px 32px rgba(0, 33, 71, 0.18);
+    overflow: hidden;
+}
+
+.aul-modal-header {
+    background: var(--oxford-blue);
+    padding: 1rem 1.25rem;
+}
+
+.aul-modal-title {
+    color: var(--tan);
+    margin: 0;
+    font-weight: 600;
+}
+
+.aul-modal-body {
+    padding: 1.25rem;
+}
+
+.aul-modal-user-name {
+    font-weight: 600;
+    color: var(--oxford-blue);
+    margin-bottom: 0.2rem;
+}
+
+.aul-modal-user-email {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+}
+
+.aul-role-label {
+    color: var(--oxford-blue);
+    font-weight: 600;
+}
+
+.aul-role-hint {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.aul-modal-footer {
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    border-top: 1px solid #EAE0D5;
+}
+
+.aul-modal-cancel {
+    all: unset;
+    cursor: pointer;
+    border: 1px solid var(--tan);
+    color: var(--oxford-blue);
+    background: white;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.aul-modal-cancel:hover {
+    background: var(--tan-light);
+}
+
+.aul-modal-save {
+    all: unset;
+    cursor: pointer;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.aul-modal-save:hover {
+    background: #003170;
+}
+
+.aul-modal-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

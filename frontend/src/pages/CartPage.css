@@ -1,0 +1,139 @@
+/* frontend/src/pages/CartPage/CartPage.css
+   ───────────────────────────────────────── */
+
+.cart-clear-btn {
+    all: unset;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #c0392b;
+    border-bottom: 1px solid #c0392b;
+    padding-bottom: 1px;
+}
+
+.cart-empty-alert {
+    background-color: var(--tan-light);
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
+
+.cart-empty-link {
+    color: var(--oxford-blue);
+    font-weight: 600;
+}
+
+.cart-item {
+    border-color: #EAE0D5;
+    padding: 1rem 0;
+}
+
+.cart-item-img {
+    max-height: 70px;
+    object-fit: cover;
+}
+
+.cart-item-name {
+    color: var(--oxford-blue);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.cart-item-name:hover {
+    color: var(--tan-dark);
+}
+
+/* ── Quantity stepper ───────────────────────────────────────── */
+.cart-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid rgba(0, 33, 71, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+    height: 32px;
+}
+
+.cart-stepper__btn {
+    all: unset;
+    cursor: pointer;
+    width: 28px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: var(--oxford-blue);
+    background: rgba(0, 33, 71, 0.04);
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+}
+
+.cart-stepper__btn:hover {
+    background: rgba(0, 33, 71, 0.1);
+}
+
+.cart-stepper__input {
+    width: 36px;
+    height: 32px;
+    border: none;
+    border-left: 1px solid rgba(0, 33, 71, 0.1);
+    border-right: 1px solid rgba(0, 33, 71, 0.1);
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    outline: none;
+    padding: 0;
+    appearance: textfield;
+    -moz-appearance: textfield;
+
+}
+
+.cart-stepper__input::-webkit-inner-spin-button,
+.cart-stepper__input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+/* ── Remove button ──────────────────────────────────────────── */
+.cart-remove-btn {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    border: 1.5px solid #c0392b;
+    color: #c0392b;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cart-remove-btn:hover {
+    background: #c0392b;
+    color: #fff;
+}
+
+/* ── Order summary card ─────────────────────────────────────── */
+.cart-summary-card {
+    border: 1px solid #EAE0D5;
+}
+
+.cart-summary-header {
+    background-color: var(--oxford-blue);
+}
+
+.cart-summary-title {
+    color: var(--tan);
+    margin: 0;
+}
+
+.cart-summary-label {
+    color: var(--text-muted);
+}
+
+.cart-summary-value {
+    color: var(--oxford-blue);
+    font-weight: 600;
+}

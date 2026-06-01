@@ -1,19 +1,20 @@
 // src/components/DesktopDropdownMenu/DesktopDropdownMenu.jsx
 // ─────────────────────────────────────────────────────────────
 // The hamburger dropdown menu shown on desktop.
+// Opens on hover, locks open on click.
 // Contains: user greeting, admin links, regular links, logout.
 //
 // Props:
-//   userInfo      {object|null} — from Redux auth state
-//   onClose       {function}   — closes the dropdown
-//   onLogout      {function}   — dispatches logout + redirect
-//   dropdownRef   {ref}        — forwarded ref for outside-click detection
+//   userInfo    {object|null} — from Redux auth state
+//   onClose     {function}   — closes the dropdown
+//   onLogout    {function}   — dispatches logout + redirect
 // ─────────────────────────────────────────────────────────────
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     FaCog, FaUsers, FaBox, FaClipboardList,
-    FaEnvelope, FaQuestionCircle, FaStore, FaSignOutAlt,
+    FaEnvelope, FaQuestionCircle, FaStore,
+    FaSignOutAlt,
 } from 'react-icons/fa';
 import './DesktopDropdownMenu.css';
 
@@ -25,18 +26,21 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
 
     // ── Admin links — only rendered when user is admin ─────────
     const adminLinks = [
-        { icon: <FaCog size={13} />, label: 'Products', to: '/admin/products' },
-        { icon: <FaBox size={13} />, label: 'Orders', to: '/admin/orders' },
-        { icon: <FaUsers size={13} />, label: 'Users', to: '/admin/users' },
-        { icon: <FaEnvelope size={13} />, label: 'Enquiries', to: '/admin/enquiries' },
+        { icon: <FaCog size={13} />,          label: 'Products',   to: '/admin/products' },
+        { icon: <FaBox size={13} />,           label: 'Orders',     to: '/admin/orders' },
+        { icon: <FaUsers size={13} />,         label: 'Users',      to: '/admin/users' },
+        // Enquiries — all form submissions from across the site
+        { icon: <FaEnvelope size={13} />,      label: 'Enquiries',  to: '/admin/enquiries' },
     ];
 
-    // ── General links — shown to all users ─────────────────────
+   // ── General links — kept minimal, most nav lives in CategoryBar ──
+    // Policy pages and bulk orders are in CategoryBar More menu.
+    // Mailto links are banned here — Contact Support goes to /contact.
     const generalLinks = [
-        { icon: <FaClipboardList size={13} />, label: 'Order History', to: '/profile', href: null },
-        { icon: <FaEnvelope size={13} />, label: 'Contact Support', to: null, href: 'mailto:support@shopzone.com' },
-        { icon: <FaQuestionCircle size={13} />, label: 'FAQ', to: null, href: null },
-        { icon: <FaStore size={13} />, label: 'Become a Seller', to: null, href: null },
+        { icon: <FaClipboardList size={13} />, label: 'Order History',   to: '/profile' },
+        { icon: <FaEnvelope size={13} />,      label: 'Contact Support', to: '/contact' },
+        { icon: <FaQuestionCircle size={13} />,label: 'FAQ',             to: '/faq' },
+        { icon: <FaStore size={13} />,         label: 'Become a Seller', to: '/become-seller' },
     ];
 
     return (
@@ -55,30 +59,40 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
                 </div>
             )}
 
-            {/* ── Admin links ────────────────────────────────────── */}
-            {userInfo?.isAdmin && adminLinks.map((item) => (
-                <div
-                    key={item.label}
-                    className='desktop-dropdown-item desktop-dropdown-item--admin'
-                    onClick={() => go(item.to)}
-                    role='menuitem'
-                >
-                    {item.icon}
-                    <span>{item.label}</span>
-                </div>
-            ))}
+            {/* ── Admin section ──────────────────────────────────── */}
+            {userInfo?.isAdmin && (
+                <>
+                    {/* Admin section label */}
+                    <div className='desktop-dropdown-section-label'>
+                        Admin
+                    </div>
+                    {adminLinks.map((item) => (
+                        <div
+                            key={item.label}
+                            className='desktop-dropdown-item desktop-dropdown-item--admin'
+                            onClick={() => go(item.to)}
+                            role='menuitem'
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && go(item.to)}
+                        >
+                            {item.icon}
+                            <span>{item.label}</span>
+                        </div>
+                    ))}
+                    {/* Divider between admin and general links */}
+                    <div className='desktop-dropdown-divider' aria-hidden='true' />
+                </>
+            )}
 
             {/* ── General links ──────────────────────────────────── */}
-            {generalLinks.map((item, i) => (
+            {generalLinks.map((item) => (
                 <div
-                    key={i}
+                    key={item.label}
                     className='desktop-dropdown-item'
-                    onClick={() => {
-                        onClose();
-                        if (item.to) navigate(item.to);
-                        if (item.href) window.location.href = item.href;
-                    }}
+                    onClick={() => go(item.to)}
                     role='menuitem'
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && go(item.to)}
                 >
                     {item.icon}
                     <span>{item.label}</span>
@@ -87,14 +101,19 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
 
             {/* ── Logout — logged-in only ────────────────────────── */}
             {userInfo && (
-                <div
-                    className='desktop-dropdown-item desktop-dropdown-item--logout'
-                    onClick={onLogout}
-                    role='menuitem'
-                >
-                    <FaSignOutAlt size={13} />
-                    <span>Logout</span>
-                </div>
+                <>
+                    <div className='desktop-dropdown-divider' aria-hidden='true' />
+                    <div
+                        className='desktop-dropdown-item desktop-dropdown-item--logout'
+                        onClick={onLogout}
+                        role='menuitem'
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && onLogout()}
+                    >
+                        <FaSignOutAlt size={13} />
+                        <span>Logout</span>
+                    </div>
+                </>
             )}
         </div>
     );

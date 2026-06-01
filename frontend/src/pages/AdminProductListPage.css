@@ -1,0 +1,107 @@
+/* frontend/src/pages/AdminProductListPage/AdminProductListPage.css
+   ───────────────────────────────────────────────────────────────── */
+
+.apl-page-title {
+    color: var(--oxford-blue);
+}
+
+.apl-create-btn {
+    background: var(--oxford-blue) !important;
+    border-color: var(--oxford-blue) !important;
+    color: var(--tan) !important;
+    font-weight: 600;
+}
+
+.apl-spinner {
+    color: var(--oxford-blue);
+}
+
+.apl-result-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.apl-table {
+    font-size: 0.88rem;
+}
+
+.apl-thead-row {
+    background-color: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.apl-thead-row th {
+    color: var(--tan);
+}
+
+.apl-tbody-row {
+    background-color: white;
+    vertical-align: middle;
+}
+
+.apl-tbody-row--alt {
+    background-color: #FAFAF9;
+}
+
+.apl-id-cell {
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.apl-product-thumb {
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #EAE0D5;
+}
+
+.apl-name-cell {
+    font-weight: 500;
+    color: var(--oxford-blue);
+}
+
+.apl-muted-cell {
+    color: var(--text-muted);
+}
+
+.apl-unit-badge {
+    background-color: var(--oxford-blue) !important;
+    color: var(--tan) !important;
+    font-size: 0.72rem;
+    padding: 4px 8px;
+    border-radius: 20px;
+}
+
+.apl-stock--in {
+    color: green;
+    font-weight: 600;
+}
+
+.apl-stock--out {
+    color: red;
+    font-weight: 600;
+}
+
+.apl-edit-btn {
+    background-color: var(--oxford-blue);
+    color: var(--tan);
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.apl-edit-btn:hover {
+    background-color: #003170;
+    color: var(--tan-light);
+}
+
+.apl-delete-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}

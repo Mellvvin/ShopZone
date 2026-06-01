@@ -1,0 +1,140 @@
+/* frontend/src/pages/RegisterPage/RegisterPage.css
+   ─────────────────────────────────────────────────── */
+
+.reg-heading {
+    text-align: center;
+    color: var(--oxford-blue);
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 0.25rem;
+}
+
+.reg-sub {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.reg-label {
+    color: var(--oxford-blue);
+    font-weight: 600;
+}
+
+.reg-required {
+    color: #c0392b;
+}
+
+.reg-hint {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.reg-error-text {
+    color: #c0392b;
+    font-size: 0.82rem;
+}
+
+.reg-signin-prompt {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.reg-link {
+    color: var(--oxford-blue);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.reg-link:hover {
+    color: var(--tan-dark);
+}
+
+/* Account type selector buttons */
+.reg-type-btn {
+    flex: 1;
+    padding: 0.65rem;
+    border-radius: 8px;
+    border: 2px solid #D4C9BA;
+    background: white;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reg-type-btn--active {
+    border-color: var(--oxford-blue);
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
+/* Business details section box */
+.reg-section-box {
+    background: #f7f4ef;
+    border: 1px solid #EAE0D5;
+    border-radius: 10px;
+    padding: 1.25rem;
+}
+
+.reg-section-label {
+    color: var(--oxford-blue);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+/* Password strength bar */
+.reg-strength-bar {
+    display: flex;
+    gap: 4px;
+    margin: 6px 0 4px;
+}
+
+.reg-strength-segment {
+    flex: 1;
+    height: 5px;
+    border-radius: 3px;
+    background-color: #EAE0D5;
+    transition: background-color 0.25s ease;
+}
+
+.reg-strength--weak {
+    background-color: #c0392b !important;
+}
+
+.reg-strength--fair {
+    background-color: #e67e22 !important;
+}
+
+.reg-strength--strong {
+    background-color: #27ae60 !important;
+}
+
+.reg-strength-label {
+    font-weight: 600;
+    font-size: 0.82rem;
+}
+
+.reg-strength-hint {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+/* Submit button */
+.reg-submit-btn {
+    padding: 0.7rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    background: var(--oxford-blue) !important;
+    border-color: var(--oxford-blue) !important;
+    color: var(--tan) !important;
+    font-weight: 600;
+}
+
+.reg-submit-btn:hover:not(:disabled) {
+    background: #003170 !important;
+}

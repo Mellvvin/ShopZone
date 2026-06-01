@@ -1,0 +1,294 @@
+/* frontend/src/pages/AdminProductEditPage/AdminProductEditPage.css
+   ─────────────────────────────────────────────────────────────────
+   Styles for the admin product create/edit page.
+   No inline styles anywhere in the JSX — everything lives here.
+   ───────────────────────────────────────────────────────────────── */
+
+/* ── Page title ─────────────────────────────────────────────── */
+.ape-page-title {
+    color: var(--oxford-blue);
+    font-weight: 700;
+}
+
+/* ── Spinner colour ─────────────────────────────────────────── */
+.ape-spinner {
+    color: var(--oxford-blue);
+}
+
+/* ── Back button ────────────────────────────────────────────── */
+.ape-back-btn {
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+    background: white;
+}
+
+.ape-back-btn:hover {
+    background: var(--tan-light);
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
+
+/* ── Success alert ──────────────────────────────────────────── */
+.ape-success-alert {
+    background-color: #f7f0e6;
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
+
+/* ── Field label row ────────────────────────────────────────── */
+/* Flex row so the label text, required star, and help icon
+   sit on the same line without inline styles. */
+.ape-field-label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--oxford-blue);
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+}
+
+/* ── Required asterisk ──────────────────────────────────────── */
+.ape-required {
+    color: #c0392b;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+/* ── Help icon button ───────────────────────────────────────── */
+/* Small question-circle button next to every field label. */
+.ape-help-icon {
+    all: unset;
+    cursor: pointer;
+    color: var(--tan-dark);
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.7;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    margin-left: 0.1rem;
+}
+
+.ape-help-icon:hover {
+    opacity: 1;
+    color: var(--oxford-blue);
+}
+
+/* ── Label note (e.g. "auto-filled after upload") ───────────── */
+.ape-label-note {
+    font-size: 0.72rem;
+    color: #767676;
+    font-weight: 400;
+    margin-left: 0.35rem;
+}
+
+/* ── Hint text below fields ─────────────────────────────────── */
+.ape-hint {
+    color: #767676;
+    font-size: 0.75rem;
+}
+
+/* ── Error / warning text below fields ──────────────────────── */
+.ape-error-text {
+    color: #c0392b;
+    font-size: 0.78rem;
+}
+
+/* ── Tag chip list container ────────────────────────────────── */
+.ape-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+/* ── Individual tag chip ────────────────────────────────────── */
+.ape-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 33, 71, 0.07);
+    color: var(--oxford-blue);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* ── Tag remove button (×) ──────────────────────────────────── */
+.ape-tag-remove {
+    all: unset;
+    cursor: pointer;
+    color: #c0392b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.ape-tag-remove:hover {
+    opacity: 0.75;
+}
+
+/* ── Section boxes (Wholesale Details, Merchandising) ───────── */
+.ape-section-box {
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ape-section-box--blue {
+    background: #f0f4f8;
+    border: 1px solid #d0dce8;
+}
+
+.ape-section-box--tan {
+    background: #f7f4ef;
+    border: 1px solid #EAE0D5;
+}
+
+/* ── Section label (Wholesale Details / Merchandising heading) ─ */
+.ape-section-label {
+    color: var(--oxford-blue);
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+}
+
+/* ── Checkbox row (checkbox + label text + help icon) ───────── */
+.ape-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.ape-checkbox-label {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    flex: 1;
+}
+
+/* ── Image drop zone ────────────────────────────────────────── */
+.ape-image-drop {
+    width: 100%;
+    height: 200px;
+    border: 2px dashed #EAE0D5;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #FAFAF9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s ease;
+}
+
+.ape-image-drop--filled {
+    border-color: var(--tan);
+}
+
+/* ── Image preview inside the drop zone ─────────────────────── */
+.ape-image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ── Uploading text below spinner ───────────────────────────── */
+.ape-image-uploading {
+    font-size: 0.8rem;
+    color: #767676;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+/* ── Placeholder icon (📷) ──────────────────────────────────── */
+.ape-image-placeholder-icon {
+    font-size: 2rem;
+    display: block;
+    text-align: center;
+}
+
+/* ── Placeholder text below icon ────────────────────────────── */
+.ape-image-placeholder-text {
+    font-size: 0.8rem;
+    color: #767676;
+    margin: 4px 0 0;
+}
+
+/* ── File input ─────────────────────────────────────────────── */
+.ape-file-input {
+    font-size: 0.85rem;
+}
+
+/* ── Save button ────────────────────────────────────────────── */
+.ape-save-btn {
+    background: var(--oxford-blue) !important;
+    border-color: var(--oxford-blue) !important;
+    color: var(--tan) !important;
+    font-weight: 600;
+}
+
+.ape-save-btn:hover:not(:disabled) {
+    background: #003170 !important;
+    border-color: #003170 !important;
+}
+
+/* ── Cancel button ──────────────────────────────────────────── */
+.ape-cancel-btn {
+    background: white !important;
+    border-color: var(--tan) !important;
+    color: var(--oxford-blue) !important;
+    font-weight: 500;
+}
+
+.ape-cancel-btn:hover {
+    background: var(--tan-light) !important;
+}
+
+/* ── Change list inside the confirm modal ───────────────────── */
+.ape-modal-intro {
+    color: var(--oxford-blue);
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+}
+
+.ape-modal-change-list {
+    padding-left: 1.2rem;
+    margin: 0;
+}
+
+.ape-modal-change-item {
+    color: var(--text-dark);
+    font-size: 0.88rem;
+    padding: 0.2rem 0;
+    line-height: 1.5;
+}
+
+/* ── Field error state — red border on invalid inputs ───────── */
+/* Applied via className when fieldErrors[field] is truthy.
+   Overrides Bootstrap's default focus ring on the same element. */
+.ape-field--error,
+.ape-field--error:focus {
+    border-color: #c0392b !important;
+    box-shadow: 0 0 0 0.2rem rgba(192, 57, 43, 0.18) !important;
+}
+
+/* ── Disabled tag input when cap is reached ─────────────────── */
+.ape-field--disabled {
+    background-color: #f5f5f5 !important;
+    cursor: not-allowed;
+}
+
+/* ── Image drop zone — error state ─────────────────────────── */
+.ape-image-drop--error {
+    border-color: #c0392b;
+    background-color: #fff8f8;
+}
+
+/* ── Legacy field hint — slightly different colour to distinguish */
+.ape-hint--legacy {
+    color: #b08a5a;
+    font-style: italic;
+}

@@ -1,0 +1,269 @@
+/* frontend/src/pages/LoginPage/LoginPage.css
+   ─────────────────────────────────────────────────────────────
+   Split layout login page.
+   Left: Oxford Blue branding panel.
+   Right: clean form panel.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Full-screen split layout ───────────────────────────────── */
+.login-page {
+    display: flex;
+    min-height: 100vh;
+    margin: 0 -12px;
+    /* cancel Bootstrap container padding */
+}
+
+/* ── Left branding panel ────────────────────────────────────── */
+.login-brand {
+    background: var(--oxford-blue);
+    flex: 0 0 42%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 3.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-brand__inner {
+    position: relative;
+    z-index: 1;
+}
+
+/* Logo row */
+.login-brand__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 2.5rem;
+}
+
+.login-brand__logo-icon {
+    font-size: 1.8rem;
+    color: var(--tan);
+}
+
+.login-brand__logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+/* Headline */
+.login-brand__headline {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    margin-bottom: 0.85rem;
+}
+
+.login-brand__sub {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    line-height: 1.55;
+    margin-bottom: 2.5rem;
+}
+
+/* Trust points list */
+.login-brand__trust {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.login-brand__trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.92rem;
+}
+
+.login-brand__trust-icon {
+    color: var(--tan);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Decorative orb */
+.login-brand__orb {
+    position: absolute;
+    bottom: -80px;
+    right: -80px;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: rgba(210, 180, 140, 0.08);
+    pointer-events: none;
+}
+
+/* ── Right form panel ───────────────────────────────────────── */
+.login-form-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    padding: 2rem 1.5rem;
+}
+
+.login-form-inner {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Mobile logo — hidden on desktop */
+.login-form-mobile-logo {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-form-mobile-logo__icon {
+    font-size: 1.5rem;
+    color: var(--oxford-blue);
+}
+
+.login-form-mobile-logo__text {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+}
+
+/* Header block */
+.login-form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-form-lock {
+    font-size: 2rem;
+    color: var(--tan-dark);
+    margin-bottom: 0.75rem;
+}
+
+.login-form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    margin-bottom: 0.4rem;
+}
+
+.login-form-sub {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.login-form-link {
+    color: var(--oxford-blue);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-form-link:hover {
+    color: var(--tan-dark);
+}
+
+/* Labels and inputs */
+.login-label {
+    color: var(--oxford-blue);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.login-input {
+    height: 46px;
+    border: 1.5px solid #D4C9BA;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease;
+}
+
+.login-input:focus {
+    border-color: var(--oxford-blue);
+    box-shadow: 0 0 0 3px rgba(0, 33, 71, 0.1);
+}
+
+.login-password-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.35rem;
+}
+
+/* Submit button */
+.login-submit-btn {
+    height: 48px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    background: var(--oxford-blue) !important;
+    border-color: var(--oxford-blue) !important;
+    color: var(--tan) !important;
+    transition: background 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+.login-submit-btn:hover:not(:disabled) {
+    background: #003170 !important;
+}
+
+/* Error alert */
+.login-error {
+    border-radius: 8px;
+    margin-bottom: 1.25rem;
+}
+
+/* Footer note */
+.login-footer-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-top: 1.5rem;
+    line-height: 1.5;
+}
+
+/* ── Mobile — stack panels vertically ──────────────────────── */
+@media (max-width: 768px) {
+    .login-page {
+        flex-direction: column;
+        margin: 0 -12px;
+    }
+
+    .login-brand {
+        flex: none;
+        padding: 2rem 1.5rem 1.75rem;
+        /* Shorter on mobile — just logo + headline, no trust points */
+    }
+
+    .login-brand__trust,
+    .login-brand__sub {
+        display: none;
+    }
+
+    .login-brand__headline {
+        font-size: 1.35rem;
+        margin-bottom: 0;
+    }
+
+    .login-brand__logo {
+        margin-bottom: 0.75rem;
+    }
+
+    .login-form-mobile-logo {
+        display: none;
+        /* brand panel visible above, so no duplicate logo */
+    }
+
+    .login-form-panel {
+        padding: 2rem 1.25rem;
+    }
+}

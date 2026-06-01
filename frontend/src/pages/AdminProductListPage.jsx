@@ -1,59 +1,49 @@
-// frontend/src/pages/AdminProductListPage.jsx
+// frontend/src/pages/AdminProductListPage/AdminProductListPage.jsx
 // ─────────────────────────────────────────────────────────────
 // Admin page — lists all products with edit and delete actions.
-// Toasts added for: product deleted, product created, errors.
-// Category dropdown updated to match MongoDB category strings.
+// All inline styles removed and moved to AdminProductListPage.css.
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Table, Button, Row, Col,
-  Alert, Spinner, Modal, Badge,
+  Alert, Spinner, Badge,
 } from 'react-bootstrap';
+import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
+import './AdminProductListPage.css';
 
 const AdminProductListPage = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
-  // ── Page title ─────────────────────────────────────────────
   useEffect(() => { document.title = 'Admin: Product List — ShopZone'; }, []);
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [products, setProducts]         = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [deleteId, setDeleteId]         = useState(null);
+  const [showModal, setShowModal]       = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery]   = useState('');
 
-  // ── Filtered product list ─────────────────────────────────
   const filteredProducts = products.filter((p) => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
-    return (
-      p.name.toLowerCase().includes(q) ||
-      p._id.toLowerCase().includes(q)
-    );
+    return p.name.toLowerCase().includes(q) || p._id.toLowerCase().includes(q);
   });
 
-  // ── Fetch all products ────────────────────────────────────
   useEffect(() => {
-    if (!userInfo || !userInfo.isAdmin) {
-      navigate('/login');
-      return;
-    }
+    if (!userInfo || !userInfo.isAdmin) { navigate('/login'); return; }
     fetchProducts();
   }, [userInfo, navigate]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const config = {
-        headers: { Authorization: `Bearer ${userInfo.token}` },
-      };
+      const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       const { data } = await axios.get('/api/products', config);
       setProducts(data);
       setLoading(false);
@@ -65,22 +55,15 @@ const AdminProductListPage = () => {
     }
   };
 
-  // ── Delete handlers ───────────────────────────────────────
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-    setShowModal(true);
-  };
+  const confirmDelete = (id) => { setDeleteId(id); setShowModal(true); };
 
   const deleteHandler = async () => {
     try {
       setDeleteLoading(true);
-      const config = {
-        headers: { Authorization: `Bearer ${userInfo.token}` },
-      };
+      const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       await axios.delete(`/api/products/${deleteId}`, config);
       setShowModal(false);
       setDeleteLoading(false);
-      // Both inline and toast
       showToast('Product deleted successfully.', 'success');
       fetchProducts();
     } catch (err) {
@@ -92,7 +75,6 @@ const AdminProductListPage = () => {
     }
   };
 
-  // ── Create product handler ────────────────────────────────
   const createProductHandler = async () => {
     try {
       const config = {
@@ -103,15 +85,7 @@ const AdminProductListPage = () => {
       };
       const { data } = await axios.post(
         '/api/products',
-        {
-          name: 'New Product',
-          price: 0,
-          image: '/images/sample.jpg',
-          category: 'General Merchandise',
-          description: 'Product description',
-          countInStock: 0,
-          unit: 'Per Unit',
-        },
+        { name: 'New Product', price: 0, image: '/images/sample.jpg', category: 'General Merchandise', description: 'Product description', countInStock: 0, unit: 'Per Unit' },
         config
       );
       showToast('New product created. Fill in the details below.', 'info');
@@ -125,49 +99,33 @@ const AdminProductListPage = () => {
 
   return (
     <>
-      {/* ── Delete Confirmation Modal ─────────────────────── */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-        <Modal.Header style={{ backgroundColor: 'var(--oxford-blue)' }}>
-          <Modal.Title style={{ color: 'var(--tan)' }}>Delete Product</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Are you sure you want to delete this product?</p>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            This action cannot be undone.
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant='light'
-            onClick={() => setShowModal(false)}
-            style={{ borderColor: 'var(--tan)', color: 'var(--oxford-blue)' }}
-          >
-            Cancel
-          </Button>
-          <Button variant='danger' onClick={deleteHandler} disabled={deleteLoading}>
-            {deleteLoading ? <Spinner animation='border' size='sm' /> : 'Yes, Delete'}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* ── Delete confirmation modal ─────────────────────── */}
+      <ConfirmModal
+        show={showModal}
+        onConfirm={deleteHandler}
+        onCancel={() => setShowModal(false)}
+        title='Delete Product'
+        message='Are you sure you want to delete this product?'
+        subMessage='This action cannot be undone.'
+        confirmLabel={deleteLoading ? 'Deleting...' : 'Yes, Delete'}
+        confirmVariant='danger'
+      />
 
-      {/* ── Page header ──────────────────────────────────── */}
+      {/* ── Page header ───────────────────────────────────── */}
       <Row className='align-items-center mb-4'>
         <Col>
-          <h2 style={{ color: 'var(--oxford-blue)' }} className='page-title'>
-            Products
-          </h2>
+          <h2 className='apl-page-title'>Products</h2>
         </Col>
         <Col className='text-end'>
-          <Button variant='dark' onClick={createProductHandler}>
+          <Button className='apl-create-btn' onClick={createProductHandler}>
             + Create Product
           </Button>
         </Col>
       </Row>
 
-      {/* Inline error */}
       {error && <Alert variant='danger'>{error}</Alert>}
 
-      {/* Search bar */}
+      {/* ── Search bar ────────────────────────────────────── */}
       <Row className='mb-3'>
         <Col md={5}>
           <input
@@ -180,7 +138,7 @@ const AdminProductListPage = () => {
         </Col>
         <Col className='d-flex align-items-center'>
           {searchQuery && (
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <span className='apl-result-count'>
               {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''} found
             </span>
           )}
@@ -189,12 +147,12 @@ const AdminProductListPage = () => {
 
       {loading ? (
         <div className='text-center py-5'>
-          <Spinner animation='border' style={{ color: 'var(--oxford-blue)' }} />
+          <Spinner animation='border' className='apl-spinner' />
         </div>
       ) : (
-        <Table responsive hover style={{ fontSize: '0.88rem' }}>
+        <Table responsive hover className='apl-table'>
           <thead>
-            <tr style={{ backgroundColor: 'var(--oxford-blue)', color: 'var(--tan)' }}>
+            <tr className='apl-thead-row'>
               <th>ID</th>
               <th>Image</th>
               <th>Name</th>
@@ -206,56 +164,40 @@ const AdminProductListPage = () => {
             </tr>
           </thead>
           <tbody>
-              {filteredProducts.map((product, index) => (
+            {filteredProducts.map((product, index) => (
               <tr
                 key={product._id}
-                style={{
-                  backgroundColor: index % 2 === 0 ? 'white' : '#FAFAF9',
-                  verticalAlign: 'middle',
-                }}
+                className={`apl-tbody-row${index % 2 === 0 ? '' : ' apl-tbody-row--alt'}`}
               >
-                <td style={{ fontFamily: 'Courier New', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                  {product._id.slice(-8)}
-                </td>
+                <td className='apl-id-cell'>{product._id.slice(-8)}</td>
                 <td>
                   <img
                     src={product.image}
                     alt={product.name}
-                    style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #EAE0D5' }}
+                    className='apl-product-thumb'
                   />
                 </td>
-                <td style={{ fontWeight: 500, color: 'var(--oxford-blue)' }}>
-                  {product.name}
+                <td className='apl-name-cell'>{product.name}</td>
+                <td className='product-card-price'>
+                  {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
                 </td>
-                  <td className='product-card-price'>
-                    {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
-                  </td>
                 <td>
-                  <Badge style={{ backgroundColor: 'var(--oxford-blue)', color: 'var(--tan)', fontSize: '0.72rem', padding: '4px 8px', borderRadius: '20px' }}>
+                  <Badge className='apl-unit-badge'>
                     {product.unit || 'Per Unit'}
                   </Badge>
                 </td>
-                <td style={{ color: 'var(--text-muted)' }}>{product.category}</td>
+                <td className='apl-muted-cell'>{product.category}</td>
                 <td>
-                  <span style={{ color: product.countInStock > 0 ? 'green' : 'red', fontWeight: 600 }}>
+                  <span className={product.countInStock > 0 ? 'apl-stock--in' : 'apl-stock--out'}>
                     {product.countInStock}
                   </span>
                 </td>
                 <td>
                   <div className='d-flex gap-2'>
-                    <Link
-                      to={`/admin/product/${product._id}/edit`}
-                      className='btn btn-sm'
-                      style={{ backgroundColor: 'var(--oxford-blue)', color: 'var(--tan)', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem' }}
-                    >
+                    <Link to={`/admin/product/${product._id}/edit`} className='apl-edit-btn'>
                       Edit
                     </Link>
-                    <Button
-                      size='sm'
-                      variant='danger'
-                      onClick={() => confirmDelete(product._id)}
-                      style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem' }}
-                    >
+                    <Button size='sm' variant='danger' className='apl-delete-btn' onClick={() => confirmDelete(product._id)}>
                       Delete
                     </Button>
                   </div>

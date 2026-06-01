@@ -1,26 +1,182 @@
-/* ConfirmModal.css */
+/* frontend/src/components/ConfirmModal/ConfirmModal.css
+   ─────────────────────────────────────────────────────────────
+   Shared modal used for confirmations and info/help dialogs.
+   Two visual modes:
+     Default  — Oxford Blue header, cancel + confirm buttons
+     Info     — Tan-tinted header, single confirm (Got it) button
+   ───────────────────────────────────────────────────────────── */
 
-.confirm-modal-header {
-    background-color: var(--oxford-blue);
-    border-bottom: none;
+/* ── Backdrop ───────────────────────────────────────────────── */
+.cm-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1055;
+    padding: 1rem;
+    /* Fade in */
+    animation: cm-fade-in 0.15s ease;
 }
 
-.confirm-modal-title {
+@keyframes cm-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* ── Modal panel ────────────────────────────────────────────── */
+.cm-modal {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 12px 40px rgba(0, 33, 71, 0.22);
+    overflow: hidden;
+    animation: cm-slide-up 0.18s ease;
+}
+
+@keyframes cm-slide-up {
+    from {
+        transform: translateY(12px);
+        opacity: 0.6;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Info variant — slightly narrower, softer shadow */
+.cm-modal--info {
+    max-width: 420px;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.cm-header {
+    background: var(--oxford-blue);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+/* Info variant header — tan tint instead of Oxford Blue */
+.cm-header--info {
+    background: #f7f4ef;
+    border-bottom: 1px solid #EAE0D5;
+}
+
+.cm-header-icon {
+    font-size: 1.1rem;
     color: var(--tan);
-    font-weight: 700;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
 }
 
-.confirm-modal-cancel {
-    border-color: var(--tan) !important;
-    color: var(--oxford-blue) !important;
-    background-color: var(--tan-light) !important;
+/* Info variant icon — oxford blue */
+.cm-header--info .cm-header-icon {
+    color: var(--oxford-blue);
 }
 
-.confirm-modal-cancel:hover {
-    background-color: var(--tan) !important;
+.cm-title {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
 }
 
-.confirm-modal-sub {
+/* Info variant title — oxford blue text */
+.cm-header--info .cm-title {
+    color: var(--oxford-blue);
+}
+
+/* ── Body ───────────────────────────────────────────────────── */
+.cm-body {
+    padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.cm-message {
+    color: var(--text-dark);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.cm-sub-message {
     color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.cm-footer {
+    padding: 0.75rem 1.25rem 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Info footer — centre the single button */
+.cm-footer--info {
+    justify-content: center;
+    padding-top: 0.5rem;
+}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.cm-btn {
+    all: unset;
+    cursor: pointer;
+    padding: 0.45rem 1.2rem;
+    border-radius: 7px;
     font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.15s ease, opacity 0.15s ease;
+    text-align: center;
+    display: inline-block;
+}
+
+.cm-btn:focus-visible {
+    outline: 2px solid var(--oxford-blue);
+    outline-offset: 2px;
+}
+
+/* Cancel */
+.cm-btn--cancel {
+    border: 1.5px solid var(--tan);
+    color: var(--oxford-blue);
+    background: white;
+}
+
+.cm-btn--cancel:hover {
+    background: var(--tan-light);
+}
+
+/* Primary branded (Oxford Blue) */
+.cm-btn--primary-branded {
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border: 1.5px solid var(--oxford-blue);
+}
+
+.cm-btn--primary-branded:hover {
+    background: #003170;
+}
+
+/* Danger (red) */
+.cm-btn--danger {
+    background: #c0392b;
+    color: white;
+    border: 1.5px solid #c0392b;
+}
+
+.cm-btn--danger:hover {
+    background: #a93226;
 }

@@ -26,7 +26,7 @@ import {
     FaSpa, FaTools, FaPencilAlt, FaSeedling, FaBaby,
     FaRunning, FaHeartbeat, FaBoxOpen,
     FaEnvelope, FaQuestionCircle, FaStore,
-    FaCog, FaBox, FaUsers,
+    FaCog, FaBox, FaUsers, FaTruck, FaUndoAlt,
 } from 'react-icons/fa';
 import './MobileDrawer.css';
 
@@ -199,6 +199,14 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
                 <button className='drawer-nav-link' onClick={() => go('/become-seller')}>
                     <FaStore className='drawer-support-icon' aria-hidden='true' />
                     Become a Seller
+                </button>
+                <button className='drawer-nav-link' onClick={() => go('/shipping-policy')}>
+                    <FaTruck className='drawer-support-icon' aria-hidden='true' />
+                    Shipping Policy
+                </button>
+                <button className='drawer-nav-link' onClick={() => go('/returns-policy')}>
+                    <FaUndoAlt className='drawer-support-icon' aria-hidden='true' />
+                    Returns Policy
                 </button>
             </nav>
 

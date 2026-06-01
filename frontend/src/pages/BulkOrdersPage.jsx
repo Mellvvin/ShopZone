@@ -15,6 +15,7 @@
 // ─────────────────────────────────────────────────────────────
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import {
     FaBoxOpen, FaTruck, FaShieldAlt, FaHandshake,
     FaClipboardList, FaSearch, FaFileInvoiceDollar,
@@ -113,21 +114,31 @@ const BulkOrdersPage = () => {
     const [tw, setTw]         = useState(false);   // typewriter done
     const TARGET = 'Source Big. Pay Once. Delivered.';
 
-    // ── Stats strip — count-up on first viewport entry ────────
+    
+    // ── Stats strip — pulls real data from /api/stats ─────────
+    // Replaces hardcoded numbers so the strip always reflects
+    // actual platform counts. Falls back to zeros on error.
     const statsRef  = useRef(null);
     const [counted, setCounted] = useState(false);
-    const [counts, setCounts]   = useState({ orders: 0, counties: 0, suppliers: 0, saved: 0 });
+    const [counts, setCounts]   = useState({
+        orders: 0, counties: 0, suppliers: 0, products: 0,
+    });
+    const [statsLoaded, setStatsLoaded] = useState(false);
+    const [statsTargets, setStatsTargets] = useState({
+        orders: 0, counties: 47, suppliers: 0, products: 0,
+    });
 
     // ── Scroll reveal — sections ──────────────────────────────
     const revealRefs = useRef([]);
 
     // ── Form state ────────────────────────────────────────────
     const [form, setForm] = useState({
-        name: '', business: '', item: '', quantity: '',
+        name: '', email: '', business: '', item: '', quantity: '',
         unitType: '', county: '', budget: '', notes: '',
     });
-    const [submitted, setSubmitted] = useState(false);
-    const [formError, setFormError] = useState('');
+  const [submitted, setSubmitted]         = useState(false);
+    const [formError, setFormError]         = useState('');
+    const [submitLoading, setSubmitLoading] = useState(false);
 
     // ── Particle data — generated once ───────────────────────
     const [particles] = useState(() =>
@@ -154,14 +165,33 @@ const BulkOrdersPage = () => {
         return () => clearInterval(id);
     }, []);
 
-    // ── Stats count-up — fires once on first entry ────────────
+   // ── Fetch real stats from backend on mount ────────────────
     useEffect(() => {
+        axios.get('/api/stats')
+            .then(({ data }) => {
+                setStatsTargets({
+                    orders:    data.totalOrdersFulfilled,
+                    counties:  data.countiesServed,
+                    suppliers: data.totalApprovedSellers,
+                    products:  data.totalProducts,
+                });
+                setStatsLoaded(true);
+            })
+            .catch(() => {
+                // Silent fail — zeros are shown if API is unreachable
+                setStatsLoaded(true);
+            });
+    }, []);
+
+    // ── Count-up animation — fires once when stats section enters viewport
+    // Waits for real data to load before starting the animation
+    useEffect(() => {
+        if (!statsLoaded) return;
         const el = statsRef.current;
         if (!el) return;
         const obs = new IntersectionObserver(([entry]) => {
             if (!entry.isIntersecting || counted) return;
             setCounted(true);
-            const targets = { orders: 1200, counties: 47, suppliers: 80, saved: 35 };
             const duration = 1800;
             const steps = 60;
             const interval = duration / steps;
@@ -170,20 +200,20 @@ const BulkOrdersPage = () => {
                 step++;
                 const progress = step / steps;
                 setCounts({
-                    orders:    Math.round(targets.orders    * progress),
-                    counties:  Math.round(targets.counties  * progress),
-                    suppliers: Math.round(targets.suppliers * progress),
-                    saved:     Math.round(targets.saved     * progress),
+                    orders:    Math.round(statsTargets.orders    * progress),
+                    counties:  Math.round(statsTargets.counties  * progress),
+                    suppliers: Math.round(statsTargets.suppliers * progress),
+                    products:  Math.round(statsTargets.products  * progress),
                 });
                 if (step >= steps) {
                     clearInterval(id);
-                    setCounts(targets);
+                    setCounts(statsTargets);
                 }
             }, interval);
         }, { threshold: 0.3 });
         obs.observe(el);
         return () => obs.disconnect();
-    }, [counted]);
+    }, [statsLoaded, counted, statsTargets]);
 
     // ── Scroll reveal — observes all reveal sections ──────────
     useEffect(() => {
@@ -209,15 +239,49 @@ const BulkOrdersPage = () => {
         setFormError('');
     };
 
-    const handleSubmit = (e) => {
+   // ── Form submission — posts to /api/enquiries ─────────────
+    // Stores the bulk order request in MongoDB so admin can see
+    // and action it from /admin/enquiries.
+    // When Step 8 (Manual RFQ Flow) is built this will migrate
+    // to POST /api/rfq and trigger the full sourcing workflow.
+    const handleSubmit = async (e) => {
         e.preventDefault();
         // Basic validation — required fields
-        if (!form.name || !form.item || !form.quantity || !form.unitType || !form.county) {
+        if (!form.name || !form.email || !form.item || !form.quantity || !form.unitType || !form.county) {
             setFormError('Please fill in all required fields.');
             return;
         }
-        // Step 8 will POST to /api/rfq — for now just show success
-        setSubmitted(true);
+        setSubmitLoading(true);
+        setFormError('');
+        try {
+            await axios.post('/api/enquiries', {
+                type:    'bulk_order',
+                name:    form.name,
+                // Email is not collected on this form — left empty.
+                // Step 8 will add email to the RFQ form.
+                email:   form.email,
+                business: form.business || '',
+                message: form.notes || '',
+                // Store the full structured form payload so nothing
+                // is lost when this migrates to the RFQ model
+                data: {
+                    item:     form.item,
+                    quantity: form.quantity,
+                    unitType: form.unitType,
+                    county:   form.county,
+                    budget:   form.budget,
+                    notes:    form.notes,
+                },
+            });
+            setSubmitted(true);
+        } catch (err) {
+            setFormError(
+                err.response?.data?.message ||
+                'Failed to submit your request. Please try again.'
+            );
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     // ─────────────────────────────────────────────────────────
@@ -313,20 +377,26 @@ const BulkOrdersPage = () => {
             <section className='bulk-stats' ref={statsRef}>
                 <div className='bulk-stats-inner'>
                     <div className='bulk-stat'>
-                        <span className='bulk-stat-number'>{counts.orders.toLocaleString()}+</span>
-                        <span className='bulk-stat-label'>Bulk Orders Fulfilled</span>
+                        <span className='bulk-stat-number'>
+                            {counts.orders > 0 ? `${counts.orders.toLocaleString()}+` : '—'}
+                        </span>
+                        <span className='bulk-stat-label'>Orders Fulfilled</span>
                     </div>
                     <div className='bulk-stat'>
                         <span className='bulk-stat-number'>{counts.counties}</span>
                         <span className='bulk-stat-label'>Counties Served</span>
                     </div>
                     <div className='bulk-stat'>
-                        <span className='bulk-stat-number'>{counts.suppliers}+</span>
-                        <span className='bulk-stat-label'>Verified Suppliers</span>
+                        <span className='bulk-stat-number'>
+                            {counts.suppliers > 0 ? `${counts.suppliers}+` : '—'}
+                        </span>
+                        <span className='bulk-stat-label'>Approved Suppliers</span>
                     </div>
                     <div className='bulk-stat'>
-                        <span className='bulk-stat-number'>{counts.saved}%</span>
-                        <span className='bulk-stat-label'>Avg. Savings vs Retail</span>
+                        <span className='bulk-stat-number'>
+                            {counts.products > 0 ? `${counts.products.toLocaleString()}+` : '—'}
+                        </span>
+                        <span className='bulk-stat-label'>Products Listed</span>
                     </div>
                 </div>
             </section>
@@ -395,7 +465,7 @@ const BulkOrdersPage = () => {
                             </p>
                             <button
                                 className='bulk-success-reset'
-                                onClick={() => { setSubmitted(false); setForm({ name:'',business:'',item:'',quantity:'',unitType:'',county:'',budget:'',notes:'' }); }}
+                                onClick={() => { setSubmitted(false); setForm({ name:'',email:'',business:'',item:'',quantity:'',unitType:'',county:'',budget:'',notes:'' }); }}
                             >
                                 Submit Another Request
                             </button>
@@ -404,7 +474,7 @@ const BulkOrdersPage = () => {
                         /* ── Enquiry form ───────────────────────────── */
                         <form className='bulk-form' onSubmit={handleSubmit} noValidate>
 
-                            {/* Row 1 — name + business */}
+                        {/* Row 1 — name + email */}
                             <div className='bulk-form-row'>
                                 <div className='bulk-form-group'>
                                     <label className='bulk-label' htmlFor='bulk-name'>
@@ -422,20 +492,37 @@ const BulkOrdersPage = () => {
                                     />
                                 </div>
                                 <div className='bulk-form-group'>
-                                    <label className='bulk-label' htmlFor='bulk-business'>
-                                        Business / Shop Name
+                                    <label className='bulk-label' htmlFor='bulk-email'>
+                                        Email Address <span className='bulk-required'>*</span>
                                     </label>
                                     <input
-                                        id='bulk-business'
+                                        id='bulk-email'
                                         className='bulk-input'
-                                        type='text'
-                                        name='business'
-                                        value={form.business}
+                                        type='email'
+                                        name='email'
+                                        value={form.email}
                                         onChange={handleChange}
-                                        placeholder='e.g. Mwangi General Store'
-                                        autoComplete='organization'
+                                        placeholder='you@example.com'
+                                        autoComplete='email'
                                     />
                                 </div>
+                            </div>
+
+                            {/* Row 1b — business name */}
+                            <div className='bulk-form-group'>
+                                <label className='bulk-label' htmlFor='bulk-business'>
+                                    Business / Shop Name
+                                </label>
+                                <input
+                                    id='bulk-business'
+                                    className='bulk-input'
+                                    type='text'
+                                    name='business'
+                                    value={form.business}
+                                    onChange={handleChange}
+                                    placeholder='e.g. Mwangi General Store (optional — individuals welcome)'
+                                    autoComplete='organization'
+                                />
                             </div>
 
                             {/* Row 2 — item description */}
@@ -549,8 +636,13 @@ const BulkOrdersPage = () => {
                                 <p className='bulk-form-error' role='alert'>{formError}</p>
                             )}
 
-                            <button type='submit' className='bulk-submit-btn'>
-                                Submit Enquiry <FaArrowRight aria-hidden='true' />
+                            <button
+                                type='submit'
+                                className='bulk-submit-btn'
+                                disabled={submitLoading}
+                            >
+                                {submitLoading ? 'Submitting…' : 'Submit Enquiry'}
+                                {!submitLoading && <FaArrowRight aria-hidden='true' />}
                             </button>
                         </form>
                     )}

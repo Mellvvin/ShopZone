@@ -87,3 +87,20 @@
 .desktop-dropdown-item--logout:hover {
     background-color: rgba(255, 107, 107, 0.1);
 }
+
+/* ── Section label — e.g. "Admin" ───────────────────────────── */
+.desktop-dropdown-section-label {
+    padding: 0.5rem 1.1rem 0.3rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(210, 180, 140, 0.5);
+}
+
+/* ── Divider line between sections ─────────────────────────── */
+.desktop-dropdown-divider {
+    height: 1px;
+    background: rgba(210, 180, 140, 0.15);
+    margin: 0.2rem 0;
+}

@@ -1,0 +1,141 @@
+/* frontend/src/pages/ProductPage/ProductPage.css
+   ─────────────────────────────────────────────── */
+
+.pp-spinner {
+    color: var(--oxford-blue);
+}
+
+.pp-product-img {
+    max-height: 450px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.pp-product-name {
+    color: var(--oxford-blue);
+}
+
+.pp-description {
+    color: var(--text-muted);
+}
+
+.pp-stock--in {
+    color: green;
+    font-weight: 600;
+}
+
+.pp-stock--out {
+    color: red;
+    font-weight: 600;
+}
+
+.pp-qty-label {
+    color: var(--oxford-blue);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.pp-alert-tan {
+    background-color: var(--tan-light);
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
+
+.pp-review-item {
+    border-color: #EAE0D5;
+    padding: 1rem 0;
+}
+
+.pp-reviewer-name {
+    color: var(--oxford-blue);
+}
+
+.pp-review-date {
+    color: var(--text-muted);
+}
+
+.pp-review-comment {
+    color: var(--text-muted);
+    margin-bottom: 0;
+}
+
+.pp-review-card {
+    border: 1px solid #EAE0D5;
+}
+
+.pp-review-product-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #EAE0D5;
+}
+
+.pp-review-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--tan-light);
+}
+
+.pp-reviewing-label {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pp-reviewing-name {
+    color: var(--oxford-blue);
+    font-size: 0.95rem;
+}
+
+.pp-write-title {
+    color: var(--oxford-blue);
+}
+
+.pp-form-label {
+    color: var(--oxford-blue);
+    font-weight: 500;
+}
+
+.pp-link {
+    color: var(--oxford-blue);
+    font-weight: 600;
+}
+
+.pp-rating-hint {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+/* Star rating */
+.pp-star-row {
+    font-size: 2rem;
+    align-items: center;
+}
+
+.pp-star {
+    cursor: pointer;
+    color: #CCCCCC;
+    transition: color 0.15s ease;
+    user-select: none;
+    line-height: 1;
+}
+
+.pp-star--active {
+    color: var(--tan-dark);
+}
+
+.pp-star-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    align-self: center;
+    margin-left: 0.5rem;
+}
