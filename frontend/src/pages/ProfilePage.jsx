@@ -45,9 +45,12 @@ const ProfilePage = () => {
   const [success, setSuccess]         = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
 
-  const [orders, setOrders]           = useState([]);
+const [orders, setOrders]               = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
-  const [ordersError, setOrdersError] = useState(null);
+  const [ordersError, setOrdersError]     = useState(null);
+  // ── Order filter tab ──────────────────────────────────
+  // 'all' | 'active' | 'fulfilled' | 'cancelled'
+  const [orderTab, setOrderTab] = useState('all');
 
   useEffect(() => {
     if (!userInfo) {
@@ -199,6 +202,30 @@ const ProfilePage = () => {
         <Card className='p-4 shadow-sm'>
           <h2 className='profile-title mb-4'>My Orders</h2>
 
+          {/* ── Order filter tabs ─────────────────────────── */}
+          {!ordersLoading && !ordersError && orders.length > 0 && (
+            <div className='profile-order-tabs'>
+              {[
+                { key: 'all',       label: 'All',       count: orders.length },
+                { key: 'active',    label: 'Active',    count: orders.filter(o => o.status !== 'cancelled' && !o.isDelivered).length },
+                { key: 'fulfilled', label: 'Fulfilled', count: orders.filter(o => o.isDelivered && o.isPaid).length },
+                { key: 'cancelled', label: 'Cancelled', count: orders.filter(o => o.status === 'cancelled').length },
+              ].map(({ key, label, count }) => (
+                <button
+                  key={key}
+                  className={`profile-order-tab${orderTab === key ? ' profile-order-tab--active' : ''}`}
+                  onClick={() => setOrderTab(key)}
+                  aria-pressed={orderTab === key}
+                >
+                  {label}
+                  <span className={`profile-order-tab__count${key === 'cancelled' && count > 0 ? ' profile-order-tab__count--cancelled' : ''}`}>
+                    {count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
           {ordersLoading ? (
             <div className='text-center py-4'><Spinner animation='border' className='profile-spinner' /></div>
           ) : ordersError ? (
@@ -209,14 +236,31 @@ const ProfilePage = () => {
               <Link to='/' className='profile-link'>Start Shopping</Link>
             </Alert>
           ) : (
-            <Table responsive hover className='profile-orders-table'>
-              <thead>
-                <tr className='profile-thead-row'>
-                  <th>ID</th><th>Date</th><th>Total</th><th>Paid</th><th>Delivered</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
+            <>
+              {/* Filtered empty state */}
+              {(() => {
+                const filtered = orders.filter(o => {
+                  if (orderTab === 'active')    return o.status !== 'cancelled' && !o.isDelivered;
+                  if (orderTab === 'fulfilled') return o.isDelivered && o.isPaid;
+                  if (orderTab === 'cancelled') return o.status === 'cancelled';
+                  return true;
+                });
+                if (filtered.length === 0) {
+                  return (
+                    <Alert className='profile-empty-alert'>
+                      No {orderTab} orders found.
+                    </Alert>
+                  );
+                }
+                return (
+                  <Table responsive hover className='profile-orders-table'>
+                    <thead>
+                      <tr className='profile-thead-row'>
+                        <th>ID</th><th>Date</th><th>Total</th><th>Paid</th><th>Delivered</th><th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((order) => (
                   <tr key={order._id}>
                     <td className='profile-id-cell'>{order._id}</td>
                     <td>{new Date(order.createdAt).toLocaleDateString()}</td>
@@ -244,10 +288,13 @@ const ProfilePage = () => {
                     <td>
                       <Link to={`/order/${order._id}`} className='btn btn-sm btn-dark'>Details</Link>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+                 </tr>
+                    ))}
+                  </tbody>
+                </Table>
+                );
+              })()}
+            </>
           )}
         </Card>
       </Col>

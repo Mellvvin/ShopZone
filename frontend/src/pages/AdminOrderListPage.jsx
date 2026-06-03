@@ -67,8 +67,8 @@ const AdminOrderListPage = () => {
   // ── Page title ─────────────────────────────────────────────
   useEffect(() => { document.title = 'Admin: Order List — ShopZone'; }, []);
 
-  // ── Tab state ────────────────────────────────────────────────────────────
-  // 'all' | 'quotes' | 'payouts'
+// ── Tab state ────────────────────────────────────────────────────────────
+  // 'all' | 'quotes' | 'payouts' | 'fulfilled' | 'cancelled'
   const [activeTab, setActiveTab] = useState('all');
 
   // ── Orders data ──────────────────────────────────────────────────────────
@@ -185,12 +185,24 @@ const AdminOrderListPage = () => {
     }
   };
 
+// ── Derived lists for new tabs ────────────────────────────────────────────
+  // Fulfilled: delivered, paid, and payout released — order is fully complete
+  const fulfilledOrders = allOrders.filter(
+    (o) => o.isDelivered && o.isPaid && o.sellerPayoutReleased
+  );
+  // Cancelled: any order with cancelled status
+  const cancelledOrders = allOrders.filter((o) => o.status === 'cancelled');
+
   // ── Current tab's data ───────────────────────────────────────────────────
   const tabOrders = activeTab === 'all'
     ? allOrders
     : activeTab === 'quotes'
       ? pendingQuotes
-      : payoutQueue;
+      : activeTab === 'payouts'
+        ? payoutQueue
+        : activeTab === 'fulfilled'
+          ? fulfilledOrders
+          : cancelledOrders;
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
@@ -262,6 +274,35 @@ const AdminOrderListPage = () => {
             </span>
           )}
         </button>
+
+        <button
+          className={`admin-orders-tab ${activeTab === 'fulfilled' ? 'admin-orders-tab--active' : ''}`}
+          onClick={() => setActiveTab('fulfilled')}
+          role='tab'
+          aria-selected={activeTab === 'fulfilled'}
+        >
+          <FaCheckCircle aria-hidden='true' />
+          Fulfilled
+          <span className='admin-orders-tab__count admin-orders-tab__count--fulfilled'>
+            {fulfilledOrders.length}
+          </span>
+        </button>
+
+        <button
+          className={`admin-orders-tab ${activeTab === 'cancelled' ? 'admin-orders-tab--active' : ''}`}
+          onClick={() => setActiveTab('cancelled')}
+          role='tab'
+          aria-selected={activeTab === 'cancelled'}
+        >
+          <FaTimesCircle aria-hidden='true' />
+          Cancelled
+          {cancelledOrders.length > 0 && (
+            <span className='admin-orders-tab__count admin-orders-tab__count--cancelled'>
+              {cancelledOrders.length}
+            </span>
+          )}
+        </button>
+
       </div>
 
       {/* ── Content ─────────────────────────────────────────────────── */}
@@ -281,9 +322,11 @@ const AdminOrderListPage = () => {
       ) : tabOrders.length === 0 ? (
         <div className='admin-orders-empty'>
           <p>
-            {activeTab === 'all' && 'No orders yet.'}
-            {activeTab === 'quotes' && 'No pending delivery quotes. All Tier 2 orders have been actioned.'}
-            {activeTab === 'payouts' && 'No orders in the payout queue. All delivered orders have been settled.'}
+            {activeTab === 'all'       && 'No orders yet.'}
+            {activeTab === 'quotes'    && 'No pending delivery quotes. All Tier 2 orders have been actioned.'}
+            {activeTab === 'payouts'   && 'No orders in the payout queue. All delivered orders have been settled.'}
+            {activeTab === 'fulfilled' && 'No fully completed orders yet.'}
+            {activeTab === 'cancelled' && 'No cancelled orders.'}
           </p>
         </div>
       ) : (

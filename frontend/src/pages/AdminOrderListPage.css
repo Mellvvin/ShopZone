@@ -159,8 +159,25 @@
   color: var(--oxford-blue);
 }
 
-.admin-orders-tab__count--alert  { background: #f0a500; color: #fff; }
-.admin-orders-tab__count--payout { background: #27ae60; color: #fff; }
+.admin-orders-tab__count--alert {
+  background: #f0a500;
+  color: #fff;
+}
+
+.admin-orders-tab__count--payout {
+  background: #27ae60;
+  color: #fff;
+}
+
+.admin-orders-tab__count--fulfilled {
+  background: var(--oxford-blue);
+  color: var(--tan);
+}
+
+.admin-orders-tab__count--cancelled {
+  background: #c0392b;
+  color: #fff;
+}
 
 /* ── Loading / error / empty states ─────────────────────────────────────── */
 .admin-orders-loading,
