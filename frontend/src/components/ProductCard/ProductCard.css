@@ -1,8 +1,8 @@
 /* frontend/src/components/ProductCard/ProductCard.css
    ─────────────────────────────────────────────────────────────
    Styles for the ProductCard component.
-   Extracted from HomePage.css — class names unchanged so no
-   JSX changes are needed beyond the import.
+   Extracted from HomePage.css — class names unchanged.
+   Includes all mobile overrides and the disabled stepper state.
    ───────────────────────────────────────────────────────────── */
 
 /* ── Card container ─────────────────────────────────────────── */
@@ -258,6 +258,8 @@
 
     .hp-product-card__name {
         font-size: 0.78rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 
     .hp-product-card__price {
@@ -275,6 +277,7 @@
         padding: 2px 6px;
     }
 
+    /* Only show the first badge on very small cards */
     .hp-product-card__badges .hp-badge:nth-child(n+2) {
         display: none;
     }
@@ -289,6 +292,7 @@
         gap: 5px;
     }
 
+    /* Hide button text on very small cards — icon only */
     .hp-cart-btn--add .hp-cart-btn__text {
         display: none;
     }

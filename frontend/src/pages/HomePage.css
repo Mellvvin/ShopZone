@@ -1,22 +1,17 @@
 /* HomePage.css
  * ─────────────────────────────────────────────────────────────────────────────
- * All homepage-specific styles for ShopZone Step 12.
+ * Page-level styles only. Card styles now live in:
+ *   components/ProductCard/ProductCard.css
+ *   components/ProductCard/SkeletonCard uses classes defined here
  *
  * Contains:
- *   • Page wrapper + section spacing utilities
+ *   • Page wrapper + section spacing
  *   • Product grid (.hp-product-grid)
- *   • ProductCard (.hp-product-card)
- *   • Skeleton loading (.hp-skeleton-card)
+ *   • Skeleton cards (.hp-skeleton-card, .hp-skeleton variants)
  *   • ProductRow section (.hp-product-row)
  *   • DealsBanner (.hp-deals-banner)
  *   • Browse mode layout (.homepage__browse-wrapper)
- *   • Shared section header helpers (.section-header, .section-title, etc.)
- *     — imported by CategoryCards.css too
- *
- * Colours from index.css variables:
- *   --oxford-blue  #002147
- *   --tan          #D2B48C
- *   --off-white    #FAF8F5
+ *   • Shared section header helpers
  * ─────────────────────────────────────────────────────────────────────────────
 */
 
@@ -27,30 +22,23 @@
 }
 
 /* ── Hero offset ─────────────────────────────────────────────────────────── */
-/* The HeroBanner's stats strip overhangs by ~32px on desktop, 80px on mobile.
-   This spacer div compensates so the CategoryCards section doesn't sit under it. */
-/* Hero offset — gives the stats strip room to breathe below the banner */
 .homepage__hero-offset {
   height: 80px;
-  /* desktop — stats strip overlaps by ~40px */
 }
 
 @media (max-width: 768px) {
   .homepage__hero-offset {
     height: 160px;
-    /* mobile — stats strip stacks vertically so taller */
   }
 }
 
 @media (max-width: 480px) {
   .homepage__hero-offset {
     height: 200px;
-    /* very small screens — extra room */
   }
 }
 
 /* ── Section wrapper ─────────────────────────────────────────────────────── */
-/* Used around each home-state section to apply consistent side padding */
 .homepage__section-wrapper {
   padding: 0 24px;
   max-width: 1280px;
@@ -61,14 +49,11 @@
 }
 
 .homepage__section-wrapper--banner {
-  /* Banner gets a bit of vertical breathing room */
   padding-top: 8px;
   padding-bottom: 8px;
 }
 
 /* ── Shared section header ───────────────────────────────────────────────── */
-/* Used in CategoryCards.jsx and ProductRow. Centralised here so both components
-   share the same visual header treatment. */
 .section-header {
   text-align: center;
   margin-bottom: 8px;
@@ -91,12 +76,10 @@
 /* ══════════════════════════════════════════════════════════════════════════
    PRODUCT ROW
    ══════════════════════════════════════════════════════════════════════════ */
-
 .hp-product-row {
   padding: 40px 0 16px;
 }
 
-/* Row header — title+icon on the left, "View all" button on the right */
 .hp-row-header {
   display: flex;
   align-items: flex-start;
@@ -127,14 +110,12 @@
   letter-spacing: -0.01em;
 }
 
-/* Row subtitle — raised from #777 to #666 to pass WCAG AA contrast on white background */
 .hp-row-header__subtitle {
   font-size: 0.85rem;
   color: #666;
   margin: 0;
 }
 
-/* "View all" button — text link style with arrow */
 .hp-view-all-btn {
   all: unset;
   cursor: pointer;
@@ -157,7 +138,6 @@
   color: var(--tan);
 }
 
-/* Error / empty states within a row */
 .hp-row-error,
 .hp-row-empty {
   color: #666;
@@ -169,8 +149,6 @@
 /* ══════════════════════════════════════════════════════════════════════════
    PRODUCT GRID
    ══════════════════════════════════════════════════════════════════════════ */
-
-/* Responsive grid — 2 cols on mobile, 3 on tablet, 4 on desktop */
 .hp-product-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -189,11 +167,16 @@
   }
 }
 
+@media (max-width: 480px) {
+  .hp-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SKELETON CARDS (loading state)
+   SKELETON CARDS
    ══════════════════════════════════════════════════════════════════════════ */
-
 .hp-skeleton-card {
   background: #fff;
   border-radius: 10px;
@@ -202,19 +185,18 @@
   padding-bottom: 14px;
 }
 
-/* Shimmer animation */
 @keyframes hpSkeletonShimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+  0% {
+    background-position: -400px 0;
+  }
+
+  100% {
+    background-position: 400px 0;
+  }
 }
 
 .hp-skeleton {
-  background: linear-gradient(
-    90deg,
-    #ede9e3 25%,
-    #f5f2ee 50%,
-    #ede9e3 75%
-  );
+  background: linear-gradient(90deg, #ede9e3 25%, #f5f2ee 50%, #ede9e3 75%);
   background-size: 800px 100%;
   animation: hpSkeletonShimmer 1.4s linear infinite;
   border-radius: 4px;
@@ -242,22 +224,18 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   DEALS BANNER (inline promotional strip)
+   DEALS BANNER
    ══════════════════════════════════════════════════════════════════════════ */
-
 .hp-deals-banner {
   background: var(--oxford-blue);
   border-radius: 12px;
   padding: 24px 32px;
   margin: 32px 0;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   flex-wrap: wrap;
-
-  /* Subtle animated top border in tan */
   border-top: 3px solid var(--tan);
 }
 
@@ -273,7 +251,6 @@
   flex-shrink: 0;
 }
 
-/* Banner title — changed from --off-white to --white for maximum contrast on oxford-blue */
 .hp-deals-banner__title {
   display: block;
   font-size: 1.1rem;
@@ -282,7 +259,6 @@
   margin-bottom: 4px;
 }
 
-/* Banner subtitle — raised from 0.7 opacity to 0.9 to pass WCAG AA contrast on oxford-blue */
 .hp-deals-banner__text {
   font-size: 0.85rem;
   color: rgba(250, 248, 245, 0.9);
@@ -329,7 +305,6 @@
 /* ══════════════════════════════════════════════════════════════════════════
    BROWSE / SEARCH MODE
    ══════════════════════════════════════════════════════════════════════════ */
-
 .homepage__browse-wrapper {
   max-width: 1280px;
   margin: 0 auto;
@@ -348,7 +323,6 @@
   letter-spacing: -0.02em;
 }
 
-/* Back to home button */
 .homepage__back-btn {
   all: unset;
   cursor: pointer;
@@ -368,12 +342,11 @@
   color: var(--tan);
 }
 
-/* Error / empty states in browse mode */
 .homepage__error,
 .homepage__empty {
   text-align: center;
   padding: 64px 24px;
-  color: #777;
+  color: #767676;
 }
 
 .homepage__error p,
@@ -394,84 +367,7 @@
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   MOBILE PRODUCT CARD OVERRIDES  (≤ 480px)
-   ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 480px) {
-
-  /* Single column on very small screens so cards aren't tiny */
-  .hp-product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
-  /* Tighter card padding */
-  .hp-product-card__info {
-    padding: 8px 10px 10px;
-    gap: 3px;
-  }
-
-  /* Smaller product name on mobile */
-  .hp-product-card__name {
-    font-size: 0.78rem;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-  }
-
-  /* Smaller price */
-  .hp-product-card__price {
-    font-size: 0.88rem;
-  }
-
-  /* Badges — smaller and only show one at a time to prevent overlap */
-  .hp-product-card__badges {
-    top: 6px;
-    left: 6px;
-    gap: 3px;
-  }
-
-  .hp-badge {
-    font-size: 0.6rem;
-    padding: 2px 6px;
-  }
-
-  /* Hide lower-priority badges on very small cards — show max 1 */
-  .hp-product-card__badges .hp-badge:nth-child(n+2) {
-    display: none;
-  }
-
-  /* Cart row tighter */
-  .hp-product-card__cart-row {
-    padding: 0 10px 10px;
-  }
-
-  /* Add to Cart button — compact on mobile */
-  .hp-cart-btn--add {
-    font-size: 0.7rem;
-    padding: 7px 8px;
-    gap: 5px;
-  }
-
-  /* Hide the button text on very small cards, keep icon */
-  .hp-cart-btn--add .hp-cart-btn__text {
-    display: none;
-  }
-
-  /* Stepper — tighter */
-  .hp-cart-stepper {
-    height: 32px;
-  }
-
-  .hp-stepper-btn {
-    width: 30px;
-    height: 32px;
-  }
-
-  .hp-stepper-qty {
-    font-size: 0.8rem;
-  }
-
-  /* Product row header — stack on mobile */
   .hp-row-header {
     flex-direction: column;
     gap: 8px;
@@ -486,113 +382,8 @@
     font-size: 0.78rem;
   }
 
-  /* Deals banner tighter on mobile */
   .hp-deals-banner {
     padding: 16px;
     margin: 20px 0;
   }
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   CART CONTROLS ON PRODUCT CARD
-   ══════════════════════════════════════════════════════════════════════════ */
-
-/* Row at the bottom of each card containing the cart button or stepper */
-.hp-product-card__cart-row {
-  padding: 0 14px 14px;
-  margin-top: auto;
-}
-
-/* ── Add to Cart button ─────────────────────────────────────────────────── */
-.hp-cart-btn {
-  all: unset;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 9px 12px;
-  border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  font-family: inherit;
-  transition: background 0.2s ease, transform 0.15s ease;
-  letter-spacing: 0.02em;
-}
-
-/* Default — Oxford Blue fill */
-.hp-cart-btn--add {
-  background: var(--oxford-blue);
-  color: var(--tan);
-}
-
-.hp-cart-btn--add:hover,
-.hp-cart-btn--add:focus-visible {
-  background: #003266;
-  transform: translateY(-1px);
-}
-
-/* Disabled — out of stock */
-.hp-cart-btn--disabled {
-  background: rgba(0, 33, 71, 0.06);
-  color: #767676;
-  cursor: not-allowed;
-  font-size: 0.75rem;
-}
-
-/* ── Quantity stepper ────────────────────────────────────────────────────── */
-/* Shown after item is added to cart — replaces the Add button */
-.hp-cart-stepper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(0, 33, 71, 0.05);
-  border-radius: 6px;
-  overflow: hidden;
-  height: 36px;
-}
-
-/* − and + buttons */
-.hp-stepper-btn {
-  all: unset;
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  color: var(--oxford-blue);
-  flex-shrink: 0;
-  transition: background 0.15s ease;
-}
-
-.hp-stepper-btn:hover,
-.hp-stepper-btn:focus-visible {
-  background: rgba(0, 33, 71, 0.1);
-}
-
-/* Quantity number */
-.hp-stepper-qty {
-  flex: 1;
-  text-align: center;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--oxford-blue);
-  user-select: none;
-}
-
-/* ── Card link wrapper — covers badges, image and info only ── */
-.hp-product-card__link {
-  display: contents;
-  text-decoration: none;
-  color: inherit;
-  outline: none;
-}
-
-.hp-product-card__link:focus-visible .hp-product-card__img-wrap {
-  outline: 2px solid var(--tan);
-  outline-offset: 2px;
 }

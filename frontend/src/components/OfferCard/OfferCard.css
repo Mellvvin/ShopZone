@@ -2,6 +2,7 @@
    ─────────────────────────────────────────────────────────────
    Styles for the OfferCard component.
    Extracted from SpecialOffersPage.css — class names unchanged.
+   Includes all mobile overrides and the disabled stepper state.
    ───────────────────────────────────────────────────────────── */
 
 /* ── Card container ─────────────────────────────────────────── */
@@ -302,6 +303,7 @@
         padding: 2px 5px;
     }
 
+    /* Only show the first type badge on very small cards */
     .offer-card__type-badges .offer-card__type-badge:nth-child(n+2) {
         display: none;
     }

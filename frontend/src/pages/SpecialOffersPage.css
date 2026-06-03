@@ -1,7 +1,6 @@
 /* SpecialOffersPage.css
- * Styles for the ShopZone Special Offers page (/offers)
- * Hero strip, tab bar, offer cards with discount badges, cart stepper
- * Colours: --oxford-blue #002147 | --tan #D2B48C | --off-white #FAF8F5
+ * Page-level styles only. Card styles now live in:
+ *   components/OfferCard/OfferCard.css
 */
 
 /* ── Page wrapper ────────────────────────────────────────────────────────── */
@@ -57,7 +56,6 @@
     margin: 0;
 }
 
-/* Decorative background circle */
 .offers-hero__shape {
     position: absolute;
     width: 400px;
@@ -104,7 +102,6 @@
     border-bottom-color: var(--oxford-blue);
 }
 
-/* Count badges on tabs */
 .offers-tab__count {
     display: inline-flex;
     align-items: center;
@@ -165,257 +162,6 @@
     .offers-grid {
         grid-template-columns: repeat(5, 1fr);
     }
-}
-
-/* ── Offer card ──────────────────────────────────────────────────────────── */
-.offer-card {
-    background: #fff;
-    border-radius: 12px;
-    border: 1.5px solid rgba(0, 33, 71, 0.07);
-    overflow: hidden;
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.offer-card:hover,
-.offer-card:focus-visible {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 28px rgba(0, 33, 71, 0.11);
-    border-color: rgba(210, 180, 140, 0.5);
-    outline: none;
-}
-
-/* Discount % badge — top right corner */
-.offer-card__discount-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 2;
-    background: #c0392b;
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 800;
-    padding: 4px 8px;
-    border-radius: 5px;
-    letter-spacing: 0.02em;
-}
-
-/* Type badges — top left */
-.offer-card__type-badges {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.offer-card__type-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 7px;
-    border-radius: 4px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.offer-card__type-badge--sale {
-    background: var(--tan);
-    color: var(--oxford-blue);
-}
-
-.offer-card__type-badge--clearance {
-    background: #c0392b;
-    color: #fff;
-}
-
-.offer-card__type-badge--featured {
-    background: var(--oxford-blue);
-    color: var(--tan);
-}
-
-/* Image */
-.offer-card__img-wrap {
-    width: 100%;
-    padding-top: 72%;
-    position: relative;
-    background: #f5f3f0;
-    overflow: hidden;
-}
-
-.offer-card__img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.offer-card:hover .offer-card__img {
-    transform: scale(1.04);
-}
-
-/* Info */
-.offer-card__info {
-    padding: 12px 14px 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    flex: 1;
-}
-
-.offer-card__category {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--tan);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-}
-
-.offer-card__name {
-    font-size: 0.86rem;
-    font-weight: 700;
-    color: var(--oxford-blue);
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.35;
-}
-
-.offer-card__price-row {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: 4px;
-}
-
-.offer-card__price {
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--oxford-blue);
-}
-
-.offer-card__original {
-    font-size: 0.78rem;
-    color: #767676;
-    text-decoration: line-through;
-}
-
-.offer-card__unit {
-    font-size: 0.72rem;
-    color: #767676;
-}
-
-/* Savings line */
-.offer-card__saving {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #27ae60;
-    margin-top: 2px;
-}
-
-.offer-card__out-of-stock {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #c0392b;
-    margin-top: 4px;
-}
-
-.offer-card__low-stock {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #f0a500;
-    margin-top: 4px;
-}
-
-/* ── Cart controls (identical pattern to HomePage) ───────────────────────── */
-.offer-card__cart-row {
-    padding: 0 14px 14px;
-    margin-top: auto;
-}
-
-.offer-cart-btn {
-    all: unset;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 9px 12px;
-    border-radius: 6px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    font-family: inherit;
-    transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.offer-cart-btn--add {
-    background: var(--oxford-blue);
-    color: var(--tan);
-}
-
-.offer-cart-btn--add:hover,
-.offer-cart-btn--add:focus-visible {
-    background: #003266;
-    transform: translateY(-1px);
-}
-
-.offer-cart-btn--disabled {
-    background: rgba(0, 33, 71, 0.06);
-    color: #767676;
-    cursor: not-allowed;
-    font-size: 0.75rem;
-}
-
-.offer-cart-stepper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(0, 33, 71, 0.05);
-    border-radius: 6px;
-    overflow: hidden;
-    height: 36px;
-}
-
-.offer-stepper-btn {
-    all: unset;
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    color: var(--oxford-blue);
-    transition: background 0.15s ease;
-}
-
-.offer-stepper-btn:hover,
-.offer-stepper-btn:focus-visible {
-    background: rgba(0, 33, 71, 0.1);
-}
-
-.offer-stepper-qty {
-    flex: 1;
-    text-align: center;
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: var(--oxford-blue);
-    user-select: none;
 }
 
 /* ── Skeleton ────────────────────────────────────────────────────────────── */
@@ -498,88 +244,12 @@
     }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   MOBILE CARD OVERRIDES  (≤ 480px)
-   ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 480px) {
-
-    /* Keep 2-col grid but tighten the gap */
     .offers-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
 
-    /* Tighter card info padding */
-    .offer-card__info {
-        padding: 8px 10px 6px;
-        gap: 2px;
-    }
-
-    /* Smaller name */
-    .offer-card__name {
-        font-size: 0.76rem;
-    }
-
-    /* Smaller price */
-    .offer-card__price {
-        font-size: 0.88rem;
-    }
-
-    /* Savings line — keep it but smaller */
-    .offer-card__saving {
-        font-size: 0.65rem;
-    }
-
-    /* Badges — tighter positioning, show max 1 type badge */
-    .offer-card__type-badges {
-        top: 6px;
-        left: 6px;
-    }
-
-    .offer-card__type-badge {
-        font-size: 0.58rem;
-        padding: 2px 5px;
-    }
-
-    .offer-card__type-badges .offer-card__type-badge:nth-child(n+2) {
-        display: none;
-    }
-
-    /* Discount badge — smaller */
-    .offer-card__discount-badge {
-        top: 6px;
-        right: 6px;
-        font-size: 0.65rem;
-        padding: 3px 6px;
-    }
-
-    /* Cart row tighter */
-    .offer-card__cart-row {
-        padding: 0 10px 10px;
-    }
-
-    /* Add to Cart button — compact */
-    .offer-cart-btn--add {
-        font-size: 0.68rem;
-        padding: 7px 8px;
-        gap: 5px;
-    }
-
-    /* Stepper — tighter */
-    .offer-cart-stepper {
-        height: 32px;
-    }
-
-    .offer-stepper-btn {
-        width: 30px;
-        height: 32px;
-    }
-
-    .offer-stepper-qty {
-        font-size: 0.8rem;
-    }
-
-    /* Hero — tighter on very small screens */
     .offers-hero {
         padding: 28px 16px 24px;
     }
@@ -592,7 +262,6 @@
         font-size: 0.82rem;
     }
 
-    /* Tab bar — smaller padding so all three tabs fit */
     .offers-tab {
         padding: 12px 12px;
         font-size: 0.78rem;
@@ -604,17 +273,4 @@
         height: 18px;
         font-size: 0.62rem;
     }
-}
-
-/* ── Card link wrapper — covers discount badge, image and info ── */
-.offer-card__link {
-    display: contents;
-    text-decoration: none;
-    color: inherit;
-    outline: none;
-}
-
-.offer-card__link:focus-visible .offer-card__img-wrap {
-    outline: 2px solid var(--tan);
-    outline-offset: 2px;
 }

@@ -14,6 +14,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { listProducts } from '../redux/slices/productSlice';
 import HeroBanner from '../components/HeroBanner/HeroBanner';
 import ProductCard from '../components/ProductCard/ProductCard';
+import SkeletonCard from '../components/ProductCard/SkeletonCard';
 import CategoryCards from '../components/CategoryCards/CategoryCards';
 import {
   FaArrowLeft,
@@ -26,19 +27,6 @@ import './HomePage.css';
 const FEATURED_LIMIT = 8;
 const NEW_ARRIVALS_LIMIT = 4;
 
-
-
-// ─────────────────────────────────────────────────────────────────────────
-// SkeletonCard
-// ─────────────────────────────────────────────────────────────────────────
-const SkeletonCard = () => (
-  <div className='hp-skeleton-card' aria-hidden='true'>
-    <div className='hp-skeleton hp-skeleton--img' />
-    <div className='hp-skeleton hp-skeleton--line hp-skeleton--short' />
-    <div className='hp-skeleton hp-skeleton--line' />
-    <div className='hp-skeleton hp-skeleton--line hp-skeleton--price' />
-  </div>
-);
 
 // ─────────────────────────────────────────────────────────────────────────
 // ProductRow
