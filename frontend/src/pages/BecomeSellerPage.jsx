@@ -160,13 +160,22 @@ const SellerIllustration = () => (
     </svg>
 );
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-const STATS = [
-    { value: 1000, suffix: '+', label: 'Products listed', icon: FaBoxOpen },
-    { value: 47, suffix: '', label: 'Counties reached', icon: FaMapMarkerAlt },
-    { value: 100, suffix: '%', label: 'Payments secured', icon: FaShieldAlt },
-    { value: 0, suffix: ' KES', label: 'Cold calling needed', icon: FaUsers },
+// STATS structure — values are fallbacks used until the API responds.
+// The actual values are overwritten by platformStats from /api/stats.
+const STATS_CONFIG = [
+    { key: 'totalProducts',        suffix: '+',     label: 'Products listed',       icon: FaBoxOpen },
+    { key: 'countiesServed',       suffix: '',      label: 'Counties reached',      icon: FaMapMarkerAlt },
+    { key: 'paymentsSecured',      suffix: '%',     label: 'Payments secured',      icon: FaShieldAlt },
+    { key: 'coldCallingNeeded',    suffix: ' KES',  label: 'Cold calling needed',   icon: FaUsers },
 ];
+
+// Fallback values shown while the API loads or if it fails
+const STATS_FALLBACK = {
+    totalProducts:     1000,
+    countiesServed:    47,
+    paymentsSecured:   100,
+    coldCallingNeeded: 0,
+};
 
 const STEPS = [
     {
@@ -268,9 +277,28 @@ const PROMISES = [
     { icon: FaStar, title: 'Your growth is our goal', body: 'ShopZone succeeds only when our sellers succeed. We invest in marketing, platform features, and buyer acquisition so your products sell.' },
 ];
 
-// ── Main component ────────────────────────────────────────────────────────────
 const BecomeSellerPage = () => {
     const navigate = useNavigate();
+
+    // ── Platform stats from API ───────────────────────────────
+    // Fetched once on mount. Fallback values display until resolved.
+    const [platformStats, setPlatformStats] = useState(STATS_FALLBACK);
+
+    useEffect(() => {
+        axios.get('/api/stats')
+            .then(({ data }) => {
+                setPlatformStats({
+                    totalProducts:     data.totalProducts     || STATS_FALLBACK.totalProducts,
+                    countiesServed:    data.countiesServed    || STATS_FALLBACK.countiesServed,
+                    paymentsSecured:   100,   // always 100% — this is a promise not a metric
+                    coldCallingNeeded: 0,     // always 0 — this is a promise not a metric
+                });
+            })
+            .catch(() => {
+                // API failed — fallback values already in state, nothing to do
+            });
+    }, []);
+
     const [formData, setFormData] = useState({
         businessName: '',
         contactName: '',
@@ -471,10 +499,10 @@ const [submitted, setSubmitted]         = useState(false);
                 </div>
             </section>
 
-            {/* ══ STATS STRIP ════════════════════════════════════════════════ */}
+          {/* ══ STATS STRIP ════════════════════════════════════════════════ */}
             <section className='bs-stats' aria-label='ShopZone platform statistics'>
                 <div className='bs-stats__inner'>
-                    {STATS.map((stat, i) => {
+                    {STATS_CONFIG.map((stat, i) => {
                         const Icon = stat.icon;
                         return (
                             <div key={stat.label} className='bs-stat'>
@@ -482,7 +510,8 @@ const [submitted, setSubmitted]         = useState(false);
                                     <Icon aria-hidden='true' />
                                 </div>
                                 <div className='bs-stat__number'>
-                                    <Counter target={stat.value} suffix={stat.suffix} />
+                                    {/* Counter reads from live API data with fallback */}
+                                    <Counter target={platformStats[stat.key]} suffix={stat.suffix} />
                                 </div>
                                 <div className='bs-stat__label'>{stat.label}</div>
                             </div>

@@ -86,7 +86,7 @@
 .checkout-steps__bubble--pending {
     background: #fff;
     border-color: #d0ccc6;
-    color: #bbb;
+    color: #767676;
 }
 
 .checkout-steps__icon {
@@ -106,7 +106,7 @@
     margin-top: 10px;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #bbb;
+    color: #767676;
     white-space: nowrap;
     transition: color 0.2s ease;
 }
@@ -135,7 +135,7 @@
 
 /* Pending label */
 .checkout-steps__label--pending {
-    color: #bbb;
+    color: #767676;
 }
 
 /* ── Responsive ─────────────────────────────────────────── */

@@ -9,8 +9,11 @@
 .login-page {
     display: flex;
     min-height: 100vh;
-    margin: 0 -12px;
-    /* cancel Bootstrap container padding */
+    /* Full-bleed without negative margin overflow.
+       width: 100vw would include scrollbar width on some browsers —
+       using this safer approach instead. */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ── Left branding panel ────────────────────────────────────── */
@@ -232,10 +235,10 @@
 }
 
 /* ── Mobile — stack panels vertically ──────────────────────── */
+/* ── Mobile — stack panels vertically ──────────────────────── */
 @media (max-width: 768px) {
     .login-page {
         flex-direction: column;
-        margin: 0 -12px;
     }
 
     .login-brand {

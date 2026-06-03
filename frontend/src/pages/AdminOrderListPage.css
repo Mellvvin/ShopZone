@@ -102,7 +102,7 @@
 .admin-orders-count__label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #aaa;
+  color: #767676;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-top: 4px;
@@ -128,7 +128,7 @@
   padding: 16px 20px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #aaa;
+  color: #767676;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   white-space: nowrap;
@@ -172,7 +172,7 @@
   justify-content: center;
   gap: 16px;
   padding: 80px 24px;
-  color: #888;
+  color: #666;
   font-size: 0.9rem;
   text-align: center;
 }
@@ -273,7 +273,7 @@
 
 .admin-orders-table__buyer-email {
   font-size: 0.72rem;
-  color: #bbb;
+  color: #767676;
 }
 
 .admin-orders-table__date {
@@ -290,7 +290,7 @@
 
 .admin-orders-table__commission {
   font-size: 0.68rem;
-  color: #bbb;
+  color: #767676;
 }
 
 /* Actions cell */
@@ -312,7 +312,7 @@
   white-space: nowrap;
 }
 
-.admin-status-badge--pending    { background: rgba(0,33,71,0.07);  color: #888; }
+.admin-status-badge--pending    { background: rgba(0,33,71,0.07);  color: #666; }
 .admin-status-badge--processing { background: #e8f0fe;             color: #2980b9; }
 .admin-status-badge--dispatched { background: #fff3e0;             color: #e67e22; }
 .admin-status-badge--delivered  { background: #eafaf1;             color: #27ae60; }
@@ -329,7 +329,7 @@
 }
 
 .admin-bool-badge--yes { color: #27ae60; }
-.admin-bool-badge--no  { color: #ccc; }
+.admin-bool-badge--no  { color: #767676; }
 
 /* Quote status text */
 .admin-quote-status {

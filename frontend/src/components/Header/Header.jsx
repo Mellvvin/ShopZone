@@ -13,7 +13,7 @@
 //   CategoryBar (desktop second navbar)
 //   MobileDrawer
 // ─────────────────────────────────────────────────────────────
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Badge } from 'react-bootstrap';
@@ -51,7 +51,7 @@ const Header = () => {
   const [showDropdown, setShowDropdown] = useState(false); // desktop dropdown open
   const [dropdownLocked, setDropdownLocked] = useState(false); // click-locked open
 
-  // Timer ref for hover close delay — prevents flicker when
+// Timer ref for hover close delay — prevents flicker when
   // mouse briefly leaves the trigger before reaching the menu
   const dropdownHoverTimer = useRef(null);
 
@@ -59,6 +59,9 @@ const Header = () => {
   const dropdownRef = useRef(null);
   // Ref for hamburger button — focus returns here when dropdown closes
   const hamburgerRef = useRef(null);
+  // Ref on the <header> element itself — used for scroll-condensed class
+  // toggling without triggering a React re-render on every scroll event
+  const headerRef = useRef(null);
 
   // ── Cart badge count ───────────────────────────────────────
   const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
@@ -70,11 +73,36 @@ const Header = () => {
     ? `Cart updated, ${totalItems} item${totalItems !== 1 ? 's' : ''}`
     : 'Cart is empty';
 
-  // ── Clear search + close mobile search on route change ─────
+ // ── Clear search + close mobile search on route change ─────
   useEffect(() => {
     setKeyword('');
     setShowSearch(false);
   }, [location.pathname]);
+
+  // ── Condensed navbar on scroll ─────────────────────────────
+  // Adds header--condensed to the <header> element once the user
+  // scrolls past 80px. Uses a ref toggle instead of setState so
+  // the scroll handler never causes a React re-render.
+  // The CSS transition handles the visual smoothness.
+  useEffect(() => {
+    const SCROLL_THRESHOLD = 80;
+
+    const handleScroll = () => {
+      const header = headerRef.current;
+      if (!header) return;
+      if (window.scrollY > SCROLL_THRESHOLD) {
+        header.classList.add('header--condensed');
+      } else {
+        header.classList.remove('header--condensed');
+      }
+    };
+
+    // Run once on mount in case page loads mid-scroll
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
 // ── Close desktop dropdown on outside click ────────────────
   // Closes both hover and locked states when clicking outside
@@ -153,8 +181,8 @@ const Header = () => {
     navigate('/');
   };
 
-  return (
-    <header className='site-header'>
+ return (
+    <header className='site-header' ref={headerRef}>
       {/* Visually hidden live region — announces cart quantity changes to screen readers */}
       <span className='visually-hidden' aria-live='polite' aria-atomic='true'>
         {cartAnnouncement}

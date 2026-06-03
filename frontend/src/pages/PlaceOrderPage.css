@@ -106,7 +106,7 @@
 
 /* Empty cart message */
 .place-order-empty {
-  color: #aaa;
+  color: #767676;
   font-size: 0.9rem;
   text-align: center;
   padding: 24px 0;
@@ -171,7 +171,7 @@
 
 .place-order-item__category {
   font-size: 0.72rem;
-  color: #999;
+  color: #767676;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -191,7 +191,7 @@
 
 .place-order-item__unit {
   font-size: 0.72rem;
-  color: #bbb;
+  color: #767676;
 }
 
 /* Price column — qty × price and line total */
@@ -201,7 +201,7 @@
   align-items: flex-end;
   gap: 3px;
   font-size: 0.78rem;
-  color: #888;
+  color: #666;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -229,7 +229,7 @@
 .place-order-detail__label {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #aaa;
+  color: #767676;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -356,7 +356,7 @@
 /* Zone sub-label on delivery line */
 .place-order-summary__zone {
   font-size: 0.75rem;
-  color: #aaa;
+  color: #767676;
   font-weight: 400;
 }
 
@@ -371,7 +371,7 @@
 .place-order-summary__excl-note {
   font-size: 0.72rem;
   font-weight: 400;
-  color: #aaa;
+  color: #767676;
 }
 
 /* Thin divider before total row */
@@ -468,7 +468,7 @@
 /* Small print below button */
 .place-order-summary__note {
   font-size: 0.72rem;
-  color: #aaa;
+  color: #767676;
   line-height: 1.6;
   text-align: center;
   margin: 0;
@@ -490,7 +490,7 @@
 
 .place-order-summary__terms-list li {
   font-size: 0.7rem;
-  color: #aaa;
+  color: #767676;
   line-height: 1.5;
   padding-left: 14px;
   position: relative;

@@ -18,6 +18,19 @@
 }
 
 /* ── BASE ───────────────────────────────────────────────────── */
+
+/* Prevent any component from causing horizontal document scroll.
+   Individual full-width sections use overflow-x: hidden on themselves.
+   This is the document-level safety net. */
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text-dark);
@@ -87,9 +100,9 @@ h6 {
 }
 
 .btn:disabled {
-  background-color: #CCCCCC !important;
-  border-color: #CCCCCC !important;
-  color: #888888 !important;
+  background-color: #767676 !important;
+  border-color: #767676 !important;
+  color: var(--text-muted) !important;
 }
 
 /* ── NAVBAR (Bootstrap override) ───────────────────────────── */

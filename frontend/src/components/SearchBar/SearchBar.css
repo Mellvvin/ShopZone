@@ -3,13 +3,19 @@
    Styles for the SearchBar component only.
    ──────────────────────────────────────── */
 
+/* ── Outer wrapper — position relative for dropdown ──────── */
+.searchbar-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 2rem;
+}
+
 /* ── Form wrapper ───────────────────────────────── */
 .searchbar-form {
     display: flex;
     align-items: center;
     width: 100%;
-    max-width: 420px;
-    margin: 0 2rem;
 }
 
 /* ── Left icon adornment ────────────────────────── */
@@ -44,7 +50,7 @@
 }
 
 .searchbar-input::placeholder {
-    color: #999;
+    color: #767676;
     opacity: 1;
 }
 

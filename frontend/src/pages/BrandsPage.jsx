@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
     FaBolt, FaCheckCircle, FaChevronRight,
     FaMobileAlt, FaTshirt, FaScroll, FaHome,
@@ -218,6 +219,30 @@ const BrandsPage = () => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
 
+    // ── Platform stats from API ───────────────────────────────
+    // Fallback values shown while loading or if the API fails.
+    const [platformStats, setPlatformStats] = useState({
+        totalProducts:     1000,
+        totalCategories:   13,
+        countiesServed:    47,
+        approvedSellers:   47,
+    });
+
+    useEffect(() => {
+        axios.get('/api/stats')
+            .then(({ data }) => {
+                setPlatformStats({
+                    totalProducts:   data.totalProducts   || 1000,
+                    totalCategories: data.totalCategories || 13,
+                    countiesServed:  data.countiesServed  || 47,
+                    approvedSellers: data.totalApprovedSellers || 47,
+                });
+            })
+            .catch(() => {
+                // API failed — fallback values already in state
+            });
+    }, []);
+
     // Typewriter
     const line1 = 'Browse by Category.';
     const [typed, setTyped] = useState('');
@@ -276,8 +301,12 @@ const BrandsPage = () => {
                             ShopZone brings together verified suppliers across 13 product categories.
                             Find what your business needs — and order it at real wholesale prices.
                         </p>
-                        <div className='br-hero__badges'>
-                            {['13 categories', '1,000+ products', 'Verified suppliers only'].map(b => (
+                       <div className='br-hero__badges'>
+                            {[
+                                `${platformStats.totalCategories} categories`,
+                                `${platformStats.totalProducts.toLocaleString()}+ products`,
+                                'Verified suppliers only',
+                            ].map(b => (
                                 <div key={b} className='br-hero__badge'>
                                     <FaCheckCircle aria-hidden='true' /> {b}
                                 </div>
@@ -319,10 +348,10 @@ const BrandsPage = () => {
             {/* ══ STATS STRIP ════════════════════════════════════════════════ */}
             <div className='br-stats-strip'>
                 {[
-                    { icon: FaBoxOpen, value: 13, suffix: '', label: 'Product categories' },
-                    { icon: FaStar, value: 1000, suffix: '+', label: 'Products listed' },
-                    { icon: FaStore, value: 47, suffix: '+', label: 'Verified suppliers' },
-                    { icon: FaCheckCircle, value: 47, suffix: '', label: 'Counties served' },
+                    { icon: FaBoxOpen,    value: platformStats.totalCategories, suffix: '',  label: 'Product categories' },
+                    { icon: FaStar,       value: platformStats.totalProducts,   suffix: '+', label: 'Products listed' },
+                    { icon: FaStore,      value: platformStats.approvedSellers, suffix: '+', label: 'Verified suppliers' },
+                    { icon: FaCheckCircle,value: platformStats.countiesServed,  suffix: '',  label: 'Counties served' },
                 ].map((stat, i) => {
                     const Icon = stat.icon;
                     return (

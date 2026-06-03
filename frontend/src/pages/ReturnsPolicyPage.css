@@ -385,7 +385,7 @@
 
 .rp-stat__label {
     font-size: 0.75rem;
-    color: #999;
+    color: #767676;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -785,7 +785,7 @@
 
 .rp-faq-item__chevron {
     font-size: 0.75rem;
-    color: #bbb;
+    color: #767676;
     flex-shrink: 0;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
 }

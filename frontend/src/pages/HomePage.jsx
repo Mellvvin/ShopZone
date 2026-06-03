@@ -52,12 +52,15 @@ const ProductCard = ({ product }) => {
   // Navigation handled by the Link wrapper around image + info sections, so cart buttons don't interfere with that
 
   // Add to cart — adds 1 unit, fires toast, does not navigate
-  const handleAddToCart = (e) => {
+ const handleAddToCart = (e) => {
     e.stopPropagation();
     dispatch(addToCart({ id: product._id, qty: 1 }));
-    showToast(`${product.name} added to cart`, 'success');
+    showToast(`${product.name} added to cart`, 'success', {
+      action: { label: 'Go to Cart', onClick: () => navigate('/cart') },
+    });
   };
-
+   
+  
   // Increase qty — if already in cart bump by 1, cap at countInStock
   const handleIncrease = (e) => {
     e.stopPropagation();

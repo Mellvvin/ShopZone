@@ -112,7 +112,7 @@
 /* Read-only field (Country) */
 .shipping-input--readonly {
   background: rgba(0, 33, 71, 0.03);
-  color: #888;
+  color: #666;
   cursor: not-allowed;
   border-color: rgba(0, 33, 71, 0.08);
 }
@@ -120,7 +120,7 @@
 /* Hint text below a field */
 .shipping-field__hint {
   font-size: 0.75rem;
-  color: #999;
+  color: #767676;
   margin: 5px 0 0;
 }
 
@@ -274,7 +274,7 @@
 .delivery-rate-card__placeholder {
   padding: 20px;
   font-size: 0.85rem;
-  color: #aaa;
+  color: #767676;
   text-align: center;
   font-style: italic;
   margin: 0;

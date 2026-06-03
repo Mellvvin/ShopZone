@@ -51,11 +51,14 @@ const OfferCard = ({ product }) => {
 
     // Navigation handled by the Link wrapper around image + info
 
-    const handleAddToCart = (e) => {
+   const handleAddToCart = (e) => {
         e.stopPropagation();
         dispatch(addToCart({ id: product._id, qty: 1 }));
-        showToast(`${product.name} added to cart`, 'success');
+        showToast(`${product.name} added to cart`, 'success', {
+            action: { label: 'Go to Cart', onClick: () => navigate('/cart') },
+        });
     };
+    
 
     const handleIncrease = (e) => {
         e.stopPropagation();

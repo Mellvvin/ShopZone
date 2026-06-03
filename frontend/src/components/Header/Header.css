@@ -9,13 +9,23 @@
     position: sticky;
     top: 0;
     z-index: 999;
+    width: 100%;
     box-shadow: var(--shadow);
+    transition: box-shadow 0.25s ease;
+}
+
+/* ── Condensed state — applied via JS ref on scroll > 80px ── */
+/* Height reduction is achieved through padding changes on the
+   inner container, not explicit height, so content never clips */
+.site-header.header--condensed {
+    box-shadow: 0 4px 20px rgba(0, 33, 71, 0.22);
 }
 
 /* ── Top bar — Oxford Blue background ────────────────────── */
 .header-top-bar {
     background-color: var(--oxford-blue);
     background: var(--oxford-blue);
+    transition: padding 0.25s ease;
 }
 
 /* ── Shared inner container ──────────────────────────────── */
@@ -24,6 +34,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.5rem 1rem;
+    /* Padding transition drives the height change on scroll */
+    transition: padding 0.25s ease;
+}
+
+/* Condensed — tighter vertical padding reduces navbar height */
+.header--condensed .header-container {
+    padding: 0.25rem 1rem;
 }
 
 /* ── Desktop search wrapper ──────────────────────────────── */
@@ -179,4 +196,73 @@
     .header-mobile-icons {
         gap: 0.75rem;
     }
+}
+
+/* ── Logo condensed transition ───────────────────────────── */
+.site-header .shopzone-logo__icon {
+    transition: font-size 0.25s ease;
+}
+
+.site-header .shopzone-logo__text {
+    transition: font-size 0.25s ease;
+}
+
+.header--condensed .shopzone-logo__icon {
+    font-size: 1.3rem;
+}
+
+.header--condensed .shopzone-logo__text {
+    font-size: 1rem;
+}
+
+/* ── Search bar condensed — correct class names ──────────── */
+/* Height is set explicitly on these elements (38px) so we
+   shrink via height rather than padding to avoid overrides. */
+.site-header .searchbar-form {
+    transition: transform 0.25s ease;
+}
+
+.site-header .searchbar-input,
+.site-header .searchbar-submit-btn,
+.site-header .searchbar-icon-left,
+.site-header .searchbar-clear-btn {
+    transition: height 0.25s ease, font-size 0.25s ease;
+}
+
+.header--condensed .searchbar-input,
+.header--condensed .searchbar-submit-btn,
+.header--condensed .searchbar-icon-left,
+.header--condensed .searchbar-clear-btn {
+    height: 32px;
+    font-size: 0.85rem;
+}
+
+/* ── Icon labels — fade and collapse on scroll ───────────── */
+.site-header .header-icon-label {
+    display: inline-block;
+    overflow: hidden;
+    max-width: 80px;
+    white-space: nowrap;
+    transition: opacity 0.2s ease, max-width 0.25s ease, margin 0.25s ease;
+}
+
+.header--condensed .header-icon-label {
+    opacity: 0;
+    max-width: 0;
+    margin-left: 0;
+}
+
+/* ── CategoryBar condensed ───────────────────────────────── */
+/* Reduces the catbar link vertical padding so the bar itself
+   shrinks — no explicit height needed. */
+.site-header .catbar-link,
+.site-header .catbar-trigger {
+    transition: padding 0.25s ease, font-size 0.25s ease;
+}
+
+.header--condensed .catbar-link,
+.header--condensed .catbar-trigger {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    font-size: 0.78rem;
 }

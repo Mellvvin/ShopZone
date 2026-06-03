@@ -357,7 +357,7 @@
 
 .contact-stat__label {
     font-size: 0.75rem;
-    color: #999;
+    color: #767676;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -411,7 +411,7 @@
 .contact-strip__time {
     display: block;
     font-size: 0.78rem;
-    color: #888;
+    color: #666;
 }
 
 /* ══ TOPIC CARDS ═════════════════════════════════════════════════════════════ */
@@ -578,7 +578,7 @@
 
 .contact-form-card__sub {
     font-size: 0.88rem;
-    color: #888;
+    color: #666;
     margin: 0;
 }
 
@@ -673,13 +673,13 @@
 
 .contact-form__submit:disabled {
     background: #ccc;
-    color: #888;
+    color: #666;
     cursor: not-allowed;
 }
 
 .contact-form__note {
     font-size: 0.75rem;
-    color: #aaa;
+    color: #767676;
     text-align: center;
     margin: 0;
     line-height: 1.5;
@@ -789,7 +789,7 @@
 .contact-info-card__label {
     font-size: 0.7rem;
     font-weight: 700;
-    color: #aaa;
+    color: #767676;
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
@@ -811,7 +811,7 @@ a.contact-info-card__value:hover {
 
 .contact-info-card__sub {
     font-size: 0.73rem;
-    color: #999;
+    color: #767676;
 }
 
 /* Hours card */

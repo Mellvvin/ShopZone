@@ -355,7 +355,7 @@
 
 .sp-stat__label {
     font-size: 0.75rem;
-    color: #999;
+    color: #767676;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -471,7 +471,7 @@
 
 .sp-rate-card__areas {
     font-size: 0.78rem;
-    color: #888;
+    color: #666;
     margin: 0;
     line-height: 1.55;
     flex: 1;
@@ -499,7 +499,7 @@
 .sp-rate-card__price span {
     font-size: 0.72rem;
     font-weight: 500;
-    color: #aaa;
+    color: #767676;
 }
 
 .sp-rate-card__days {
@@ -847,7 +847,7 @@
 
 .sp-faq-item__chevron {
     font-size: 0.75rem;
-    color: #bbb;
+    color: #767676;
     flex-shrink: 0;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
 }

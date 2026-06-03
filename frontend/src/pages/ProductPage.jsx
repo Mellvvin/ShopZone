@@ -15,6 +15,8 @@ import {
   resetProductReview,
 } from '../redux/slices/productSlice';
 import { addToCart } from '../redux/slices/cartSlice';
+import { showToast } from '../components/Toast/Toast';
+import { recordRecentView } from '../components/SearchBar/SearchBar';
 import './ProductPage.css';
 
 // ── Star rating input ─────────────────────────────────────────
@@ -42,8 +44,9 @@ const StarRating = ({ rating, setRating }) => {
 };
 
 const ProductPage = () => {
-  const { id } = useParams();
+const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [qty, setQty]         = useState(1);
   const [rating, setRating]   = useState(0);
@@ -63,7 +66,9 @@ const ProductPage = () => {
 
   useEffect(() => {
     document.title = product?.name ? `${product.name} — ShopZone` : 'Product — ShopZone';
-  }, [product?.name]);
+    // Record this product as recently viewed for the search autocomplete
+    if (product?._id) recordRecentView(product);
+  }, [product?.name, product?._id]);
 
   const handleQtyChange = (value) => {
     const parsed = parseInt(value);
@@ -73,6 +78,9 @@ const ProductPage = () => {
 
   const addToCartHandler = () => {
     dispatch(addToCart({ id, qty: Number(qty) || 1 }));
+    showToast(`${product.name} added to cart`, 'success', {
+      action: { label: 'Go to Cart', onClick: () => navigate('/cart') },
+    });
   };
 
   const submitReviewHandler = (e) => {

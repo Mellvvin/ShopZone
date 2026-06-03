@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
     FaSearch, FaChevronDown, FaShoppingCart, FaCreditCard,
     FaTruck, FaStore, FaUndoAlt, FaQuestionCircle,
@@ -198,6 +199,18 @@ const FAQIllustration = () => (
 // ── Main component ────────────────────────────────────────────────────────────
 const FAQPage = () => {
     const navigate = useNavigate();
+
+    // ── Platform stats from API ───────────────────────────────
+    const [platformStats, setPlatformStats] = useState({ countiesServed: 47 });
+
+    useEffect(() => {
+        axios.get('/api/stats')
+            .then(({ data }) => {
+                setPlatformStats({ countiesServed: data.countiesServed || 47 });
+            })
+            .catch(() => {});
+    }, []);
+
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [openItem, setOpenItem] = useState(null);
@@ -313,12 +326,12 @@ const FAQPage = () => {
                 </div>
             </section>
 
-            {/* ══ STATS STRIP ════════════════════════════════════════════════ */}
+           {/* ══ STATS STRIP ════════════════════════════════════════════════ */}
             <div className='faq-stats-strip'>
                 {[
                     { icon: FaQuestionCircle, value: FAQ_DATA.reduce((a, s) => a + s.questions.length, 0), suffix: '', label: 'Questions answered' },
-                    { icon: FaBoxOpen, value: 5, suffix: '', label: 'Topic categories' },
-                    { icon: FaUsers, value: 47, suffix: '+', label: 'Counties we serve' },
+                    { icon: FaBoxOpen, value: FAQ_DATA.length, suffix: '', label: 'Topic categories' },
+                    { icon: FaUsers, value: platformStats.countiesServed, suffix: '+', label: 'Counties we serve' },
                     { icon: FaHeadset, value: 4, suffix: 'hr', label: 'Email response time' },
                 ].map((stat, i) => {
                     const Icon = stat.icon;

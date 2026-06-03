@@ -35,7 +35,7 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  color: #888;
+  color: #666;
   font-size: 0.9rem;
 }
 
@@ -98,7 +98,7 @@
 
 .order-page__date {
   font-size: 0.82rem;
-  color: #aaa;
+  color: #767676;
   margin: 0;
 }
 
@@ -213,12 +213,12 @@
 
 .order-item__category {
   font-size: 0.72rem;
-  color: #aaa;
+  color: #767676;
 }
 
 .order-item__unit {
   font-size: 0.72rem;
-  color: #ccc;
+  color: #767676;
 }
 
 .order-item__price {
@@ -227,7 +227,7 @@
   align-items: flex-end;
   gap: 2px;
   font-size: 0.78rem;
-  color: #888;
+  color: #666;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -255,7 +255,7 @@
 .order-detail__label {
   font-size: 0.7rem;
   font-weight: 700;
-  color: #bbb;
+  color: #767676;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -320,7 +320,7 @@
   border: 1px solid rgba(0, 33, 71, 0.1);
   color: #555;
 }
-.order-quote-status--pending svg { color: #aaa; }
+.order-quote-status--pending svg { color: #767676; }
 
 /* Sent — buyer needs to action */
 .order-quote-status--sent {
@@ -350,7 +350,7 @@
 
 .order-quote-status__notes {
   font-style: italic;
-  color: #888;
+  color: #666;
 }
 
 /* Approve / Reject action buttons */
@@ -442,7 +442,7 @@
 
 .order-badge--payout-pending {
   background: rgba(0, 33, 71, 0.04);
-  color: #aaa;
+  color: #767676;
 }
 
 /* ── Order status timeline ───────────────────────────────────────────────── */
@@ -467,7 +467,7 @@
 
 .order-status-card__cancel-note {
   font-size: 0.82rem;
-  color: #888;
+  color: #666;
   margin: 8px 0 0;
 }
 
@@ -517,7 +517,7 @@
 
 .order-timeline__icon {
   font-size: 0.85rem;
-  color: #ccc;
+  color: #767676;
 }
 
 /* Done step */
@@ -541,7 +541,7 @@
 .order-timeline__label {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #ccc;
+  color: #767676;
 }
 
 .order-timeline__step--done .order-timeline__label,
@@ -594,7 +594,7 @@
 
 .order-price-line__note {
   font-size: 0.72rem;
-  color: #aaa;
+  color: #767676;
 }
 
 .order-price-divider {
@@ -616,7 +616,7 @@
 /* Admin commission line — muted */
 .order-price-line--commission {
   font-size: 0.72rem;
-  color: #bbb;
+  color: #767676;
   border-top: 1px dashed rgba(0,33,71,0.08);
   padding-top: 8px;
   margin-top: 4px;
@@ -821,7 +821,7 @@
 
 .seller-quote-form__zone {
   font-size: 0.8rem;
-  color: #888;
+  color: #666;
   margin: 0 0 16px;
 }
 

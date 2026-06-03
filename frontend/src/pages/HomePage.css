@@ -160,7 +160,7 @@
 /* Error / empty states within a row */
 .hp-row-error,
 .hp-row-empty {
-  color: #888;
+  color: #666;
   font-size: 0.9rem;
   padding: 24px 0;
   text-align: center;
@@ -326,7 +326,7 @@
 .hp-product-card__original-price {
   font-size: 0.8rem;
   font-weight: 500;
-  color: #888;
+  color: #666;
   text-decoration: line-through;
 }
 
@@ -691,7 +691,7 @@
 /* Disabled — out of stock */
 .hp-cart-btn--disabled {
   background: rgba(0, 33, 71, 0.06);
-  color: #ccc;
+  color: #767676;
   cursor: not-allowed;
   font-size: 0.75rem;
 }

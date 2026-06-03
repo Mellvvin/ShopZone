@@ -17,18 +17,20 @@ import './Toast.css';
 // ── showToast — call this from anywhere in the app ────────────
 // Dispatches a custom browser event that the Toast component
 // listens for and renders. No props or Redux needed.
-export const showToast = (message, type = 'success') => {
+// action is optional: { label: string, onClick: fn }
+// Example: showToast('Added to cart', 'success', { action: { label: 'Go to Cart', onClick: () => navigate('/cart') } })
+export const showToast = (message, type = 'success', options = {}) => {
     window.dispatchEvent(
         new CustomEvent('shopzone-toast', {
-            detail: { message, type },
+            detail: { message, type, action: options.action || null },
         })
     );
-};
+}; 
 
 // ── ToastItem — a single notification card ────────────────────
 // Renders the icon, message, close button and draining bar.
 // Auto-dismisses after 5 seconds.
-const ToastItem = ({ id, message, type, onRemove }) => {
+const ToastItem = ({ id, message, type, action, onRemove }) => {
     const [visible, setVisible] = useState(true);
 
     // ── Auto-dismiss after 5 seconds ─────────────────────────
@@ -47,20 +49,33 @@ const ToastItem = ({ id, message, type, onRemove }) => {
         setTimeout(() => onRemove(id), 300);
     };
 
-    return (
+   return (
         <div
-            className={`sz-toast-item sz-toast-item--${type} ${visible ? 'sz-toast-item--visible' : 'sz-toast-item--hidden'
-                }`}
+            className={`sz-toast-item sz-toast-item--${type} ${visible ? 'sz-toast-item--visible' : 'sz-toast-item--hidden'}`}
         >
-            {/* ── Icon ────────────────────────────────────────────── */}
+            {/* ── Icon ─────────────────────────────────────────────── */}
             <span className='sz-toast-icon' aria-hidden='true'>
                 {type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}
             </span>
 
-            {/* ── Message ─────────────────────────────────────────── */}
-            <p className='sz-toast-message'>{message}</p>
+            {/* ── Content ──────────────────────────────────────────── */}
+            <div className='sz-toast-content'>
+                <p className='sz-toast-message'>{message}</p>
+                {/* Optional action button — e.g. "Go to Cart" */}
+                {action && (
+                    <button
+                        className='sz-toast-action'
+                        onClick={() => {
+                            handleClose();
+                            action.onClick();
+                        }}
+                    >
+                        {action.label}
+                    </button>
+                )}
+            </div>
 
-            {/* ── Close button ────────────────────────────────────── */}
+            {/* ── Close button ─────────────────────────────────────── */}
             <button
                 className='sz-toast-close'
                 onClick={handleClose}
@@ -69,25 +84,21 @@ const ToastItem = ({ id, message, type, onRemove }) => {
                 ✕
             </button>
 
-            {/* ── Draining progress bar ────────────────────────────── */}
-            {/* Starts full width and shrinks to zero over 5 seconds  */}
+            {/* ── Draining progress bar ─────────────────────────────── */}
             <div className={`sz-toast-bar sz-toast-bar--${type}`} />
         </div>
     );
 };
-
 // ── Toast container — mounted once in App.jsx ─────────────────
 // Listens for shopzone-toast events and renders each one.
 const Toast = () => {
     const [toasts, setToasts] = useState([]);
 
     useEffect(() => {
-        const handler = (e) => {
-            const { message, type } = e.detail;
-            // Unique ID using timestamp + random so multiple toasts
-            // can stack without key conflicts
+       const handler = (e) => {
+            const { message, type, action } = e.detail;
             const id = Date.now() + Math.random();
-            setToasts((prev) => [...prev, { id, message, type }]);
+            setToasts((prev) => [...prev, { id, message, type, action: action || null }]);
         };
         window.addEventListener('shopzone-toast', handler);
         return () => window.removeEventListener('shopzone-toast', handler);
@@ -105,12 +116,12 @@ const Toast = () => {
         <div className='sz-toast-container'>
             <div aria-live='polite' aria-atomic='false'>
                 {politeToasts.map((toast) => (
-                    <ToastItem key={toast.id} id={toast.id} message={toast.message} type={toast.type} onRemove={removeToast} />
+                    <ToastItem key={toast.id} id={toast.id} message={toast.message} type={toast.type} action={toast.action} onRemove={removeToast} />
                 ))}
             </div>
             <div aria-live='assertive' aria-atomic='true'>
                 {assertiveToasts.map((toast) => (
-                    <ToastItem key={toast.id} id={toast.id} message={toast.message} type={toast.type} onRemove={removeToast} />
+                    <ToastItem key={toast.id} id={toast.id} message={toast.message} type={toast.type} action={toast.action} onRemove={removeToast} />
                 ))}
             </div>
         </div>

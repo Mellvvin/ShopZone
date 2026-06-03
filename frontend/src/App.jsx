@@ -41,8 +41,7 @@ import ShippingPolicyPage from './pages/ShippingPolicyPage';
 import ReturnsPolicyPage from './pages/ReturnsPolicyPage';
 import BrandsPage from './pages/BrandsPage';
 import BulkOrdersPage from './pages/BulkOrdersPage';
-// AboutPage — placeholder until built in next session
-// import AboutPage from './pages/AboutPage';
+import AboutPage from './pages/AboutPage';
 
 
 
@@ -73,8 +72,7 @@ const App = () => {
           <Route path='/returns-policy' element={<ReturnsPolicyPage />} />
           <Route path='/brands' element={<BrandsPage />} />
           <Route path='/bulk-orders' element={<BulkOrdersPage />} />
-          {/* /about route — uncomment when AboutPage is built */}
-          {/* <Route path='/about' element={<AboutPage />} /> */}
+          <Route path='/about' element={<AboutPage />} />
 
           
 

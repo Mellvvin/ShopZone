@@ -143,7 +143,27 @@ const CONTACT_INFO = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 const ContactPage = () => {
-   const [selectedTopic, setSelectedTopic] = useState('');
+
+    // ── Platform stats from API ───────────────────────────────
+    const [platformStats, setPlatformStats] = useState({
+        countiesServed:   47,
+        ordersHandled:    1000,
+        issuesResolved:   98,
+    });
+
+    useEffect(() => {
+        axios.get('/api/stats')
+            .then(({ data }) => {
+                setPlatformStats({
+                    countiesServed:  data.countiesServed        || 47,
+                    ordersHandled:   data.totalOrdersFulfilled  || 1000,
+                    issuesResolved:  98, // kept static — this is a service promise
+                });
+            })
+            .catch(() => {});
+    }, []);
+
+    const [selectedTopic, setSelectedTopic] = useState('');
     const [formData, setFormData] = useState({ name: '', email: '', topic: '', message: '' });
     const [submitted, setSubmitted] = useState(false);
     // Loading and error state for the form submission
@@ -269,10 +289,10 @@ const ContactPage = () => {
             {/* ══ STATS STRIP ════════════════════════════════════════════════ */}
             <div className='contact-stats-strip'>
                 {[
-                    { icon: FaUsers, value: 47, suffix: '', label: 'Counties served' },
-                    { icon: FaClock, value: 4, suffix: 'hr', label: 'Email response' },
-                    { icon: FaTruck, value: 1000, suffix: '+', label: 'Orders handled' },
-                    { icon: FaCheckCircle, value: 98, suffix: '%', label: 'Issues resolved' },
+                    { icon: FaUsers,       value: platformStats.countiesServed,  suffix: '',    label: 'Counties served' },
+                    { icon: FaClock,       value: 4,                             suffix: 'hr',  label: 'Email response' },
+                    { icon: FaTruck,       value: platformStats.ordersHandled,   suffix: '+',   label: 'Orders handled' },
+                    { icon: FaCheckCircle, value: platformStats.issuesResolved,  suffix: '%',   label: 'Issues resolved' },
                 ].map((stat, i) => {
                     const Icon = stat.icon;
                     return (

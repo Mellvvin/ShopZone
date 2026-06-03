@@ -368,7 +368,7 @@
 
 .faq-stat__label {
     font-size: 0.75rem;
-    color: #999;
+    color: #767676;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -398,7 +398,7 @@
     padding: 18px 22px;
     font-size: 0.84rem;
     font-weight: 600;
-    color: #999;
+    color: #767676;
     border-bottom: 2.5px solid transparent;
     margin-bottom: -2px;
     white-space: nowrap;
@@ -423,7 +423,7 @@
 
 .faq-results-count {
     font-size: 0.88rem;
-    color: #888;
+    color: #666;
     margin: 0 0 32px;
 }
 
@@ -462,7 +462,7 @@
 
 .faq-section-header__count {
     font-size: 0.78rem;
-    color: #999;
+    color: #767676;
     margin: 0;
 }
 
@@ -538,7 +538,7 @@
 
 .faq-item__chevron {
     font-size: 0.75rem;
-    color: #bbb;
+    color: #767676;
     flex-shrink: 0;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
 }
@@ -566,7 +566,7 @@
 .faq-empty {
     text-align: center;
     padding: 80px 24px;
-    color: #aaa;
+    color: #767676;
 }
 
 .faq-empty__icon {
