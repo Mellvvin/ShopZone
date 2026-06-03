@@ -12,184 +12,21 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { listProducts } from '../redux/slices/productSlice';
-import { addToCart, updateCartQty, removeFromCart } from '../redux/slices/cartSlice';
-import { showToast } from '../components/Toast/Toast';
 import HeroBanner from '../components/HeroBanner/HeroBanner';
+import ProductCard from '../components/ProductCard/ProductCard';
 import CategoryCards from '../components/CategoryCards/CategoryCards';
 import {
   FaArrowLeft,
-  FaTag,
   FaFire,
   FaStar,
   FaChevronRight,
-  FaShoppingCart,
-  FaPlus,
-  FaMinus,
 } from 'react-icons/fa';
 import './HomePage.css';
 
 const FEATURED_LIMIT = 8;
 const NEW_ARRIVALS_LIMIT = 4;
 
-// ─────────────────────────────────────────────────────────────────────────
-// ProductCard
-// ─────────────────────────────────────────────────────────────────────────
-const ProductCard = ({ product }) => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  // Read cart to know if this product is already in it and at what qty
-  const cartItems = useSelector((state) => state.cart.cartItems);
-  const cartItem = cartItems.find((i) => i.product === product._id);
-  const cartQty = cartItem ? cartItem.qty : 0;
-
-  const displayPrice = product.isOnSale && product.salePrice
-    ? product.salePrice
-    : product.price;
-
-  const isDiscounted = product.isOnSale && product.salePrice;
-
-  // Navigation handled by the Link wrapper around image + info sections, so cart buttons don't interfere with that
-
-  // Add to cart — adds 1 unit, fires toast, does not navigate
- const handleAddToCart = (e) => {
-    e.stopPropagation();
-    dispatch(addToCart({ id: product._id, qty: 1 }));
-    showToast(`${product.name} added to cart`, 'success', {
-      action: { label: 'Go to Cart', onClick: () => navigate('/cart') },
-    });
-  };
-   
-  
-  // Increase qty — if already in cart bump by 1, cap at countInStock
-  const handleIncrease = (e) => {
-    e.stopPropagation();
-    if (cartQty >= product.countInStock) {
-      showToast(`Only ${product.countInStock} units available`, 'error');
-      return;
-    }
-    dispatch(updateCartQty({ id: product._id, qty: cartQty + 1 }));
-  };
-
-  // Decrease qty — if qty reaches 0 remove from cart entirely
-  const handleDecrease = (e) => {
-    e.stopPropagation();
-    if (cartQty === 1) {
-      dispatch(removeFromCart(product._id));
-      showToast(`${product.name} removed from cart`, 'info');
-    } else {
-      dispatch(updateCartQty({ id: product._id, qty: cartQty - 1 }));
-    }
-  };
-
-  return (
-    <article className='hp-product-card' aria-label={product.name}>
-      {/* Link wraps badges, image and info — not the cart row */}
-      <Link
-        to={`/product/${product._id}`}
-        className='hp-product-card__link'
-        aria-label={`View ${product.name}`}
-      >
-        {/* ── Badges ────────────────────────────────────────────────── */}
-      <div className='hp-product-card__badges' aria-hidden='true'>
-        {product.isFeatured && (
-          <span className='hp-badge hp-badge--featured'>
-            <FaStar /> Featured
-          </span>
-        )}
-        {product.isOnSale && (
-          <span className='hp-badge hp-badge--sale'>
-            <FaTag /> Sale
-          </span>
-        )}
-        {product.isClearance && (
-          <span className='hp-badge hp-badge--clearance'>
-            <FaFire /> Clearance
-          </span>
-        )}
-      </div>
-
-      {/* ── Image ─────────────────────────────────────────────────── */}
-      <div className='hp-product-card__img-wrap'>
-        <img
-          src={product.image}
-          alt={product.name}
-          className='hp-product-card__img'
-          loading='lazy'
-        />
-      </div>
-
-      {/* ── Info ──────────────────────────────────────────────────── */}
-      <div className='hp-product-card__info'>
-        <span className='hp-product-card__category'>{product.category}</span>
-
-        <h3 className='hp-product-card__name'>{product.name}</h3>
-
-        <div className='hp-product-card__price-row'>
-          <span className='hp-product-card__price'>
-            {`KES ${Number(displayPrice).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
-          </span>
-          {isDiscounted && (
-            <span className='hp-product-card__original-price'>
-              {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
-            </span>
-          )}
-          {product.unit && (
-            <span className='hp-product-card__unit'>/ {product.unit}</span>
-          )}
-        </div>
-
-        {product.countInStock === 0 && (
-          <span className='hp-product-card__out-of-stock'>Out of stock</span>
-        )}
-      </div>
-      </Link>
-
-      {/* ── Cart controls ─────────────────────────────────────────── */}
-      {/* Cart row is outside the Link so clicks don't navigate */}
-      <div
-        className='hp-product-card__cart-row' 
-      >
-        {product.countInStock === 0 ? (
-          // Out of stock — disabled button
-          <button className='hp-cart-btn hp-cart-btn--disabled' disabled>
-            Out of Stock
-          </button>
-        ) : cartQty === 0 ? (
-          // Not in cart — show Add to Cart button
-            <button
-              className='hp-cart-btn hp-cart-btn--add'
-              onClick={handleAddToCart}
-              aria-label={`Add ${product.name} to cart`}
-            >
-              <FaShoppingCart aria-hidden='true' />
-              <span className='hp-cart-btn__text'>Add to Cart</span>
-            </button>
-        ) : (
-          // Already in cart — show stepper
-          <div className='hp-cart-stepper' role='group' aria-label={`Quantity for ${product.name}`}>
-            <button
-              className='hp-stepper-btn'
-              onClick={handleDecrease}
-              aria-label='Decrease quantity'
-            >
-              <FaMinus aria-hidden='true' />
-            </button>
-            <span className='hp-stepper-qty' aria-live='polite'>{cartQty}</span>
-            <button
-              className='hp-stepper-btn'
-              onClick={handleIncrease}
-              aria-label='Increase quantity'
-            >
-              <FaPlus aria-hidden='true' />
-            </button>
-          </div>
-        )}
-      </div>
-
-    </article>
-  );
-};
 
 // ─────────────────────────────────────────────────────────────────────────
 // SkeletonCard

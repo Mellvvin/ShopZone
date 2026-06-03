@@ -1,14 +1,13 @@
-/* frontend/src/components/ProductCard/ProductCard.css
+/* frontend/src/components/OfferCard/OfferCard.css
    ─────────────────────────────────────────────────────────────
-   Styles for the ProductCard component.
-   Extracted from HomePage.css — class names unchanged so no
-   JSX changes are needed beyond the import.
+   Styles for the OfferCard component.
+   Extracted from SpecialOffersPage.css — class names unchanged.
    ───────────────────────────────────────────────────────────── */
 
 /* ── Card container ─────────────────────────────────────────── */
-.hp-product-card {
+.offer-card {
     background: #fff;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1.5px solid rgba(0, 33, 71, 0.07);
     overflow: hidden;
     cursor: pointer;
@@ -18,54 +17,69 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.hp-product-card:hover,
-.hp-product-card:focus-visible {
+.offer-card:hover,
+.offer-card:focus-visible {
     transform: translateY(-4px);
     box-shadow: 0 10px 28px rgba(0, 33, 71, 0.11);
     border-color: rgba(210, 180, 140, 0.5);
     outline: none;
 }
 
-/* ── Badges ─────────────────────────────────────────────────── */
-.hp-product-card__badges {
+/* ── Discount badge ─────────────────────────────────────────── */
+.offer-card__discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    background: #c0392b;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 5px;
+    letter-spacing: 0.02em;
+}
+
+/* ── Type badges ────────────────────────────────────────────── */
+.offer-card__type-badges {
     position: absolute;
     top: 10px;
     left: 10px;
+    z-index: 2;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    z-index: 1;
+    gap: 3px;
 }
 
-.hp-badge {
+.offer-card__type-badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 8px;
+    padding: 3px 7px;
     border-radius: 4px;
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
-.hp-badge--featured {
-    background: var(--oxford-blue);
-    color: var(--tan);
-}
-
-.hp-badge--sale {
+.offer-card__type-badge--sale {
     background: var(--tan);
     color: var(--oxford-blue);
 }
 
-.hp-badge--clearance {
+.offer-card__type-badge--clearance {
     background: #c0392b;
     color: #fff;
 }
 
+.offer-card__type-badge--featured {
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
 /* ── Image ──────────────────────────────────────────────────── */
-.hp-product-card__img-wrap {
+.offer-card__img-wrap {
     width: 100%;
     padding-top: 72%;
     position: relative;
@@ -73,7 +87,7 @@
     overflow: hidden;
 }
 
-.hp-product-card__img {
+.offer-card__img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -82,41 +96,41 @@
     transition: transform 0.3s ease;
 }
 
-.hp-product-card:hover .hp-product-card__img {
+.offer-card:hover .offer-card__img {
     transform: scale(1.04);
 }
 
 /* ── Info ───────────────────────────────────────────────────── */
-.hp-product-card__info {
-    padding: 12px 14px 14px;
+.offer-card__info {
+    padding: 12px 14px 8px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     flex: 1;
 }
 
-.hp-product-card__category {
-    font-size: 0.7rem;
-    font-weight: 600;
+.offer-card__category {
+    font-size: 0.68rem;
+    font-weight: 700;
     color: var(--tan-dark);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.07em;
 }
 
-.hp-product-card__name {
-    font-size: 0.88rem;
+.offer-card__name {
+    font-size: 0.86rem;
     font-weight: 700;
     color: var(--oxford-blue);
     margin: 0;
-    line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.35;
 }
 
-.hp-product-card__price-row {
+.offer-card__price-row {
     display: flex;
     align-items: baseline;
     gap: 6px;
@@ -124,39 +138,51 @@
     margin-top: 4px;
 }
 
-.hp-product-card__price {
+.offer-card__price {
     font-size: 1rem;
     font-weight: 800;
     color: var(--oxford-blue);
 }
 
-.hp-product-card__original-price {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #666;
+.offer-card__original {
+    font-size: 0.78rem;
+    color: #767676;
     text-decoration: line-through;
 }
 
-.hp-product-card__unit {
-    font-size: 0.75rem;
+.offer-card__unit {
+    font-size: 0.72rem;
     color: #767676;
 }
 
-.hp-product-card__out-of-stock {
-    display: inline-block;
+.offer-card__saving {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #27ae60;
+    margin-top: 2px;
+}
+
+.offer-card__out-of-stock {
     font-size: 0.7rem;
-    font-weight: 600;
+    font-weight: 700;
     color: #c0392b;
     margin-top: 4px;
 }
 
+.offer-card__low-stock {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #f0a500;
+    margin-top: 4px;
+}
+
 /* ── Cart controls row ──────────────────────────────────────── */
-.hp-product-card__cart-row {
+.offer-card__cart-row {
     padding: 0 14px 14px;
     margin-top: auto;
 }
 
-.hp-cart-btn {
+.offer-cart-btn {
     all: unset;
     cursor: pointer;
     display: flex;
@@ -171,21 +197,20 @@
     font-weight: 700;
     font-family: inherit;
     transition: background 0.2s ease, transform 0.15s ease;
-    letter-spacing: 0.02em;
 }
 
-.hp-cart-btn--add {
+.offer-cart-btn--add {
     background: var(--oxford-blue);
     color: var(--tan);
 }
 
-.hp-cart-btn--add:hover,
-.hp-cart-btn--add:focus-visible {
+.offer-cart-btn--add:hover,
+.offer-cart-btn--add:focus-visible {
     background: #003266;
     transform: translateY(-1px);
 }
 
-.hp-cart-btn--disabled {
+.offer-cart-btn--disabled {
     background: rgba(0, 33, 71, 0.06);
     color: #767676;
     cursor: not-allowed;
@@ -193,7 +218,7 @@
 }
 
 /* ── Stepper ────────────────────────────────────────────────── */
-.hp-cart-stepper {
+.offer-cart-stepper {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -203,7 +228,7 @@
     height: 36px;
 }
 
-.hp-stepper-btn {
+.offer-stepper-btn {
     all: unset;
     cursor: pointer;
     width: 36px;
@@ -213,21 +238,20 @@
     justify-content: center;
     font-size: 0.7rem;
     color: var(--oxford-blue);
-    flex-shrink: 0;
     transition: background 0.15s ease;
 }
 
-.hp-stepper-btn:hover,
-.hp-stepper-btn:focus-visible {
+.offer-stepper-btn:hover,
+.offer-stepper-btn:focus-visible {
     background: rgba(0, 33, 71, 0.1);
 }
 
-.hp-stepper-btn:disabled {
+.offer-stepper-btn:disabled {
     opacity: 0.35;
     cursor: not-allowed;
 }
 
-.hp-stepper-qty {
+.offer-stepper-qty {
     flex: 1;
     text-align: center;
     font-size: 0.88rem;
@@ -237,72 +261,78 @@
 }
 
 /* ── Link wrapper ───────────────────────────────────────────── */
-.hp-product-card__link {
+.offer-card__link {
     display: contents;
     text-decoration: none;
     color: inherit;
     outline: none;
 }
 
-.hp-product-card__link:focus-visible .hp-product-card__img-wrap {
+.offer-card__link:focus-visible .offer-card__img-wrap {
     outline: 2px solid var(--tan);
     outline-offset: 2px;
 }
 
 /* ── Mobile overrides ───────────────────────────────────────── */
 @media (max-width: 480px) {
-    .hp-product-card__info {
-        padding: 8px 10px 10px;
-        gap: 3px;
+    .offer-card__info {
+        padding: 8px 10px 6px;
+        gap: 2px;
     }
 
-    .hp-product-card__name {
-        font-size: 0.78rem;
+    .offer-card__name {
+        font-size: 0.76rem;
     }
 
-    .hp-product-card__price {
+    .offer-card__price {
         font-size: 0.88rem;
     }
 
-    .hp-product-card__badges {
+    .offer-card__saving {
+        font-size: 0.65rem;
+    }
+
+    .offer-card__type-badges {
         top: 6px;
         left: 6px;
-        gap: 3px;
     }
 
-    .hp-badge {
-        font-size: 0.6rem;
-        padding: 2px 6px;
+    .offer-card__type-badge {
+        font-size: 0.58rem;
+        padding: 2px 5px;
     }
 
-    .hp-product-card__badges .hp-badge:nth-child(n+2) {
+    .offer-card__type-badges .offer-card__type-badge:nth-child(n+2) {
         display: none;
     }
 
-    .hp-product-card__cart-row {
+    .offer-card__discount-badge {
+        top: 6px;
+        right: 6px;
+        font-size: 0.65rem;
+        padding: 3px 6px;
+    }
+
+    .offer-card__cart-row {
         padding: 0 10px 10px;
     }
 
-    .hp-cart-btn--add {
-        font-size: 0.7rem;
+    .offer-cart-btn--add {
+        font-size: 0.68rem;
         padding: 7px 8px;
         gap: 5px;
     }
 
-    .hp-cart-btn--add .hp-cart-btn__text {
-        display: none;
-    }
-
-    .hp-cart-stepper {
+    .offer-cart-stepper {
         height: 32px;
     }
 
-    .hp-stepper-btn {
+    .offer-stepper-btn {
         width: 30px;
         height: 32px;
     }
 
-    .hp-stepper-qty {
+    .offer-stepper-qty {
         font-size: 0.8rem;
     }
 }

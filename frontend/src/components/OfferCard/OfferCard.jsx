@@ -1,37 +1,45 @@
-// frontend/src/components/ProductCard/ProductCard.jsx
+// frontend/src/components/OfferCard/OfferCard.jsx
 // ─────────────────────────────────────────────────────────────
-// Reusable product card for the HomePage product grid.
-// Extracted from HomePage.jsx — styling unchanged.
+// Reusable offer card for the SpecialOffersPage grid.
+// Extracted from SpecialOffersPage.jsx — styling unchanged.
 //
-// Features:
-//   - Link wrapper covers badges, image, and info
-//   - Cart controls sit outside the link so they don't navigate
-//   - Add to Cart fires toast with Go to Cart action
-//   - Stepper replaces button after first add
-//   - Defensive stock checks on increment and decrement
-//   - Disabled + button when qty reaches countInStock
+// Differences from ProductCard:
+//   - Discount % badge (top right)
+//   - Savings amount line
+//   - Low stock warning
+//   - Aspect-ratio image (padding-top: 72%)
 // ─────────────────────────────────────────────────────────────
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaShoppingCart, FaPlus, FaMinus, FaTag, FaFire, FaStar } from 'react-icons/fa';
+import {
+  FaTag, FaFire, FaStar,
+  FaShoppingCart, FaPlus, FaMinus,
+} from 'react-icons/fa';
 import { addToCart, updateCartQty, removeFromCart } from '../../redux/slices/cartSlice';
 import { showToast } from '../Toast/Toast';
-import './ProductCard.css';
+import './OfferCard.css';
 
-const ProductCard = ({ product }) => {
+// ── Helpers ───────────────────────────────────────────────────
+const getDiscountPct = (original, sale) => {
+  if (!original || !sale || sale >= original) return 0;
+  return Math.round(((original - sale) / original) * 100);
+};
+
+const fmt = (n) =>
+  `KES ${Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
+
+const OfferCard = ({ product }) => {
   const dispatch = useDispatch();
   const navigate  = useNavigate();
 
-  // ── Cart state ────────────────────────────────────────────
   const cartItems = useSelector((state) => state.cart.cartItems);
   const cartItem  = cartItems.find((i) => i.product === product._id);
   const cartQty   = cartItem ? cartItem.qty : 0;
 
-  const displayPrice = product.isOnSale && product.salePrice
+  const displayPrice  = product.isOnSale && product.salePrice
     ? product.salePrice
     : product.price;
-
-  const isDiscounted = product.isOnSale && product.salePrice;
+  const discountPct   = getDiscountPct(product.price, product.salePrice);
 
   // ── Add to cart ───────────────────────────────────────────
   const handleAddToCart = (e) => {
@@ -45,7 +53,6 @@ const ProductCard = ({ product }) => {
   // ── Increment ─────────────────────────────────────────────
   const handleIncrease = (e) => {
     e.stopPropagation();
-    // Defensive — check stock regardless of UI state
     if (product.countInStock <= 0) {
       showToast('This product is out of stock', 'error');
       return;
@@ -60,7 +67,6 @@ const ProductCard = ({ product }) => {
   // ── Decrement ─────────────────────────────────────────────
   const handleDecrease = (e) => {
     e.stopPropagation();
-    // Defensive — prevent dispatch if qty already 0
     if (cartQty > 0) {
       if (cartQty === 1) {
         dispatch(removeFromCart(product._id));
@@ -74,93 +80,109 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <article className='hp-product-card' aria-label={product.name}>
+    <article className='offer-card' aria-label={product.name}>
 
-      {/* ── Link — covers badges, image, info ──────────────── */}
+      {/* ── Link — covers discount badge, type badges, image, info ── */}
       <Link
         to={`/product/${product._id}`}
-        className='hp-product-card__link'
+        className='offer-card__link'
         aria-label={`View ${product.name}`}
       >
-        {/* Badges */}
-        <div className='hp-product-card__badges' aria-hidden='true'>
-          {product.isFeatured && (
-            <span className='hp-badge hp-badge--featured'>
-              <FaStar /> Featured
-            </span>
-          )}
+        {/* Discount % badge */}
+        {discountPct > 0 && (
+          <div className='offer-card__discount-badge' aria-label={`${discountPct}% off`}>
+            -{discountPct}%
+          </div>
+        )}
+
+        {/* Type badges */}
+        <div className='offer-card__type-badges'>
           {product.isOnSale && (
-            <span className='hp-badge hp-badge--sale'>
-              <FaTag /> Sale
+            <span className='offer-card__type-badge offer-card__type-badge--sale'>
+              <FaTag aria-hidden='true' /> Sale
             </span>
           )}
           {product.isClearance && (
-            <span className='hp-badge hp-badge--clearance'>
-              <FaFire /> Clearance
+            <span className='offer-card__type-badge offer-card__type-badge--clearance'>
+              <FaFire aria-hidden='true' /> Clearance
+            </span>
+          )}
+          {product.isFeatured && (
+            <span className='offer-card__type-badge offer-card__type-badge--featured'>
+              <FaStar aria-hidden='true' /> Featured
             </span>
           )}
         </div>
 
         {/* Image */}
-        <div className='hp-product-card__img-wrap'>
+        <div className='offer-card__img-wrap'>
           <img
             src={product.image}
             alt={product.name}
-            className='hp-product-card__img'
+            className='offer-card__img'
             loading='lazy'
           />
         </div>
 
         {/* Info */}
-        <div className='hp-product-card__info'>
-          <span className='hp-product-card__category'>{product.category}</span>
-          <h3 className='hp-product-card__name'>{product.name}</h3>
-          <div className='hp-product-card__price-row'>
-            <span className='hp-product-card__price'>
-              {`KES ${Number(displayPrice).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
-            </span>
-            {isDiscounted && (
-              <span className='hp-product-card__original-price'>
-                {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
-              </span>
+        <div className='offer-card__info'>
+          <span className='offer-card__category'>{product.category}</span>
+          <h3 className='offer-card__name'>{product.name}</h3>
+
+          <div className='offer-card__price-row'>
+            <span className='offer-card__price'>{fmt(displayPrice)}</span>
+            {product.isOnSale && product.salePrice && (
+              <span className='offer-card__original'>{fmt(product.price)}</span>
             )}
             {product.unit && (
-              <span className='hp-product-card__unit'>/ {product.unit}</span>
+              <span className='offer-card__unit'>/ {product.unit}</span>
             )}
           </div>
+
+          {discountPct > 0 && (
+            <span className='offer-card__saving'>
+              You save {fmt(product.price - product.salePrice)} per unit
+            </span>
+          )}
+
           {product.countInStock === 0 && (
-            <span className='hp-product-card__out-of-stock'>Out of stock</span>
+            <span className='offer-card__out-of-stock'>Out of stock</span>
+          )}
+
+          {product.countInStock > 0 && product.countInStock <= 10 && (
+            <span className='offer-card__low-stock'>
+              Only {product.countInStock} left
+            </span>
           )}
         </div>
       </Link>
 
       {/* ── Cart controls — outside link ───────────────────── */}
-      <div className='hp-product-card__cart-row'>
+      <div className='offer-card__cart-row'>
         {product.countInStock === 0 ? (
-          <button className='hp-cart-btn hp-cart-btn--disabled' disabled>
+          <button className='offer-cart-btn offer-cart-btn--disabled' disabled>
             Out of Stock
           </button>
         ) : cartQty === 0 ? (
           <button
-            className='hp-cart-btn hp-cart-btn--add'
+            className='offer-cart-btn offer-cart-btn--add'
             onClick={handleAddToCart}
             aria-label={`Add ${product.name} to cart`}
           >
-            <FaShoppingCart aria-hidden='true' />
-            <span className='hp-cart-btn__text'>Add to Cart</span>
+            <FaShoppingCart aria-hidden='true' /> Add to Cart
           </button>
         ) : (
-          <div className='hp-cart-stepper' role='group' aria-label={`Quantity for ${product.name}`}>
+          <div className='offer-cart-stepper' role='group' aria-label={`Quantity for ${product.name}`}>
             <button
-              className='hp-stepper-btn'
+              className='offer-stepper-btn'
               onClick={handleDecrease}
               aria-label='Decrease quantity'
             >
               <FaMinus aria-hidden='true' />
             </button>
-            <span className='hp-stepper-qty' aria-live='polite'>{cartQty}</span>
+            <span className='offer-stepper-qty' aria-live='polite'>{cartQty}</span>
             <button
-              className='hp-stepper-btn'
+              className='offer-stepper-btn'
               onClick={handleIncrease}
               aria-label='Increase quantity'
               disabled={cartQty >= product.countInStock}
@@ -175,4 +197,4 @@ const ProductCard = ({ product }) => {
   );
 };
 
-export default ProductCard;
+export default OfferCard;
