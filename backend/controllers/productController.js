@@ -110,8 +110,25 @@ const getProducts = async (req, res) => {
       };
     }
 
+  // ── Sort ──────────────────────────────────────────────────
+    // sort=newest returns products in reverse creation order.
+    // Default sort is MongoDB natural order (insertion order).
+    let sortOption = {};
+    if (req.query.sort === 'newest') {
+      sortOption = { createdAt: -1 };
+    }
+
+    // ── Limit ─────────────────────────────────────────────────
+    // Limits results for homepage sections so only the needed
+    // number of products are fetched instead of the full catalogue.
+    // No limit param = return all matching products (browse mode).
+    const limit = req.query.limit ? parseInt(req.query.limit) : 0;
+
     // ── Fetch matching products from MongoDB ──────────────────
-    const products = await Product.find(filter);
+    const products = await Product.find(filter)
+      .sort(sortOption)
+      .limit(limit);
+
     res.json(products);
 
   } catch (error) {

@@ -11,7 +11,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { listProducts } from '../redux/slices/productSlice';
+import { listProducts, listFeaturedProducts, listNewArrivals } from '../redux/slices/productSlice';
 import HeroBanner from '../components/HeroBanner/HeroBanner';
 import ProductCard from '../components/ProductCard/ProductCard';
 import SkeletonCard from '../components/ProductCard/SkeletonCard';
@@ -24,7 +24,8 @@ import {
 } from 'react-icons/fa';
 import './HomePage.css';
 
-const FEATURED_LIMIT = 8;
+// Limits passed to the dedicated endpoints — not used for client-side slicing
+const FEATURED_LIMIT     = 8;
 const NEW_ARRIVALS_LIMIT = 4;
 
 
@@ -119,29 +120,46 @@ const HomePage = () => {
 
   const isBrowsingMode = !!(keyword || category || deals || featured || clearance || tag);
 
+ // Browse/search mode state
   const { products, loadingList, errorList } = useSelector((state) => state.products);
+
+  // Home state — dedicated selectors for each section
+  const {
+    featuredProducts,
+    loadingFeatured,
+    errorFeatured,
+    newArrivals,
+    loadingNewArrivals,
+    errorNewArrivals,
+  } = useSelector((state) => state.products);
 
   // ── Page title for screen readers and browser tab ──────────
   useEffect(() => { document.title = 'ShopZone — Kenya\'s B2B Wholesale Platform'; }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (isBrowsingMode) {
+      // Browse/search mode — fetch filtered products into the shared list
       const filters = {};
-      if (keyword) filters.keyword = keyword;
-      if (category) filters.category = category;
-      if (deals) filters.deals = deals;
-      if (featured) filters.featured = featured;
+      if (keyword)   filters.keyword = keyword;
+      if (category)  filters.category = category;
+      if (deals)     filters.deals = deals;
+      if (featured)  filters.featured = featured;
       if (clearance) filters.clearance = clearance;
-      if (tag) filters.tag = tag;
+      if (tag)       filters.tag = tag;
       dispatch(listProducts(filters));
     } else {
-      dispatch(listProducts({ featured: 'true' }));
+      // Home state — two dedicated fetches, each hitting their own endpoint
+      // Only fetch if not already loaded — prevents re-fetching on every
+      // navigation back to the homepage within the same session
+      if (featuredProducts.length === 0) {
+        dispatch(listFeaturedProducts(FEATURED_LIMIT));
+      }
+      if (newArrivals.length === 0) {
+        dispatch(listNewArrivals(NEW_ARRIVALS_LIMIT));
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyword, category, deals, featured, clearance, tag]);
-
-  const featuredProducts = !isBrowsingMode ? products.slice(0, FEATURED_LIMIT) : [];
-  const newArrivalsProducts = !isBrowsingMode ? [...products].reverse().slice(0, NEW_ARRIVALS_LIMIT) : [];
 
   const getBrowseHeading = () => {
     if (keyword) return `Search results for "${keyword}"`;
@@ -163,13 +181,13 @@ const HomePage = () => {
           <div className='homepage__hero-offset' aria-hidden='true' />
           <CategoryCards />
 
-          <div className='homepage__section-wrapper' id='featured-section'>
+         <div className='homepage__section-wrapper' id='featured-section'>
             <ProductRow
               title='Featured Products'
               subtitle='Handpicked wholesale favourites for your business'
               products={featuredProducts}
-              loading={loadingList}
-              error={errorList}
+              loading={loadingFeatured}
+              error={errorFeatured}
               viewAllHref='/?featured=true'
               icon={FaStar}
             />
@@ -183,9 +201,9 @@ const HomePage = () => {
             <ProductRow
               title='New Arrivals'
               subtitle='The latest products added to the platform'
-              products={newArrivalsProducts}
-              loading={loadingList}
-              error={errorList}
+              products={newArrivals}
+              loading={loadingNewArrivals}
+              error={errorNewArrivals}
               viewAllHref='/'
               icon={FaFire}
             />

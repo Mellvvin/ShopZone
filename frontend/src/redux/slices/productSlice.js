@@ -27,6 +27,44 @@ import axios from 'axios';
 //   dispatch(listProducts({ category: 'Electronics' }))
 //   dispatch(listProducts({ deals: true }))
 //   dispatch(listProducts({}))  — fetches all products
+// @desc    Fetch featured products for the homepage Featured section
+// @param   limit {number} — max results (default 8)
+// These hit a dedicated endpoint so the home state never fetches
+// the full catalogue just to show a small grid.
+export const listFeaturedProducts = createAsyncThunk(
+  'products/listFeatured',
+  async (limit = 8, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(
+        `/api/products?featured=true&limit=${limit}`
+      );
+      return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message
+      );
+    }
+  }
+);
+
+// @desc    Fetch newest products for the homepage New Arrivals section
+// @param   limit {number} — max results (default 4)
+export const listNewArrivals = createAsyncThunk(
+  'products/listNewArrivals',
+  async (limit = 4, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(
+        `/api/products?sort=newest&limit=${limit}`
+      );
+      return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message
+      );
+    }
+  }
+);
+
 export const listProducts = createAsyncThunk(
   'products/list',
   async (filters = {}, { rejectWithValue }) => {
@@ -107,11 +145,21 @@ export const createProductReview = createAsyncThunk(
 // ── Slice ─────────────────────────────────────────────────────
 const productSlice = createSlice({
   name: 'products',
-  initialState: {
-    // Product list state
+initialState: {
+    // Product list state — browse/search mode
     products: [],
     loadingList: false,
     errorList: null,
+
+    // Featured products — homepage Featured section
+    featuredProducts: [],
+    loadingFeatured: false,
+    errorFeatured: null,
+
+    // New arrivals — homepage New Arrivals section
+    newArrivals: [],
+    loadingNewArrivals: false,
+    errorNewArrivals: null,
 
     // Single product state
     product: {},
@@ -134,6 +182,37 @@ const productSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+
+    // ── listProducts ─────────────────────────────────────────
+    // ── listFeaturedProducts ──────────────────────────────────
+    builder
+      .addCase(listFeaturedProducts.pending, (state) => {
+        state.loadingFeatured = true;
+        state.errorFeatured = null;
+      })
+      .addCase(listFeaturedProducts.fulfilled, (state, action) => {
+        state.loadingFeatured = false;
+        state.featuredProducts = action.payload;
+      })
+      .addCase(listFeaturedProducts.rejected, (state, action) => {
+        state.loadingFeatured = false;
+        state.errorFeatured = action.payload;
+      });
+
+    // ── listNewArrivals ───────────────────────────────────────
+    builder
+      .addCase(listNewArrivals.pending, (state) => {
+        state.loadingNewArrivals = true;
+        state.errorNewArrivals = null;
+      })
+      .addCase(listNewArrivals.fulfilled, (state, action) => {
+        state.loadingNewArrivals = false;
+        state.newArrivals = action.payload;
+      })
+      .addCase(listNewArrivals.rejected, (state, action) => {
+        state.loadingNewArrivals = false;
+        state.errorNewArrivals = action.payload;
+      });
 
     // ── listProducts ─────────────────────────────────────────
     builder
