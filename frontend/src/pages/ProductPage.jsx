@@ -109,6 +109,15 @@ const { id } = useParams();
               <ListGroup variant='flush'>
                 <ListGroup.Item>
                   <h3 className='pp-product-name'>{product.name}</h3>
+                  {/* Brand link — only shown when the product has a brand set */}
+                  {product.brand && (
+                    <button
+                      className='pp-brand-link'
+                      onClick={() => navigate(`/?brand=${encodeURIComponent(product.brand)}`)}
+                    >
+                      {product.brand}
+                    </button>
+                  )}
                 </ListGroup.Item>
                 <ListGroup.Item>
                   <span className='product-card-stars'>

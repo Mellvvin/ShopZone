@@ -390,3 +390,9 @@
     font-size: 1.5rem;
   }
 }
+/* Optional field label modifier */
+.shipping-label--optional {
+  font-weight: 400;
+  color: #999;
+  font-size: 0.8em;
+}

@@ -31,6 +31,8 @@ import SearchBar from '../SearchBar/SearchBar';
 import DesktopDropdownMenu from '../DesktopDropdownMenu/DesktopDropdownMenu';
 import CategoryBar from '../CategoryBar/CategoryBar';
 import MobileDrawer from '../MobileDrawer/MobileDrawer';
+import NotificationBell from '../NotificationBell/NotificationBell';
+
 
 
 import './Header.css';
@@ -221,7 +223,7 @@ const Header = () => {
               )}
             </Link>
 
-            {/* Profile — goes to profile or login, with label */}
+          {/* Profile — goes to profile or login, with label */}
             <Link
               to={userInfo ? '/profile' : '/login'}
               className='nav-icon-link header-icon-profile'
@@ -232,6 +234,9 @@ const Header = () => {
                 {userInfo ? userInfo.name.split(' ')[0] : 'Sign In'}
               </span>
             </Link>
+
+            {/* Notification bell — only shown when logged in */}
+            <NotificationBell />
 
             {/* Desktop hamburger — hover opens, click locks open */}
             <div
@@ -293,6 +298,9 @@ const Header = () => {
             >
               <FaUser size={20} />
             </Link>
+
+            {/* Notification bell — only shown when logged in */}
+            <NotificationBell />
 
             {/* Mobile hamburger — opens drawer */}
             <button

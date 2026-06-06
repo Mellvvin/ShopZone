@@ -80,13 +80,17 @@ const ShippingPage = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
 
-  // ── Form state ──────────────────────────────────────────────────────────
-  const [address, setAddress] = useState(shippingAddress?.address || '');
-  const [city, setCity] = useState(shippingAddress?.city || '');
-  const [county, setCounty] = useState(
-    shippingAddress?.county || userInfo?.county || '' // pre-fill from profile
-  );
-  const [country, setCountry] = useState(shippingAddress?.country || 'Kenya');
+// ── Form state ──────────────────────────────────────────────────────────
+  // Pre-fill priority:
+  //   1. Redux shippingAddress (user already went through this step)
+  //   2. userInfo.shippingAddress (saved on their profile)
+  //   3. Empty string fallback
+  const savedAddr = userInfo?.shippingAddress || {};
+  const [address,  setAddress]  = useState(shippingAddress?.address  || savedAddr.address   || '');
+  const [apartment,setApartment]= useState(shippingAddress?.apartment|| savedAddr.apartment  || '');
+  const [city,     setCity]     = useState(shippingAddress?.city     || savedAddr.city       || '');
+  const [county,   setCounty]   = useState(shippingAddress?.county   || savedAddr.county     || userInfo?.county || '');
+  const [country,  setCountry]  = useState(shippingAddress?.country  || savedAddr.country    || 'Kenya');
 
   // ── Derived delivery info — recalculates when county changes ────────────
   const [deliveryZone, setDeliveryZone] = useState(null);
@@ -113,7 +117,7 @@ const ShippingPage = () => {
       return; // county is required for delivery pricing
     }
 
-    dispatch(saveShippingAddress({ address, city, county, country }));
+   dispatch(saveShippingAddress({ address, apartment, city, county, country }));
     navigate('/payment');
   };
 
@@ -131,7 +135,7 @@ const ShippingPage = () => {
 
           <form onSubmit={submitHandler}>
 
-            {/* Street address */}
+           {/* Street address */}
             <div className='shipping-field'>
               <label className='shipping-label' htmlFor='address'>
                 Street Address
@@ -144,6 +148,21 @@ const ShippingPage = () => {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 required
+              />
+            </div>
+
+            {/* Apartment / Building — optional */}
+            <div className='shipping-field'>
+              <label className='shipping-label' htmlFor='apartment'>
+                Apartment / Building <span className='shipping-label--optional'>(optional)</span>
+              </label>
+              <input
+                id='apartment'
+                type='text'
+                className='shipping-input'
+                placeholder='e.g. Apt 3B, Delta House'
+                value={apartment}
+                onChange={(e) => setApartment(e.target.value)}
               />
             </div>
 

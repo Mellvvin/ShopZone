@@ -148,3 +148,209 @@
     background: #c0392b;
     color: #fff;
 }
+
+/* ── Profile card layout ──────────────────────────────────────── */
+.profile-card {
+    overflow: hidden;
+    border: 1px solid #e8e2da;
+}
+
+/* ── Avatar zone — top strip with Oxford Blue background ──────── */
+.profile-avatar-zone {
+    background: var(--oxford-blue);
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-avatar-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--tan);
+    color: var(--oxford-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 0.25rem;
+    flex-shrink: 0;
+}
+
+.profile-display-name {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.profile-member-since {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+/* Account type pill */
+.profile-type-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.profile-type-badge--individual {
+    background: rgba(210, 180, 140, 0.2);
+    color: var(--tan);
+    border: 1px solid rgba(210, 180, 140, 0.4);
+}
+
+.profile-type-badge--business {
+    background: rgba(210, 180, 140, 0.3);
+    color: var(--tan);
+    border: 1px solid var(--tan);
+}
+
+/* Stats row */
+.profile-stats-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    margin-top: 0.75rem;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 0.75rem 0;
+}
+
+.profile-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.profile-stat__num {
+    color: var(--tan);
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.profile-stat__label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-stat-divider {
+    width: 1px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
+}
+
+/* ── Form zone ────────────────────────────────────────────────── */
+.profile-form-zone {
+    padding: 1.5rem;
+}
+
+/* Section headers with top border rule */
+.profile-section-header {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--oxford-blue);
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--tan);
+}
+
+.profile-section-header--spaced {
+    margin-top: 1.5rem;
+}
+
+/* Security toggle row */
+.profile-security-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 0 0 4px 4px;
+}
+
+.profile-security-toggle:hover {
+    color: var(--tan-dark, #b8966a);
+}
+
+.profile-security-chevron {
+    color: var(--tan);
+    display: flex;
+    align-items: center;
+}
+
+/* Password fields slide-in area */
+.profile-password-fields {
+    background: #f7f4ef;
+    border: 1px solid #ede5d8;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Save button */
+.profile-save-btn {
+    background: var(--oxford-blue) !important;
+    border-color: var(--oxford-blue) !important;
+    color: #fff !important;
+    font-weight: 600;
+}
+
+.profile-save-btn:hover,
+.profile-save-btn:focus {
+    background: #00306b !important;
+    border-color: #00306b !important;
+}
+
+/* ── Read-only field (Country) ────────────────────────────────── */
+.profile-readonly-field {
+    background: #f0ede8;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* ── Password / security info block ──────────────────────────── */
+.profile-password-info {
+    background: #f7f4ef;
+    border: 1px solid #ede5d8;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-password-info__text {
+    font-size: 0.82rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.profile-password-info__link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--oxford-blue);
+    text-decoration: underline;
+}
+
+.profile-password-info__link:hover {
+    color: var(--tan-dark, #b8966a);
+}

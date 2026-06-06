@@ -22,6 +22,8 @@ const uploadRoutes  = require('./routes/uploadRoutes');
 // Enquiry routes — handles all form submissions site-wide
 // (bulk orders, seller applications, contact, support)
 const enquiryRoutes = require('./routes/enquiryRoutes');
+// Notification routes — all private, no public POST since notifications are system-generated 
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
@@ -32,6 +34,8 @@ app.use('/api/upload',    uploadRoutes);
 // Enquiry endpoint — catch-all for all forms until dedicated
 // models exist in Steps 6, 8, and 15
 app.use('/api/enquiries', enquiryRoutes);
+// Notification endpoints — all private, no public POST since notifications are system-generated
+app.use('/api/notifications', notificationRoutes);
 
 // Convenience alias — /api/stats maps to the same handler as
 // /api/products/stats so frontend components can call it cleanly

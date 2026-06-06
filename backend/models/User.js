@@ -11,7 +11,17 @@ const userSchema = mongoose.Schema(
     accountType: { type: String, enum: ['individual', 'business'], default: 'individual' },
     businessName: { type: String, default: '' },
     businessType: { type: String, enum: ['Retailer', 'Wholesaler', 'Distributor', 'Other', ''], default: '' },
-    county: { type: String, default: '' },
+ county: { type: String, default: '' },
+    // ── Saved delivery address ────────────────────────────────
+    // Stored on the user so ShippingPage can pre-fill on checkout.
+    // All fields optional — existing users have no address saved yet.
+    shippingAddress: {
+      address:   { type: String, default: '' },
+      apartment: { type: String, default: '' },
+      city:      { type: String, default: '' },
+      county:    { type: String, default: '' },
+      country:   { type: String, default: 'Kenya' },
+    },
     isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }

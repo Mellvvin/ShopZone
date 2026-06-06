@@ -84,17 +84,19 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
-      res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        accountType: user.accountType,
+    res.status(201).json({
+        _id:          user._id,
+        name:         user.name,
+        email:        user.email,
+        phone:        user.phone,
+        accountType:  user.accountType,
         businessName: user.businessName,
         businessType: user.businessType,
-        county: user.county,
-        isAdmin: user.isAdmin,
-        token: generateToken(user._id),
+        county:       user.county,
+        shippingAddress: user.shippingAddress || {},
+        createdAt:    user.createdAt,
+        isAdmin:      user.isAdmin,
+        token:        generateToken(user._id),
       });
     } else {
       res.status(400).json({ message: 'Invalid user data.' });
@@ -125,6 +127,8 @@ const loginUser = async (req, res) => {
         businessName: user.businessName,
         businessType: user.businessType,
         county: user.county,
+        shippingAddress: user.shippingAddress || {},
+        createdAt: user.createdAt,
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
       });
@@ -160,6 +164,8 @@ const getUserProfile = async (req, res) => {
         businessName: user.businessName,
         businessType: user.businessType,
         county: user.county,
+        shippingAddress: user.shippingAddress || {},
+        createdAt: user.createdAt,
         isAdmin: user.isAdmin,
       });
     } else {
@@ -179,33 +185,48 @@ const updateUserProfile = async (req, res) => {
 
     if (user) {
       // Update each field only if a new value was provided
-      user.name = req.body.name || user.name;
-      user.email = req.body.email || user.email;
-      user.phone = req.body.phone ?? user.phone;
-      user.county = req.body.county ?? user.county;
-      user.accountType = req.body.accountType || user.accountType;
+      user.name         = req.body.name         || user.name;
+      user.email        = req.body.email        || user.email;
+      user.phone        = req.body.phone        ?? user.phone;
+      user.county       = req.body.county       ?? user.county;
+      user.accountType  = req.body.accountType  || user.accountType;
       user.businessName = req.body.businessName ?? user.businessName;
       user.businessType = req.body.businessType ?? user.businessType;
 
-      // Only hash and update password if a new one was provided
-      if (req.body.password) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(req.body.password, salt);
+      // ── Save full delivery address if provided ────────────
+      // Each sub-field updated independently so partial updates
+      // (e.g. only county) do not wipe other address fields.
+      if (req.body.shippingAddress) {
+        const incoming = req.body.shippingAddress;
+        user.shippingAddress = {
+          address:   incoming.address   ?? user.shippingAddress?.address   ?? '',
+          apartment: incoming.apartment ?? user.shippingAddress?.apartment ?? '',
+          city:      incoming.city      ?? user.shippingAddress?.city      ?? '',
+          county:    incoming.county    ?? user.shippingAddress?.county    ?? '',
+          country:   incoming.country   ?? user.shippingAddress?.country   ?? 'Kenya',
+        };
+        // Keep the top-level county in sync with the delivery county
+        user.county = user.shippingAddress.county || user.county;
       }
+
+      // Password update is no longer handled here.
+      // Password changes go through the forgot-password reset flow (Step 24).
 
       const updatedUser = await user.save();
 
       res.json({
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        accountType: updatedUser.accountType,
+        _id:          updatedUser._id,
+        name:         updatedUser.name,
+        email:        updatedUser.email,
+        phone:        updatedUser.phone,
+        accountType:  updatedUser.accountType,
         businessName: updatedUser.businessName,
         businessType: updatedUser.businessType,
-        county: updatedUser.county,
-        isAdmin: updatedUser.isAdmin,
-        token: generateToken(updatedUser._id),
+        county:       updatedUser.county,
+        shippingAddress: updatedUser.shippingAddress || {},
+        createdAt:    updatedUser.createdAt,
+        isAdmin:      updatedUser.isAdmin,
+        token:        generateToken(updatedUser._id),
       });
     } else {
       res.status(404).json({ message: 'User not found' });

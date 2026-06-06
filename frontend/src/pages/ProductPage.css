@@ -139,3 +139,24 @@
     align-self: center;
     margin-left: 0.5rem;
 }
+
+/* ── Brand link on product detail page ───────────────────────── */
+.pp-brand-link {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--tan-dark, #b8966a);
+    border-bottom: 1.5px solid var(--tan);
+    padding-bottom: 1px;
+    margin-top: 4px;
+    transition: color 0.15s ease;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.pp-brand-link:hover {
+    color: var(--oxford-blue);
+}
