@@ -72,7 +72,14 @@ const authSlice = createSlice({
     loading: false,
     error:   null,
   },
-  reducers: {},
+ reducers: {
+    // setCredentials — called after a successful profile update to sync
+    // the Redux store and localStorage with the latest user data from the server
+    setCredentials: (state, action) => {
+      state.userInfo = action.payload;
+      localStorage.setItem('userInfo', JSON.stringify(action.payload));
+    },
+  },
   extraReducers: (builder) => {
 
     // Login
@@ -115,4 +122,5 @@ const authSlice = createSlice({
   },
 });
 
+export const { setCredentials } = authSlice.actions;
 export default authSlice.reducer;

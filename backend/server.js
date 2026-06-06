@@ -24,6 +24,7 @@ const uploadRoutes  = require('./routes/uploadRoutes');
 const enquiryRoutes = require('./routes/enquiryRoutes');
 // Notification routes — all private, no public POST since notifications are system-generated 
 const notificationRoutes = require('./routes/notificationRoutes');
+const sellerRoutes       = require('./routes/sellerRoutes');
 
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
@@ -36,6 +37,8 @@ app.use('/api/upload',    uploadRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 // Notification endpoints — all private, no public POST since notifications are system-generated
 app.use('/api/notifications', notificationRoutes);
+// Seller dashboard — all routes protected by protect + seller middleware
+app.use('/api/seller', sellerRoutes);
 
 // Convenience alias — /api/stats maps to the same handler as
 // /api/products/stats so frontend components can call it cleanly

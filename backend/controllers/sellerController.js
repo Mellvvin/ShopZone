@@ -1,0 +1,168 @@
+// backend/controllers/sellerController.js
+// ─────────────────────────────────────────────────────────────
+// Seller dashboard API — all routes protected by protect + seller
+// middleware. Only approved sellers can reach these endpoints.
+//
+// Functions:
+//   getSellerDashboard — overview stats for the seller's dashboard
+//   getSellerProducts  — products assigned to this seller
+//   getSellerOrders    — orders containing this seller's products
+// ─────────────────────────────────────────────────────────────
+const Product = require('../models/Product');
+const Order   = require('../models/Order');
+const User    = require('../models/User');
+
+// @desc    Get seller dashboard overview stats
+// @route   GET /api/seller/dashboard
+// @access  Private/Seller
+const getSellerDashboard = async (req, res) => {
+  try {
+    // Total products assigned to this seller
+    const totalProducts = await Product.countDocuments({ seller: req.user._id });
+
+    // Total orders containing at least one of this seller's products
+    // Phase 2: orders will be split per seller automatically.
+    // Phase 1: we count orders where any item matches a seller product.
+    const sellerProductIds = await Product.find(
+      { seller: req.user._id },
+      '_id'
+    );
+    const ids = sellerProductIds.map((p) => p._id);
+
+    const totalOrders = await Order.countDocuments({
+      'orderItems.product': { $in: ids },
+      status: { $ne: 'cancelled' },
+    });
+
+    const pendingOrders = await Order.countDocuments({
+      'orderItems.product': { $in: ids },
+      status: 'pending',
+    });
+
+    const fulfilledOrders = await Order.countDocuments({
+      'orderItems.product': { $in: ids },
+      status: 'delivered',
+    });
+
+    // Payout released vs pending
+    const payoutReleased = await Order.countDocuments({
+      'orderItems.product': { $in: ids },
+      sellerPayoutReleased: true,
+    });
+
+    res.json({
+      totalProducts,
+      totalOrders,
+      pendingOrders,
+      fulfilledOrders,
+      payoutReleased,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get all products assigned to this seller
+// @route   GET /api/seller/products
+// @access  Private/Seller
+const getSellerProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ seller: req.user._id })
+      .sort({ createdAt: -1 });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get orders containing this seller's products
+// @route   GET /api/seller/orders
+// @access  Private/Seller
+// Customer identity is never exposed — only fulfillment-safe fields returned.
+const getSellerOrders = async (req, res) => {
+  try {
+    const sellerProductIds = await Product.find(
+      { seller: req.user._id },
+      '_id'
+    );
+    const ids = sellerProductIds.map((p) => p._id);
+
+    const orders = await Order.find({
+      'orderItems.product': { $in: ids },
+    }).sort({ createdAt: -1 });
+
+    // Strip customer identity — seller only sees fulfillment-safe data
+    const safeOrders = orders.map((order) => ({
+      _id:          order._id,
+      status:       order.status,
+      shippingTier: order.shippingTier,
+      shippingZone: order.shippingZone,
+      isPaid:       order.isPaid,
+      isDelivered:  order.isDelivered,
+      createdAt:    order.createdAt,
+      // Only the items belonging to this seller
+      orderItems: order.orderItems.filter((item) =>
+        ids.map(String).includes(String(item.product))
+      ),
+      // Delivery quote if this is a Tier 2 order
+      deliveryQuote:       order.deliveryQuote,
+      sellerQuote:         order.sellerQuote,
+      sellerPayoutReleased: order.sellerPayoutReleased,
+      // County only — never full address, never customer name or phone
+      deliveryCounty: order.shippingAddress?.county || '',
+    }));
+
+    res.json(safeOrders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get seller's own profile data
+// @route   GET /api/seller/profile
+// @access  Private/Seller
+const getSellerProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select(
+      'name email phone sellerProfile sellerStatus sellerApprovedAt'
+    );
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update seller's own profile data
+// @route   PUT /api/seller/profile
+// @access  Private/Seller
+const updateSellerProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Only update sellerProfile sub-fields — never isAdmin, isSeller, sellerStatus
+    const { businessName, businessAddress, description, kraPin, mpesaNumber } = req.body;
+
+    user.sellerProfile = {
+      businessName:    businessName    ?? user.sellerProfile?.businessName    ?? '',
+      businessAddress: businessAddress ?? user.sellerProfile?.businessAddress ?? '',
+      description:     description     ?? user.sellerProfile?.description     ?? '',
+      kraPin:          kraPin          ?? user.sellerProfile?.kraPin          ?? '',
+      mpesaNumber:     mpesaNumber     ?? user.sellerProfile?.mpesaNumber     ?? '',
+    };
+
+    await user.save();
+    res.json({ message: 'Profile updated successfully', sellerProfile: user.sellerProfile });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  getSellerDashboard,
+  getSellerProducts,
+  getSellerOrders,
+  getSellerProfile,
+  updateSellerProfile,
+};

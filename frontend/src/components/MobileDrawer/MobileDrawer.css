@@ -240,3 +240,15 @@
     margin-right: 0.5rem;
     color: var(--tan);
 }
+
+/* Become a Seller — Tan background to stand out in Browse section */
+.drawer-nav-link--seller {
+    background-color: rgba(210, 180, 140, 0.15);
+    font-weight: 700;
+    color: var(--oxford-blue);
+    border-left: 3px solid var(--tan);
+}
+
+.drawer-nav-link--seller:hover {
+    background-color: rgba(210, 180, 140, 0.28);
+}

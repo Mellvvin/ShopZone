@@ -1,0 +1,251 @@
+/* frontend/src/pages/SellerDashboardPage.css
+   ─────────────────────────────────────────────
+   Seller dashboard — working page style.
+   Clean Oxford Blue hero, tabs, stat cards, tables.
+   No cinematic animations — this is a functional portal.
+   ───────────────────────────────────────────── */
+
+/* ── Hero strip ─────────────────────────────────── */
+.seller-hero {
+    background-color: var(--oxford-blue);
+    padding: 2rem 0 1.75rem;
+    margin-bottom: 0;
+}
+
+.seller-hero__inner {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+/* Initials avatar circle */
+.seller-hero__avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--tan);
+    color: var(--oxford-blue);
+    font-size: 1.4rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.seller-hero__title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 0.2rem;
+}
+
+.seller-hero__sub {
+    font-size: 0.9rem;
+    color: rgba(210, 180, 140, 0.85);
+    margin: 0;
+}
+
+/* ── Dashboard body ─────────────────────────────── */
+.seller-dashboard__body {
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+}
+
+/* ── Tab nav ────────────────────────────────────── */
+.seller-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid #e8e3da;
+    margin-bottom: 1.5rem;
+}
+
+.seller-tab {
+    padding: 0.55rem 1.25rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.seller-tab:hover {
+    color: var(--oxford-blue);
+}
+
+.seller-tab--active {
+    color: var(--oxford-blue);
+    border-bottom-color: var(--tan);
+}
+
+/* ── Stat cards ─────────────────────────────────── */
+.seller-stat-card {
+    border: 1px solid #e8e3da;
+    border-radius: 10px;
+    transition: box-shadow 0.15s;
+}
+
+.seller-stat-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 33, 71, 0.09);
+}
+
+.seller-stat-card__icon {
+    font-size: 1.6rem;
+    color: var(--oxford-blue);
+    margin-bottom: 0.5rem;
+}
+
+.seller-stat-card__value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+    line-height: 1;
+}
+
+.seller-stat-card__label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.3rem;
+}
+
+/* ── Info card ──────────────────────────────────── */
+.seller-info-card {
+    border: 1px solid #e8e3da;
+    border-left: 4px solid var(--tan);
+    border-radius: 8px;
+}
+
+.seller-info-card__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    margin-bottom: 0.5rem;
+}
+
+.seller-info-card__text {
+    font-size: 0.88rem;
+    color: #555;
+    margin-bottom: 0.75rem;
+}
+
+.seller-info-card__list {
+    padding-left: 1.25rem;
+    margin: 0;
+}
+
+.seller-info-card__list li {
+    font-size: 0.87rem;
+    color: #555;
+    margin-bottom: 0.4rem;
+}
+
+/* ── Tables ─────────────────────────────────────── */
+.seller-table {
+    font-size: 0.875rem;
+}
+
+.seller-table thead tr {
+    background-color: var(--oxford-blue);
+    color: #fff;
+}
+
+.seller-table thead th {
+    font-weight: 600;
+    padding: 0.65rem 0.75rem;
+    border: none;
+}
+
+.seller-table tbody tr:hover {
+    background-color: #f7f4ef;
+}
+
+.seller-table__name {
+    font-weight: 600;
+    color: var(--oxford-blue);
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.seller-table__id {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* ── Profile tab ─────────────────────────────────── */
+.seller-profile-card {
+    border: 1px solid #e8e3da;
+    border-radius: 10px;
+    max-width: 600px;
+}
+
+.seller-profile-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.1rem;
+}
+
+.seller-profile-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.seller-profile-input {
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #d8d3c8;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: var(--oxford-blue);
+    background: #faf8f5;
+    transition: border-color 0.15s;
+    width: 100%;
+}
+
+.seller-profile-input:focus {
+    outline: none;
+    border-color: var(--oxford-blue);
+    background: #fff;
+}
+
+.seller-profile-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.seller-profile-hint {
+    font-size: 0.78rem;
+    color: #999;
+    margin-top: 0.25rem;
+}
+
+.seller-profile-save-btn {
+    margin-top: 0.5rem;
+    padding: 0.65rem 2rem;
+    background: var(--oxford-blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.18s;
+}
+
+.seller-profile-save-btn:hover {
+    background: #003a7a;
+}
+
+.seller-profile-save-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

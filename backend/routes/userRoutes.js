@@ -10,6 +10,7 @@ const {
   getUserById,
   updateUser,
   deleteUser,
+  updateSellerStatus,
 } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -28,5 +29,9 @@ router.route('/:id')
   .get(protect, admin, getUserById)
   .put(protect, admin, updateUser)
   .delete(protect, admin, deleteUser);
+
+// Seller status update — admin only
+// Must be after /:id to avoid route conflict
+router.put('/:id/seller-status', protect, admin, updateSellerStatus);
 
 module.exports = router;

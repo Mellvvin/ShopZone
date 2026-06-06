@@ -15,11 +15,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-    FaChevronDown, FaThList,
+    FaChevronDown, FaThList, FaStore,
     FaMobileAlt, FaTshirt, FaScroll, FaHome, FaShoppingBasket,
     FaSpa, FaTools, FaPencilAlt, FaSeedling, FaBaby,
     FaRunning, FaHeartbeat, FaBoxOpen,
-    FaInfoCircle, FaQuestionCircle, FaHeadset, FaStore, FaTruck, FaUndoAlt,
+    FaInfoCircle, FaQuestionCircle, FaHeadset, FaTruck, FaUndoAlt,
 } from 'react-icons/fa';
 import './CategoryBar.css';
 
@@ -45,7 +45,6 @@ const MORE_LINKS = [
     { label: 'About Us', to: '/about', icon: <FaInfoCircle /> },
     { label: 'FAQ', to: '/faq', icon: <FaQuestionCircle /> },
     { label: 'Contact Support', to: '/contact', icon: <FaHeadset /> },
-    { label: 'Become a Seller', to: '/become-seller', icon: <FaStore /> },
     { label: 'Shipping Policy', to: '/shipping-policy', icon: <FaTruck /> },
     { label: 'Returns Policy', to: '/returns-policy', icon: <FaUndoAlt /> },
 ];
@@ -201,10 +200,10 @@ const CategoryBar = () => {
                                     ))}
                                 </div>
                                 <div className='mega-menu-footer'>
-                                    <button
+                                   <button
                                         className='mega-menu-view-all'
                                         onClick={() => {
-                                            navigate('/');
+                                            navigate('/brands');
                                             setCatOpen(false);
                                             setCatLocked(false);
                                         }}
@@ -221,6 +220,9 @@ const CategoryBar = () => {
 
                     {/* ── Bulk Orders ────────────────────────────────── */}
                     <Link to='/bulk-orders' className='catbar-link'>Bulk Orders</Link>
+
+                    {/* ── Become a Seller — promoted out of More dropdown */}
+                    <Link to='/become-seller' className='catbar-link catbar-link--seller'>Become a Seller</Link>
 
                     {/* ── More ───────────────────────────────────────── */}
                     <div

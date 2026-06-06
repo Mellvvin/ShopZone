@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     FaCog, FaUsers, FaBox, FaClipboardList,
     FaEnvelope, FaQuestionCircle, FaStore,
-    FaSignOutAlt,
+    FaSignOutAlt, FaChartBar,
 } from 'react-icons/fa';
 import './DesktopDropdownMenu.css';
 
@@ -29,8 +29,11 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
         { icon: <FaCog size={13} />,          label: 'Products',   to: '/admin/products' },
         { icon: <FaBox size={13} />,           label: 'Orders',     to: '/admin/orders' },
         { icon: <FaUsers size={13} />,         label: 'Users',      to: '/admin/users' },
+        // Sellers — manage seller applications and existing sellers
+        { icon: <FaChartBar size={13} />,      label: 'Sellers',    to: '/admin/sellers' },
         // Enquiries — all form submissions from across the site
         { icon: <FaEnvelope size={13} />,      label: 'Enquiries',  to: '/admin/enquiries' },
+        
     ];
 
    // ── General links — kept minimal, most nav lives in CategoryBar ──
@@ -57,6 +60,26 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
                     </p>
                     <p className='desktop-dropdown-email'>{userInfo.email}</p>
                 </div>
+            )}
+
+            {/* ── Seller section — approved sellers only ─────────── */}
+            {userInfo?.isSeller && userInfo?.sellerStatus === 'approved' && (
+                <>
+                    <div className='desktop-dropdown-section-label'>
+                        Seller
+                    </div>
+                    <div
+                        className='desktop-dropdown-item desktop-dropdown-item--seller'
+                        onClick={() => go('/seller/dashboard')}
+                        role='menuitem'
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && go('/seller/dashboard')}
+                    >
+                        <FaChartBar size={13} />
+                        <span>Seller Dashboard</span>
+                    </div>
+                    <div className='desktop-dropdown-divider' aria-hidden='true' />
+                </>
             )}
 
             {/* ── Admin section ──────────────────────────────────── */}

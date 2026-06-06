@@ -42,6 +42,8 @@ import ReturnsPolicyPage from './pages/ReturnsPolicyPage';
 import BrandsPage from './pages/BrandsPage';
 import BulkOrdersPage from './pages/BulkOrdersPage';
 import AboutPage from './pages/AboutPage';
+import SellerDashboardPage from './pages/SellerDashboardPage';
+import AdminSellersPage from './pages/AdminSellersPage';
 
 
 
@@ -74,7 +76,8 @@ const App = () => {
           <Route path='/bulk-orders' element={<BulkOrdersPage />} />
           <Route path='/about' element={<AboutPage />} />
 
-          
+          {/* ── Seller Routes ── */}
+          <Route path='/seller/dashboard' element={<SellerDashboardPage />} />
 
           {/* ── Protected Routes ── */}
           <Route path='/shipping' element={<ShippingPage />} />
@@ -89,6 +92,7 @@ const App = () => {
           <Route path='/admin/orders' element={<AdminOrderListPage />} />
           <Route path='/admin/users' element={<AdminUserListPage />} />
           <Route path='/admin/enquiries' element={<AdminEnquiriesPage />} />
+          <Route path='/admin/sellers' element={<AdminSellersPage />} />
           {/* ── 404 ── */}
           <Route path='*' element={<NotFoundPage />} />
         </Routes>

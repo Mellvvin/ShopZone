@@ -95,7 +95,9 @@ const registerUser = async (req, res) => {
         county:       user.county,
         shippingAddress: user.shippingAddress || {},
         createdAt:    user.createdAt,
-        isAdmin:      user.isAdmin,
+       isAdmin:      user.isAdmin,
+        isSeller:     user.isSeller,
+        sellerStatus: user.sellerStatus,
         token:        generateToken(user._id),
       });
     } else {
@@ -129,7 +131,9 @@ const loginUser = async (req, res) => {
         county: user.county,
         shippingAddress: user.shippingAddress || {},
         createdAt: user.createdAt,
-        isAdmin: user.isAdmin,
+        isAdmin:      user.isAdmin,
+        isSeller:     user.isSeller,
+        sellerStatus: user.sellerStatus,
         token: generateToken(user._id),
       });
     } else {
@@ -166,7 +170,9 @@ const getUserProfile = async (req, res) => {
         county: user.county,
         shippingAddress: user.shippingAddress || {},
         createdAt: user.createdAt,
-        isAdmin: user.isAdmin,
+        isAdmin:      user.isAdmin,
+        isSeller:     user.isSeller,
+        sellerStatus: user.sellerStatus,
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -226,6 +232,8 @@ const updateUserProfile = async (req, res) => {
         shippingAddress: updatedUser.shippingAddress || {},
         createdAt:    updatedUser.createdAt,
         isAdmin:      updatedUser.isAdmin,
+        isSeller:     updatedUser.isSeller,
+        sellerStatus: updatedUser.sellerStatus,
         token:        generateToken(updatedUser._id),
       });
     } else {
@@ -311,6 +319,61 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// @desc    Update a user's seller status (admin only)
+// @route   PUT /api/users/:id/seller-status
+// @access  Private/Admin
+const updateSellerStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { sellerStatus } = req.body;
+
+    // Validate the incoming status value
+    const validStatuses = ['none', 'pending', 'approved', 'suspended', 'rejected'];
+    if (!validStatuses.includes(sellerStatus)) {
+      return res.status(400).json({ message: 'Invalid seller status value' });
+    }
+
+    // Update seller fields based on the new status
+    user.sellerStatus = sellerStatus;
+
+    if (sellerStatus === 'approved') {
+      // Upgrading to seller — set isSeller true and record when approved
+      user.isSeller = true;
+      user.sellerApprovedAt = Date.now();
+      user.sellerSuspendedAt = null;
+    } else if (sellerStatus === 'suspended') {
+      // Suspended — keep isSeller true so history is preserved but
+      // the seller middleware blocks access
+      user.isSeller = true;
+      user.sellerSuspendedAt = Date.now();
+    } else if (sellerStatus === 'rejected' || sellerStatus === 'none') {
+      // Rejected or revoked — remove seller access entirely
+      user.isSeller = false;
+      user.sellerApprovedAt = null;
+      user.sellerSuspendedAt = null;
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id:              updatedUser._id,
+      name:             updatedUser.name,
+      email:            updatedUser.email,
+      isSeller:         updatedUser.isSeller,
+      sellerStatus:     updatedUser.sellerStatus,
+      sellerApprovedAt: updatedUser.sellerApprovedAt,
+      sellerSuspendedAt: updatedUser.sellerSuspendedAt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ── Exports ───────────────────────────────────────────────────
 module.exports = {
   registerUser,
@@ -322,4 +385,5 @@ module.exports = {
   getUserById,
   updateUser,
   deleteUser,
+  updateSellerStatus,
 };

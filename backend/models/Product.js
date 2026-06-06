@@ -59,11 +59,20 @@ const reviewSchema = mongoose.Schema(
 // ── Product schema ────────────────────────────────────────────
 const productSchema = mongoose.Schema(
   {
-    // ── Ownership ───────────────────────────────────────────
-    // Which admin/seller created this product
+  // ── Ownership ───────────────────────────────────────────
+    // Which admin account created this product listing
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
+      ref: 'User',
+    },
+    // Which seller supplies this product.
+    // Set by admin when approving a seller's product submission.
+    // Optional — products without a seller are admin-managed directly.
+    // Used by the seller dashboard to filter products per seller.
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
       ref: 'User',
     },
 

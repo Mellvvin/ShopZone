@@ -252,13 +252,13 @@ useEffect(() => {
           )}
 
           <div className='homepage__section-wrapper'>
-            <ProductRow
+           <ProductRow
               title='New Arrivals'
               subtitle='The latest products added to the platform'
               products={newArrivals}
               loading={loadingNewArrivals}
               error={errorNewArrivals}
-              viewAllHref='/'
+              viewAllHref='/?sort=newest'
               icon={FaFire}
             />
           </div>

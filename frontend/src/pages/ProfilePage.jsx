@@ -14,7 +14,7 @@ import {
 import { FaUserCircle, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import axios from 'axios';
-import { login } from '../redux/slices/authSlice';
+import { login, setCredentials } from '../redux/slices/authSlice';
 import { showToast } from '../components/Toast/Toast';
 import './ProfilePage.css';
 
@@ -137,7 +137,8 @@ const [orders, setOrders]               = useState([]);
           country:   shipCountry,
         },
       }, config);
-      dispatch(login.fulfilled(data, '', {}));
+      // Sync updated user data to Redux state and localStorage
+    dispatch(setCredentials(data));
       setUpdateLoading(false);
       showSuccess('Profile updated successfully!');
     } catch (err) {

@@ -154,11 +154,25 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
                 {/* ════════════════════════════════════════════════
             BROWSE SECTION
         ════════════════════════════════════════════════ */}
-                <p className='drawer-section-title'>Browse</p>
+               <p className='drawer-section-title'>Browse</p>
                 <nav className='drawer-nav'>
                     <button className='drawer-nav-link' onClick={() => go('/offers')}>Deals</button>
                     <button className='drawer-nav-link' onClick={() => go('/brands')}>Brands</button>
                     <button className='drawer-nav-link' onClick={() => go('/bulk-orders')}>Bulk Orders</button>
+                    {/* Seller Dashboard — only shown to approved sellers */}
+                    {userInfo?.isSeller && userInfo?.sellerStatus === 'approved' && (
+                        <button className='drawer-nav-link drawer-nav-link--seller' onClick={() => go('/seller/dashboard')}>
+                            <FaStore className='drawer-support-icon' aria-hidden='true' />
+                            Seller Dashboard
+                        </button>
+                    )}
+                    {/* Become a Seller — only shown to non-sellers */}
+                    {(!userInfo?.isSeller || userInfo?.sellerStatus !== 'approved') && (
+                        <button className='drawer-nav-link drawer-nav-link--seller' onClick={() => go('/become-seller')}>
+                            <FaStore className='drawer-support-icon' aria-hidden='true' />
+                            Become a Seller
+                        </button>
+                    )}
                 </nav>
 
                 <hr className='drawer-divider' />
@@ -196,10 +210,7 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
                     <FaQuestionCircle className='drawer-support-icon' aria-hidden='true' />
                     FAQ
                 </button>
-                <button className='drawer-nav-link' onClick={() => go('/become-seller')}>
-                    <FaStore className='drawer-support-icon' aria-hidden='true' />
-                    Become a Seller
-                </button>
+            
                 <button className='drawer-nav-link' onClick={() => go('/shipping-policy')}>
                     <FaTruck className='drawer-support-icon' aria-hidden='true' />
                     Shipping Policy
@@ -229,6 +240,10 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
                             {/* Users */}
                             <button className='drawer-nav-link' onClick={() => go('/admin/users')}>
                                 <FaUsers className='drawer-support-icon' aria-hidden='true' /> Users
+                            </button>
+                            {/* Sellers */} 
+                            <button className='drawer-nav-link' onClick={() => go('/admin/sellers')}>
+                                <FaStore className='drawer-support-icon' aria-hidden='true' /> Sellers
                             </button>
                             {/* Enquiries */}
                             <button className='drawer-nav-link' onClick={() => go('/admin/enquiries')}>

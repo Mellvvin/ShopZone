@@ -1,0 +1,212 @@
+/* frontend/src/pages/AdminSellersPage.css
+   ─────────────────────────────────────────
+   Admin seller management page.
+   Follows AdminUserListPage pattern exactly.
+   ───────────────────────────────────────── */
+
+.asl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.asl-page-title {
+    color: var(--oxford-blue);
+    margin: 0;
+}
+
+.asl-count {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.asl-spinner {
+    color: var(--oxford-blue);
+}
+
+/* ── Status filter tabs ──────────────────────────── */
+.asl-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid #e8e3da;
+    margin-bottom: 1.5rem;
+}
+
+.asl-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.1rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.asl-tab:hover {
+    color: var(--oxford-blue);
+}
+
+.asl-tab--active {
+    color: var(--oxford-blue);
+    border-bottom-color: var(--tan);
+}
+
+.asl-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    background: #e8e3da;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+}
+
+.asl-tab--active .asl-tab-count {
+    background: var(--tan);
+}
+
+/* ── Table ───────────────────────────────────────── */
+.asl-table {
+    font-size: 0.88rem;
+}
+
+.asl-thead-row {
+    background-color: var(--oxford-blue);
+}
+
+.asl-thead-row th {
+    color: var(--tan);
+    font-weight: 600;
+    padding: 0.65rem 0.75rem;
+    border: none;
+}
+
+.asl-tbody-row {
+    vertical-align: middle;
+}
+
+.asl-tbody-row:hover {
+    background-color: #f7f4ef;
+}
+
+.asl-name-cell {
+    font-weight: 600;
+    color: var(--oxford-blue);
+}
+
+.asl-email-cell {
+    color: #666;
+}
+
+.asl-email-link {
+    color: #666;
+    text-decoration: none;
+}
+
+.asl-email-link:hover {
+    color: var(--oxford-blue);
+}
+
+.asl-muted-cell {
+    color: #888;
+    font-size: 0.85rem;
+}
+
+/* ── Status badges ───────────────────────────────── */
+.asl-badge--pending {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #ffc107;
+}
+
+.asl-badge--approved {
+    background-color: #d1e7dd !important;
+    color: #0a3622 !important;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #a3cfbb;
+}
+
+.asl-badge--suspended {
+    background-color: #f8d7da !important;
+    color: #58151c !important;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #f1aeb5;
+}
+
+.asl-badge--rejected {
+    background-color: #e2e3e5 !important;
+    color: #41464b !important;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid #c4c8cb;
+}
+
+.asl-badge--none {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+/* ── Action buttons ──────────────────────────────── */
+.asl-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.asl-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.asl-btn:hover {
+    opacity: 0.85;
+}
+
+.asl-btn--approve {
+    background-color: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.asl-btn--reject {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.asl-btn--suspend {
+    background-color: #fd7e14;
+    color: #fff;
+}
+
+/* ── Empty state ─────────────────────────────────── */
+.asl-empty-alert {
+    background-color: #faf8f5;
+    border-color: var(--tan);
+    color: var(--oxford-blue);
+}
