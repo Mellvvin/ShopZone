@@ -1,200 +1,553 @@
-/* frontend/src/pages/AdminUserListPage/AdminUserListPage.css
-   ───────────────────────────────────────────────────────────── */
+/* frontend/src/pages/AdminUserListPage.css
+ * ─────────────────────────────────────────────────────────────
+ * Admin User Management page.
+ * Follows the ShopZone admin design system:
+ *   - Full-width page with own layout (no App.jsx Container)
+ *   - White header with tan icon, title, subtitle, count pills
+ *   - Tab bar with coloured count badges
+ *   - Search bar
+ *   - Oxford Blue table header with Tan column text
+ *   - Alternating row shading
+ *   - Clicking a row navigates to /admin/users/:id
+ * ─────────────────────────────────────────────────────────────
+ */
 
-.aul-page-title {
+/* ── Page wrapper ────────────────────────────────────────────── */
+.aul-page {
+    min-height: 100vh;
+    background: var(--off-white);
+    padding-bottom: 80px;
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.aul-header {
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.08);
+    padding: 28px 32px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.aul-header__left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.aul-header__icon {
+    font-size: 1.4rem;
+    color: var(--tan);
+    flex-shrink: 0;
+}
+
+.aul-header__title {
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    font-weight: 800;
+    color: var(--oxford-blue);
+    margin: 0 0 2px;
+    letter-spacing: -0.02em;
+}
+
+.aul-header__subtitle {
+    font-size: 0.82rem;
+    color: #767676;
+    margin: 0;
+}
+
+/* Count pills row */
+.aul-header__counts {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.aul-count-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(0, 33, 71, 0.04);
+    border-radius: 10px;
+    padding: 10px 20px;
+    min-width: 80px;
+}
+
+.aul-count-pill--amber {
+    background: #fff8f0;
+    border: 1px solid #f0a500;
+}
+
+.aul-count-pill--oxford {
+    background: rgba(0, 33, 71, 0.06);
+    border: 1px solid rgba(0, 33, 71, 0.15);
+}
+
+.aul-count-pill__num {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+    line-height: 1;
+}
+
+.aul-count-pill--amber .aul-count-pill__num {
+    color: #f0a500;
+}
+
+.aul-count-pill__label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #767676;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+/* ── Tab bar ─────────────────────────────────────────────────── */
+.aul-tabs {
+    background: #fff;
+    border-bottom: 2px solid rgba(0, 33, 71, 0.08);
+    display: flex;
+    padding: 0 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.aul-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.aul-tab {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 16px 18px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #767676;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.aul-tab:hover {
     color: var(--oxford-blue);
 }
 
-.aul-spinner {
+.aul-tab--active {
+    color: var(--oxford-blue);
+    border-bottom-color: var(--oxford-blue);
+}
+
+.aul-tab__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: rgba(0, 33, 71, 0.08);
     color: var(--oxford-blue);
 }
 
-.aul-user-count {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
-
-.aul-table {
-    font-size: 0.88rem;
-}
-
-.aul-thead-row {
-    background-color: var(--oxford-blue);
-}
-
-.aul-thead-row th {
+.aul-tab__count--oxford {
+    background: var(--oxford-blue);
     color: var(--tan);
 }
 
-.aul-tbody-row {
-    background-color: white;
+/* ── Search bar ──────────────────────────────────────────────── */
+.aul-search-bar {
+    position: relative;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.06);
+    padding: 14px 32px;
+}
+
+.aul-search-bar__icon {
+    position: absolute;
+    left: 46px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #767676;
+    font-size: 0.82rem;
+    pointer-events: none;
+}
+
+.aul-search-bar__input {
+    width: 100%;
+    max-width: 480px;
+    padding: 9px 36px 9px 34px;
+    border: 1.5px solid rgba(0, 33, 71, 0.12);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    color: var(--oxford-blue);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.aul-search-bar__input:focus {
+    border-color: var(--oxford-blue);
+}
+
+.aul-search-bar__clear {
+    all: unset;
+    cursor: pointer;
+    position: absolute;
+    left: calc(46px + 480px - 28px);
+    top: 50%;
+    transform: translateY(-50%);
+    color: #767676;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+}
+
+.aul-search-bar__clear:hover {
+    color: var(--oxford-blue);
+}
+
+/* ── Error banner ────────────────────────────────────────────── */
+.aul-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 32px;
+    padding: 12px 16px;
+    background: #fdf0f0;
+    border: 1px solid #e74c3c;
+    border-radius: 8px;
+    color: #c0392b;
+    font-size: 0.85rem;
+}
+
+/* ── Loading / empty states ──────────────────────────────────── */
+.aul-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 80px 24px;
+    color: #767676;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.aul-state svg {
+    font-size: 2.5rem;
+    color: var(--tan);
+}
+
+.aul-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(0, 33, 71, 0.1);
+    border-top-color: var(--oxford-blue);
+    border-radius: 50%;
+    animation: aulSpin 0.8s linear infinite;
+}
+
+@keyframes aulSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.aul-clear-btn {
+    all: unset;
+    cursor: pointer;
+    padding: 8px 20px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    font-family: inherit;
+}
+
+/* ── Results count ───────────────────────────────────────────── */
+.aul-results-count {
+    font-size: 0.78rem;
+    color: #767676;
+    margin: 0 0 12px;
+}
+
+/* ── Table wrapper ───────────────────────────────────────────── */
+.aul-table-wrap {
+    padding: 24px 32px;
+    overflow-x: auto;
+}
+
+/* ── Table ───────────────────────────────────────────────────── */
+.aul-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+    min-width: 700px;
+}
+
+.aul-table thead th {
+    background: var(--oxford-blue);
+    color: var(--tan);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 12px 14px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.aul-table tbody td {
+    padding: 13px 14px;
+    color: #444;
     vertical-align: middle;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.05);
 }
 
-.aul-tbody-row--alt {
-    background-color: #FAFAF9;
+/* Alternating rows */
+.aul-row--alt td {
+    background: rgba(0, 33, 71, 0.015);
 }
 
-.aul-tbody-row--self {
+/* Current logged-in user row dimmed */
+.aul-row--self {
     opacity: 0.7;
 }
 
-.aul-id-cell {
-    font-family: 'Courier New', monospace;
-    font-size: 0.72rem;
-    color: var(--text-muted);
+/* Hover — whole row is clickable */
+.aul-table tbody tr:hover td {
+    background: rgba(0, 33, 71, 0.03);
 }
 
-.aul-name-cell {
-    font-weight: 500;
+/* ── Name cell with avatar ───────────────────────────────────── */
+.aul-cell-name {
+    min-width: 180px;
+}
+
+.aul-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Initials avatar circle */
+.aul-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.aul-name {
+    font-weight: 600;
     color: var(--oxford-blue);
+    display: block;
 }
 
 .aul-you-label {
     font-size: 0.72rem;
-    color: var(--text-muted);
-    margin-left: 0.4rem;
+    color: #767676;
     font-weight: 400;
 }
 
-.aul-email-cell {
-    color: var(--text-muted);
+/* Seller tag below name */
+.aul-seller-tag {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: rgba(210, 180, 140, 0.25);
+    color: var(--oxford-blue);
+    border: 1px solid var(--tan);
+    border-radius: 4px;
+    padding: 1px 6px;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+}
+
+/* Muted cells */
+.aul-cell-muted {
+    color: #767676 !important;
+    font-size: 0.82rem;
 }
 
 .aul-email-link {
-    color: var(--text-muted);
+    color: #767676;
     text-decoration: none;
 }
 
 .aul-email-link:hover {
     color: var(--oxford-blue);
+    text-decoration: underline;
 }
 
-.aul-muted-cell {
-    color: var(--text-muted);
-}
-
-.aul-current-label {
-    font-size: 0.78rem;
-    color: var(--text-muted);
+/* ── Role badges ─────────────────────────────────────────────── */
+.aul-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .aul-badge--admin {
-    background-color: var(--oxford-blue) !important;
-    color: var(--tan) !important;
-    font-size: 0.72rem;
-    padding: 4px 10px;
-    border-radius: 20px;
+    background: var(--oxford-blue);
+    color: var(--tan);
 }
 
 .aul-badge--customer {
-    background-color: #F5F0EB !important;
-    color: var(--text-muted) !important;
-    font-size: 0.72rem;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid #EAE0D5;
+    background: rgba(0, 33, 71, 0.06);
+    color: #555;
+    border: 1px solid rgba(0, 33, 71, 0.1);
 }
 
-.aul-role-btn {
-    background-color: var(--oxford-blue) !important;
-    color: var(--tan) !important;
-    border: none !important;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
+/* Current account label */
+.aul-current-label {
+    font-size: 0.75rem;
+    color: #767676;
+    font-style: italic;
+}
+
+/* ── Action buttons ──────────────────────────────────────────── */
+.aul-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .aul-action-btn {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: opacity 0.15s;
 }
 
-.aul-empty-alert {
-    background-color: var(--tan-light);
-    border-color: var(--tan);
-    color: var(--oxford-blue);
+.aul-action-btn:hover {
+    opacity: 0.85;
 }
 
-/* ── Role modal (replaces Bootstrap Modal to remove inline styles) ── */
+.aul-action-btn--role {
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.aul-action-btn--delete {
+    background: #c0392b;
+    color: #fff;
+}
+
+/* ── Role modal ──────────────────────────────────────────────── */
 .aul-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 33, 71, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1050;
+    backdrop-filter: blur(3px);
 }
 
 .aul-modal {
-    background: white;
-    border-radius: 10px;
+    background: #fff;
+    border-radius: 12px;
     width: 100%;
     max-width: 440px;
-    box-shadow: 0 8px 32px rgba(0, 33, 71, 0.18);
+    box-shadow: 0 20px 60px rgba(0, 33, 71, 0.2);
     overflow: hidden;
 }
 
 .aul-modal-header {
     background: var(--oxford-blue);
-    padding: 1rem 1.25rem;
+    padding: 18px 24px;
 }
 
 .aul-modal-title {
     color: var(--tan);
     margin: 0;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
 }
 
 .aul-modal-body {
-    padding: 1.25rem;
+    padding: 24px;
 }
 
 .aul-modal-user-name {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--oxford-blue);
-    margin-bottom: 0.2rem;
+    margin: 0 0 4px;
 }
 
 .aul-modal-user-email {
-    color: var(--text-muted);
+    color: #767676;
     font-size: 0.85rem;
-    margin-bottom: 1.2rem;
+    margin: 0 0 20px;
 }
 
 .aul-role-label {
+    font-weight: 700;
     color: var(--oxford-blue);
-    font-weight: 600;
+    font-size: 0.85rem;
 }
 
 .aul-role-hint {
-    color: var(--text-muted);
-    font-size: 0.8rem;
+    color: #767676;
+    font-size: 0.78rem;
 }
 
 .aul-modal-footer {
-    padding: 0.75rem 1.25rem;
+    padding: 16px 24px;
     display: flex;
     justify-content: flex-end;
-    gap: 0.75rem;
-    border-top: 1px solid #EAE0D5;
+    gap: 10px;
+    border-top: 1px solid rgba(0, 33, 71, 0.08);
 }
 
 .aul-modal-cancel {
     all: unset;
     cursor: pointer;
-    border: 1px solid var(--tan);
+    border: 1.5px solid rgba(0, 33, 71, 0.2);
     color: var(--oxford-blue);
-    background: white;
-    padding: 0.4rem 1rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    background: #fff;
+    padding: 8px 18px;
+    border-radius: 7px;
+    font-size: 0.88rem;
+    font-family: inherit;
+    transition: background 0.15s;
 }
 
 .aul-modal-cancel:hover {
-    background: var(--tan-light);
+    background: rgba(0, 33, 71, 0.04);
 }
 
 .aul-modal-save {
@@ -202,17 +555,63 @@
     cursor: pointer;
     background: var(--oxford-blue);
     color: var(--tan);
-    padding: 0.4rem 1rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 7px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: inherit;
+    transition: background 0.15s;
 }
 
 .aul-modal-save:hover {
-    background: #003170;
+    background: #003266;
 }
 
 .aul-modal-save:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .aul-header {
+        padding: 20px 16px;
+    }
+
+    .aul-tabs {
+        padding: 0 16px;
+    }
+
+    .aul-search-bar {
+        padding: 12px 16px;
+    }
+
+    .aul-search-bar__icon {
+        left: 30px;
+    }
+
+    .aul-search-bar__input {
+        max-width: 100%;
+    }
+
+    .aul-search-bar__clear {
+        left: auto;
+        right: 24px;
+    }
+
+    .aul-table-wrap {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .aul-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .aul-tab {
+        padding: 14px 12px;
+        font-size: 0.78rem;
+    }
 }

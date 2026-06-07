@@ -26,7 +26,7 @@
 //   → Mark Delivered modal (All tab)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -40,6 +40,8 @@ import {
   FaClock,
   FaExclamationTriangle,
   FaEye,
+  FaSearch,
+  FaTimes,
 } from 'react-icons/fa';
 import './AdminOrderListPage.css';
 
@@ -90,8 +92,11 @@ const AdminOrderListPage = () => {
   const [quoteNotes, setQuoteNotes] = useState('');
   const [quoteLoading, setQuoteLoading] = useState(false);
 
-  // ── Payout loading state (keyed by order ID) ─────────────────────────────
+// ── Payout loading state (keyed by order ID) ─────────────────────────────
   const [payoutLoadingId, setPayoutLoadingId] = useState(null);
+
+  // ── Search state ──────────────────────────────────────────────────────────
+  const [search, setSearch] = useState('');
 
   // ── Auth header ──────────────────────────────────────────────────────────
   const config = {
@@ -193,7 +198,7 @@ const AdminOrderListPage = () => {
   // Cancelled: any order with cancelled status
   const cancelledOrders = allOrders.filter((o) => o.status === 'cancelled');
 
-  // ── Current tab's data ───────────────────────────────────────────────────
+// ── Current tab's raw data ────────────────────────────────────────────────
   const tabOrders = activeTab === 'all'
     ? allOrders
     : activeTab === 'quotes'
@@ -203,6 +208,20 @@ const AdminOrderListPage = () => {
         : activeTab === 'fulfilled'
           ? fulfilledOrders
           : cancelledOrders;
+
+  // ── Search filtering applied on top of the active tab ────────────────────
+  // Matches against the last 8 chars of order ID, buyer name, and buyer email.
+  // Resets to full list when search is empty.
+  const filteredOrders = useMemo(() => {
+    if (!search.trim()) return tabOrders;
+    const q = search.toLowerCase().trim();
+    return tabOrders.filter((order) => {
+      const id    = order._id.slice(-8).toLowerCase();
+      const name  = (order.user?.name  || '').toLowerCase();
+      const email = (order.user?.email || '').toLowerCase();
+      return id.includes(q) || name.includes(q) || email.includes(q);
+    });
+  }, [tabOrders, search]);
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
@@ -234,9 +253,9 @@ const AdminOrderListPage = () => {
 
       {/* ── Tab bar ─────────────────────────────────────────────────── */}
       <div className='admin-orders-tabs' role='tablist'>
-        <button
+    <button
           className={`admin-orders-tab ${activeTab === 'all' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => setActiveTab('all')}
+          onClick={() => { setActiveTab('all'); setSearch(''); }}
           role='tab'
           aria-selected={activeTab === 'all'}
         >
@@ -247,7 +266,7 @@ const AdminOrderListPage = () => {
 
         <button
           className={`admin-orders-tab ${activeTab === 'quotes' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => setActiveTab('quotes')}
+          onClick={() => { setActiveTab('quotes'); setSearch(''); }}
           role='tab'
           aria-selected={activeTab === 'quotes'}
         >
@@ -262,7 +281,7 @@ const AdminOrderListPage = () => {
 
         <button
           className={`admin-orders-tab ${activeTab === 'payouts' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => setActiveTab('payouts')}
+          onClick={() => { setActiveTab('payouts'); setSearch(''); }}
           role='tab'
           aria-selected={activeTab === 'payouts'}
         >
@@ -277,7 +296,7 @@ const AdminOrderListPage = () => {
 
         <button
           className={`admin-orders-tab ${activeTab === 'fulfilled' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => setActiveTab('fulfilled')}
+          onClick={() => { setActiveTab('fulfilled'); setSearch(''); }}
           role='tab'
           aria-selected={activeTab === 'fulfilled'}
         >
@@ -290,7 +309,7 @@ const AdminOrderListPage = () => {
 
         <button
           className={`admin-orders-tab ${activeTab === 'cancelled' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => setActiveTab('cancelled')}
+          onClick={() => { setActiveTab('cancelled'); setSearch(''); }}
           role='tab'
           aria-selected={activeTab === 'cancelled'}
         >
@@ -302,7 +321,28 @@ const AdminOrderListPage = () => {
             </span>
           )}
         </button>
+      </div>
 
+      {/* ── Search bar ──────────────────────────────────────────────── */}
+      <div className='admin-orders-search'>
+        <FaSearch className='admin-orders-search__icon' aria-hidden='true' />
+        <input
+          type='text'
+          className='admin-orders-search__input'
+          placeholder='Search by order ID, buyer name or email...'
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label='Search orders'
+        />
+        {search && (
+          <button
+            className='admin-orders-search__clear'
+            onClick={() => setSearch('')}
+            aria-label='Clear search'
+          >
+            <FaTimes aria-hidden='true' />
+          </button>
+        )}
       </div>
 
       {/* ── Content ─────────────────────────────────────────────────── */}
@@ -319,15 +359,23 @@ const AdminOrderListPage = () => {
             Retry
           </button>
         </div>
-      ) : tabOrders.length === 0 ? (
+      ) : filteredOrders.length === 0 ? (
         <div className='admin-orders-empty'>
           <p>
-            {activeTab === 'all'       && 'No orders yet.'}
-            {activeTab === 'quotes'    && 'No pending delivery quotes. All Tier 2 orders have been actioned.'}
-            {activeTab === 'payouts'   && 'No orders in the payout queue. All delivered orders have been settled.'}
-            {activeTab === 'fulfilled' && 'No fully completed orders yet.'}
-            {activeTab === 'cancelled' && 'No cancelled orders.'}
+            {search
+              ? `No orders matching "${search}"`
+              : activeTab === 'all'       ? 'No orders yet.'
+              : activeTab === 'quotes'    ? 'No pending delivery quotes. All Tier 2 orders have been actioned.'
+              : activeTab === 'payouts'   ? 'No orders in the payout queue. All delivered orders have been settled.'
+              : activeTab === 'fulfilled' ? 'No fully completed orders yet.'
+              : 'No cancelled orders.'
+            }
           </p>
+          {search && (
+            <button className='admin-orders-retry-btn' onClick={() => setSearch('')}>
+              Clear search
+            </button>
+          )}
         </div>
       ) : (
         <div className='admin-orders-table-wrap'>
@@ -347,7 +395,7 @@ const AdminOrderListPage = () => {
               </tr>
             </thead>
             <tbody>
-              {tabOrders.map((order, idx) => {
+              {filteredOrders.map((order, idx) => {
                 const statusCfg = STATUS_CONFIG[order.status] || { label: order.status, mod: 'pending' };
                 const isEven = idx % 2 === 0;
 

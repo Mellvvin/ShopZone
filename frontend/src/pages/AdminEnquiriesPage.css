@@ -130,6 +130,11 @@
     color: var(--tan);
 }
 
+.enq-tab__count--red {
+    background: #e74c3c;
+    color: #fff;
+}
+
 /* ── Filter bar ──────────────────────────────────────────────── */
 .enq-filters {
     display: flex;

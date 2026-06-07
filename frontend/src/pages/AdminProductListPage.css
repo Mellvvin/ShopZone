@@ -1,107 +1,557 @@
-/* frontend/src/pages/AdminProductListPage/AdminProductListPage.css
-   ───────────────────────────────────────────────────────────────── */
+/* frontend/src/pages/AdminProductListPage.css
+ * ─────────────────────────────────────────────────────────────
+ * Admin Product Management page.
+ * Follows the ShopZone admin design system:
+ *   - Full-width own layout (no App.jsx Container)
+ *   - White header: tan FaBoxOpen icon, title, subtitle,
+ *     count pills (total / out-of-stock red / on-sale green)
+ *   - Create Product button in header right
+ *   - Tab bar: All / Featured / On Sale / Clearance / Out of Stock
+ *   - Search bar
+ *   - Oxford Blue table header with Tan column text
+ *   - Alternating row shading, clicking row goes to edit page
+ * ─────────────────────────────────────────────────────────────
+ */
 
-.apl-page-title {
+/* ── Page wrapper ────────────────────────────────────────────── */
+.apl-page {
+    min-height: 100vh;
+    background: var(--off-white);
+    padding-bottom: 80px;
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.apl-header {
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.08);
+    padding: 28px 32px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.apl-header__left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.apl-header__icon {
+    font-size: 1.4rem;
+    color: var(--tan);
+    flex-shrink: 0;
+}
+
+.apl-header__title {
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    font-weight: 800;
+    color: var(--oxford-blue);
+    margin: 0 0 2px;
+    letter-spacing: -0.02em;
+}
+
+.apl-header__subtitle {
+    font-size: 0.82rem;
+    color: #767676;
+    margin: 0;
+}
+
+/* Right side — pills + button */
+.apl-header__right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* Count pills */
+.apl-header__counts {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.apl-count-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(0, 33, 71, 0.04);
+    border-radius: 10px;
+    padding: 10px 20px;
+    min-width: 74px;
+}
+
+.apl-count-pill--red {
+    background: #fdf0f0;
+    border: 1px solid #e74c3c;
+}
+
+.apl-count-pill--green {
+    background: #eafaf1;
+    border: 1px solid #27ae60;
+}
+
+.apl-count-pill__num {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+    line-height: 1;
+}
+
+.apl-count-pill--red .apl-count-pill__num {
+    color: #e74c3c;
+}
+
+.apl-count-pill--green .apl-count-pill__num {
+    color: #27ae60;
+}
+
+.apl-count-pill__label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #767676;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+/* Create button */
+.apl-create-btn {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 20px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+
+.apl-create-btn:hover {
+    background: #003266;
+}
+
+/* ── Tab bar ─────────────────────────────────────────────────── */
+.apl-tabs {
+    background: #fff;
+    border-bottom: 2px solid rgba(0, 33, 71, 0.08);
+    display: flex;
+    padding: 0 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.apl-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.apl-tab {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 16px 18px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #767676;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.apl-tab:hover {
     color: var(--oxford-blue);
 }
 
-.apl-create-btn {
-    background: var(--oxford-blue) !important;
-    border-color: var(--oxford-blue) !important;
-    color: var(--tan) !important;
-    font-weight: 600;
+.apl-tab--active {
+    color: var(--oxford-blue);
+    border-bottom-color: var(--oxford-blue);
+}
+
+.apl-tab__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: rgba(0, 33, 71, 0.08);
+    color: var(--oxford-blue);
+}
+
+.apl-tab__count--oxford {
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.apl-tab__count--green {
+    background: #27ae60;
+    color: #fff;
+}
+
+.apl-tab__count--amber {
+    background: #f0a500;
+    color: #fff;
+}
+
+.apl-tab__count--red {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* ── Search bar ──────────────────────────────────────────────── */
+.apl-search-bar {
+    position: relative;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.06);
+    padding: 14px 32px;
+}
+
+.apl-search-bar__icon {
+    position: absolute;
+    left: 46px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #767676;
+    font-size: 0.82rem;
+    pointer-events: none;
+}
+
+.apl-search-bar__input {
+    width: 100%;
+    max-width: 480px;
+    padding: 9px 36px 9px 34px;
+    border: 1.5px solid rgba(0, 33, 71, 0.12);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    color: var(--oxford-blue);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.apl-search-bar__input:focus {
+    border-color: var(--oxford-blue);
+}
+
+.apl-search-bar__clear {
+    all: unset;
+    cursor: pointer;
+    position: absolute;
+    left: calc(46px + 480px - 28px);
+    top: 50%;
+    transform: translateY(-50%);
+    color: #767676;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+}
+
+.apl-search-bar__clear:hover {
+    color: var(--oxford-blue);
+}
+
+/* ── Error banner ────────────────────────────────────────────── */
+.apl-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 32px;
+    padding: 12px 16px;
+    background: #fdf0f0;
+    border: 1px solid #e74c3c;
+    border-radius: 8px;
+    color: #c0392b;
+    font-size: 0.85rem;
+}
+
+/* ── Loading / empty states ──────────────────────────────────── */
+.apl-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 80px 24px;
+    color: #767676;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.apl-state svg {
+    font-size: 2.5rem;
+    color: var(--tan);
 }
 
 .apl-spinner {
-    color: var(--oxford-blue);
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(0, 33, 71, 0.1);
+    border-top-color: var(--oxford-blue);
+    border-radius: 50%;
+    animation: aplSpin 0.8s linear infinite;
 }
 
-.apl-result-count {
-    font-size: 0.85rem;
-    color: var(--text-muted);
+@keyframes aplSpin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
+.apl-clear-btn {
+    all: unset;
+    cursor: pointer;
+    padding: 8px 20px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    font-family: inherit;
+}
+
+/* ── Results count ───────────────────────────────────────────── */
+.apl-results-count {
+    font-size: 0.78rem;
+    color: #767676;
+    margin: 0 0 12px;
+}
+
+/* ── Table wrapper ───────────────────────────────────────────── */
+.apl-table-wrap {
+    padding: 24px 32px;
+    overflow-x: auto;
+}
+
+/* ── Table ───────────────────────────────────────────────────── */
 .apl-table {
-    font-size: 0.88rem;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+    min-width: 860px;
 }
 
-.apl-thead-row {
-    background-color: var(--oxford-blue);
+.apl-table thead th {
+    background: var(--oxford-blue);
     color: var(--tan);
-}
-
-.apl-thead-row th {
-    color: var(--tan);
-}
-
-.apl-tbody-row {
-    background-color: white;
-    vertical-align: middle;
-}
-
-.apl-tbody-row--alt {
-    background-color: #FAFAF9;
-}
-
-.apl-id-cell {
-    font-family: 'Courier New', monospace;
+    font-weight: 700;
     font-size: 0.72rem;
-    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 12px 14px;
+    text-align: left;
+    white-space: nowrap;
 }
 
-.apl-product-thumb {
-    width: 45px;
-    height: 45px;
+.apl-table tbody td {
+    padding: 12px 14px;
+    color: #444;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.05);
+}
+
+.apl-row--alt td {
+    background: rgba(0, 33, 71, 0.015);
+}
+
+.apl-table tbody tr:hover td {
+    background: rgba(0, 33, 71, 0.03);
+}
+
+/* ── Product thumbnail ───────────────────────────────────────── */
+.apl-thumb {
+    width: 44px;
+    height: 44px;
     object-fit: cover;
     border-radius: 6px;
-    border: 1px solid #EAE0D5;
+    border: 1px solid rgba(0, 33, 71, 0.08);
+    display: block;
 }
 
-.apl-name-cell {
-    font-weight: 500;
+/* ── Name cell ───────────────────────────────────────────────── */
+.apl-cell-name {
+    font-weight: 600;
+    color: var(--oxford-blue);
+    min-width: 160px;
+}
+
+/* ── Price cell ──────────────────────────────────────────────── */
+.apl-cell-price {
+    white-space: nowrap;
+    font-weight: 600;
     color: var(--oxford-blue);
 }
 
-.apl-muted-cell {
-    color: var(--text-muted);
-}
-
-.apl-unit-badge {
-    background-color: var(--oxford-blue) !important;
-    color: var(--tan) !important;
+.apl-original-price {
+    display: block;
     font-size: 0.72rem;
-    padding: 4px 8px;
-    border-radius: 20px;
+    color: #999;
+    text-decoration: line-through;
+    font-weight: 400;
 }
 
+/* ── Muted cells ─────────────────────────────────────────────── */
+.apl-cell-muted {
+    color: #767676 !important;
+    font-size: 0.82rem;
+}
+
+/* ── Unit badge ──────────────────────────────────────────────── */
+.apl-unit-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    background: rgba(0, 33, 71, 0.06);
+    color: var(--oxford-blue);
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid rgba(0, 33, 71, 0.1);
+}
+
+/* ── Stock indicators ────────────────────────────────────────── */
 .apl-stock--in {
-    color: green;
-    font-weight: 600;
+    font-weight: 700;
+    color: #27ae60;
 }
 
 .apl-stock--out {
-    color: red;
-    font-weight: 600;
+    font-weight: 700;
+    color: #e74c3c;
 }
 
-.apl-edit-btn {
-    background-color: var(--oxford-blue);
-    color: var(--tan);
-    border: none;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    text-decoration: none;
+/* ── Flag badges ─────────────────────────────────────────────── */
+.apl-flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.apl-flag {
     display: inline-block;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.63rem;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
-.apl-edit-btn:hover {
-    background-color: #003170;
-    color: var(--tan-light);
+.apl-flag--featured {
+    background: rgba(0, 33, 71, 0.08);
+    color: var(--oxford-blue);
+    border: 1px solid rgba(0, 33, 71, 0.15);
 }
 
-.apl-delete-btn {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
+.apl-flag--sale {
+    background: #eafaf1;
+    color: #27ae60;
+    border: 1px solid #27ae60;
+}
+
+.apl-flag--clearance {
+    background: #fff8f0;
+    color: #f0a500;
+    border: 1px solid #f0a500;
+}
+
+/* ── Action buttons ──────────────────────────────────────────── */
+.apl-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.apl-action-btn {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+}
+
+.apl-action-btn:hover {
+    opacity: 0.85;
+}
+
+.apl-action-btn--edit {
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.apl-action-btn--delete {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .apl-header {
+        padding: 20px 16px;
+    }
+
+    .apl-tabs {
+        padding: 0 16px;
+    }
+
+    .apl-search-bar {
+        padding: 12px 16px;
+    }
+
+    .apl-search-bar__icon {
+        left: 30px;
+    }
+
+    .apl-search-bar__input {
+        max-width: 100%;
+    }
+
+    .apl-search-bar__clear {
+        left: auto;
+        right: 24px;
+    }
+
+    .apl-table-wrap {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .apl-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .apl-header__right {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .apl-tab {
+        padding: 14px 12px;
+        font-size: 0.78rem;
+    }
 }

@@ -69,4 +69,25 @@ const seller = (req, res, next) => {
   next();
 };
 
-module.exports = { protect, admin, seller };
+// ── Optional auth ──────────────────────────────────────────────
+// Like protect but does not reject unauthenticated requests.
+// Sets req.user if a valid token is present, leaves it undefined
+// if no token or an invalid token is sent.
+// Used on public routes that need to know who is logged in
+// without requiring login — e.g. the seller application form.
+const optionalProtect = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer')) {
+    return next(); // no token — continue as anonymous
+  }
+  try {
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select('-password');
+  } catch {
+    // Invalid token — ignore it and continue as anonymous
+  }
+  next();
+};
+
+module.exports = { protect, admin, seller, optionalProtect };

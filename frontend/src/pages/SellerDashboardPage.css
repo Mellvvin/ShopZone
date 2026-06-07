@@ -178,6 +178,116 @@
     color: #888;
 }
 
+.seller-table__muted {
+    color: #bbb;
+    font-size: 0.85rem;
+}
+
+/* ── Quote submit button in table cell ──────────── */
+.seller-quote-btn {
+    padding: 4px 12px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border: none;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.seller-quote-btn:hover {
+    opacity: 0.85;
+}
+
+.seller-quote-btn--cancel {
+    background: #6c757d;
+    color: #fff;
+}
+
+/* ── Inline quote form row ───────────────────────── */
+.seller-quote-form-row td {
+    background: #f7f4ef;
+    border-top: none;
+    padding: 1rem 1.25rem;
+}
+
+.seller-quote-form {
+    max-width: 640px;
+}
+
+.seller-quote-form__title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    margin-bottom: 0.85rem;
+}
+
+.seller-quote-form__fields {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+}
+
+.seller-quote-form__field {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 140px;
+}
+
+.seller-quote-form__label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.3rem;
+}
+
+.seller-quote-form__input {
+    padding: 0.45rem 0.65rem;
+    border: 1px solid #d8d3c8;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    background: #fff;
+    color: var(--oxford-blue);
+}
+
+.seller-quote-form__input:focus {
+    outline: none;
+    border-color: var(--oxford-blue);
+}
+
+.seller-quote-form__submit {
+    padding: 0.5rem 1.5rem;
+    background: var(--oxford-blue);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.18s;
+}
+
+.seller-quote-form__submit:hover {
+    background: #003a7a;
+}
+
+.seller-quote-form__submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.seller-quote-form__note {
+    font-size: 0.78rem;
+    color: #999;
+    margin-top: 0.6rem;
+    margin-bottom: 0;
+}
+
 /* ── Profile tab ─────────────────────────────────── */
 .seller-profile-card {
     border: 1px solid #e8e3da;

@@ -23,7 +23,7 @@ import {
   Form, Button, Card, Alert,
   Spinner, Row, Col, Image,
 } from 'react-bootstrap';
-import { FaQuestionCircle } from 'react-icons/fa';
+import { FaQuestionCircle, FaEdit, FaArrowLeft } from 'react-icons/fa';
 import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
@@ -554,16 +554,28 @@ const AdminProductEditPage = () => {
     </div>
   );
 
-  if (loading) {
+ if (loading) {
     return (
-      <div className='text-center py-5'>
-        <Spinner animation='border' className='ape-spinner' />
+      <div className='ape-page'>
+        <div className='ape-header'>
+          <div className='ape-header__left'>
+            <FaEdit className='ape-header__icon' aria-hidden='true' />
+            <div>
+              <h1 className='ape-header__title'>Loading product…</h1>
+              <p className='ape-header__subtitle'>Please wait</p>
+            </div>
+          </div>
+        </div>
+        <div className='text-center py-5'>
+          <Spinner animation='border' className='ape-spinner' />
+        </div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className='ape-page'>
+
       {/* ── Field help modal — info only, no cancel button ── */}
       {helpField && (
         <ConfirmModal
@@ -589,10 +601,31 @@ const AdminProductEditPage = () => {
         confirmVariant='primary-branded'
       />
 
-      {/* ── Back button ───────────────────────────────────── */}
-      <button type='button' className='btn ape-back-btn mb-4' onClick={handleBack}>
-        ← Back to Products
-      </button>
+  {/* ── Page header ────────────────────────────────────── */}
+      <div className='ape-header'>
+        <div className='ape-header__left'>
+          <FaEdit className='ape-header__icon' aria-hidden='true' />
+          <div>
+            <h1 className='ape-header__title'>
+              {/* Show product name once loaded, fallback for brand new draft */}
+              {name ? `Edit — ${name}` : 'Create Product'}
+            </h1>
+            <p className='ape-header__subtitle'>
+              {name ? 'Update product details, pricing and stock' : 'Fill in all required fields before saving'}
+            </p>
+          </div>
+        </div>
+
+        {/* Back button lives in the header right side */}
+        <button
+          type='button'
+          className='ape-back-btn'
+          onClick={handleBack}
+          aria-label='Back to products list'
+        >
+          <FaArrowLeft aria-hidden='true' /> Back to Products
+        </button>
+      </div>
 
       <Row className='justify-content-center'>
         <Col lg={9}>
@@ -985,7 +1018,7 @@ const AdminProductEditPage = () => {
           </Card>
         </Col>
       </Row>
-    </>
+ </div>
   );
 };
 

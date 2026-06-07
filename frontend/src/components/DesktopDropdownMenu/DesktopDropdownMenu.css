@@ -13,8 +13,44 @@
     border-radius: 10px;
     box-shadow: 0 8px 32px rgba(0, 33, 71, 0.25);
     z-index: 1000;
+    /* overflow hidden on the outer shell keeps border-radius clean
+       while the inner .desktop-dropdown-scroll handles scrolling */
     overflow: hidden;
     border: 1px solid rgba(210, 180, 140, 0.2);
+    /* cap height so logout is never pushed off screen;
+       12px top offset + ~64px header = ~76px consumed */
+    max-height: calc(100vh - 90px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Scrollable inner container ─────────────────────────────── */
+/* Wraps everything below the arrow — greeting, links, logout.
+   This is the element that actually scrolls. The arrow sits
+   outside it so it is never clipped. */
+.desktop-dropdown-scroll {
+    overflow-y: auto;
+    flex: 1;
+    /* Custom scrollbar — thin, matches the Oxford Blue panel */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(210, 180, 140, 0.35) transparent;
+}
+
+.desktop-dropdown-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.desktop-dropdown-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.desktop-dropdown-scroll::-webkit-scrollbar-thumb {
+    background: rgba(210, 180, 140, 0.35);
+    border-radius: 2px;
+}
+
+.desktop-dropdown-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(210, 180, 140, 0.55);
 }
 
 /* ── Arrow pointer ──────────────────────────────────────────── */

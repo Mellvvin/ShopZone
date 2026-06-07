@@ -49,8 +49,11 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
     return (
         <div className='desktop-dropdown'>
 
-            {/* ── Arrow pointer ──────────────────────────────────── */}
+            {/* ── Arrow pointer — outside scroll so it never moves ── */}
             <div className='desktop-dropdown-arrow' />
+
+            {/* ── All scrollable content ─────────────────────────── */}
+            <div className='desktop-dropdown-scroll'>
 
             {/* ── User greeting — logged-in only ────────────────── */}
             {userInfo && (
@@ -122,7 +125,7 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
                 </div>
             ))}
 
-            {/* ── Logout — logged-in only ────────────────────────── */}
+           {/* ── Logout — logged-in only ────────────────────────── */}
             {userInfo && (
                 <>
                     <div className='desktop-dropdown-divider' aria-hidden='true' />
@@ -138,6 +141,9 @@ const DesktopDropdownMenu = ({ userInfo, onClose, onLogout }) => {
                     </div>
                 </>
             )}
+
+            {/* ── Close scrollable wrapper ───────────────────────── */}
+            </div>
         </div>
     );
 };

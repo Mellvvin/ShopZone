@@ -45,6 +45,15 @@ const [activeTab,       setActiveTab]       = useState('overview');
   const [loading,         setLoading]         = useState(true);
   const [error,           setError]           = useState(null);
 
+  // ── Tier 2 quote form state ───────────────────────────────
+  // Keyed by order ID so multiple quote forms can exist independently
+  const [quoteFormOpen,   setQuoteFormOpen]   = useState({});  // { orderId: bool }
+  const [quoteAmount,     setQuoteAmount]     = useState({});  // { orderId: string }
+  const [quoteCourier,    setQuoteCourier]    = useState({});  // { orderId: string }
+  const [quoteEtaDays,    setQuoteEtaDays]    = useState({});  // { orderId: string }
+  const [quoteSubmitting, setQuoteSubmitting] = useState({});  // { orderId: bool }
+  const [quoteSuccess,    setQuoteSuccess]    = useState({});  // { orderId: bool }
+
   // ── Seller profile form fields ────────────────────────────
   const [spBusinessName,    setSpBusinessName]    = useState('');
   const [spBusinessAddress, setSpBusinessAddress] = useState('');
@@ -113,6 +122,33 @@ const [activeTab,       setActiveTab]       = useState('overview');
     };
     fetchProfile();
   }, [activeTab, userInfo]);
+
+ // ── Submit Tier 2 delivery quote ──────────────────────────
+  // Posts structured quote fields to the backend.
+  // No free text — amount, courier, and days only.
+  const submitQuote = async (orderId) => {
+    try {
+      setQuoteSubmitting((prev) => ({ ...prev, [orderId]: true }));
+      await axios.put(
+        `/api/orders/${orderId}/seller-quote/submit`,
+        {
+          amount:       Number(quoteAmount[orderId]),
+          courier:      quoteCourier[orderId],
+          estimatedDays:Number(quoteEtaDays[orderId]),
+        },
+        config
+      );
+      setQuoteSubmitting((prev) => ({ ...prev, [orderId]: false }));
+      setQuoteSuccess((prev) => ({ ...prev, [orderId]: true }));
+      setQuoteFormOpen((prev) => ({ ...prev, [orderId]: false }));
+      // Refresh orders list so the submitted badge appears
+      const { data } = await axios.get('/api/seller/orders', config);
+      setOrders(data);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      setQuoteSubmitting((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
 
   // ── Save seller profile ───────────────────────────────────
   const saveSellerProfile = async () => {
@@ -310,7 +346,7 @@ const [activeTab,       setActiveTab]       = useState('overview');
             ) : orders.length === 0 ? (
               <Alert variant='info'>No orders containing your products yet.</Alert>
             ) : (
-              <Table responsive hover className='seller-table'>
+             <Table responsive hover className='seller-table'>
                 <thead>
                   <tr>
                     <th>Order ID</th>
@@ -320,29 +356,139 @@ const [activeTab,       setActiveTab]       = useState('overview');
                     <th>Paid</th>
                     <th>Status</th>
                     <th>Payout</th>
+                    <th>Delivery Quote</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
-                    <tr key={order._id}>
-                      <td className='seller-table__id'>{String(order._id).slice(-8)}</td>
-                      <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                      {/* County only — never full address */}
-                      <td>{order.deliveryCounty || order.shippingZone}</td>
-                      <td>{order.orderItems.length} item{order.orderItems.length !== 1 ? 's' : ''}</td>
-                      <td>
-                        <Badge bg={order.isPaid ? 'success' : 'warning'} text={order.isPaid ? undefined : 'dark'}>
-                          {order.isPaid ? 'Paid' : 'Unpaid'}
-                        </Badge>
-                      </td>
-                      <td>{statusBadge(order.status)}</td>
-                      <td>
-                        <Badge bg={order.sellerPayoutReleased ? 'success' : 'secondary'}>
-                          {order.sellerPayoutReleased ? 'Released' : 'Pending'}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
+                  {orders.map((order) => {
+                    // Tier 2 order that still needs a seller quote submitted
+                    const needsQuote =
+                      order.shippingTier === 'quote_required' &&
+                      (!order.sellerQuote || order.sellerQuote.status !== 'submitted');
+                    const quoteSubmitted =
+                      order.sellerQuote?.status === 'submitted';
+                    const isOpen = quoteFormOpen[order._id];
+
+                    return (
+                      <>
+                        <tr key={order._id}>
+                          <td className='seller-table__id'>{String(order._id).slice(-8)}</td>
+                          <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                          {/* County only — never full address */}
+                          <td>{order.deliveryCounty || order.shippingZone}</td>
+                          <td>{order.orderItems.length} item{order.orderItems.length !== 1 ? 's' : ''}</td>
+                          <td>
+                            <Badge bg={order.isPaid ? 'success' : 'warning'} text={order.isPaid ? undefined : 'dark'}>
+                              {order.isPaid ? 'Paid' : 'Unpaid'}
+                            </Badge>
+                          </td>
+                          <td>{statusBadge(order.status)}</td>
+                          <td>
+                            <Badge bg={order.sellerPayoutReleased ? 'success' : 'secondary'}>
+                              {order.sellerPayoutReleased ? 'Released' : 'Pending'}
+                            </Badge>
+                          </td>
+                          <td>
+                            {/* Only Tier 2 orders show this column */}
+                            {quoteSubmitted && (
+                              <Badge bg='success'>Quote Sent</Badge>
+                            )}
+                            {needsQuote && !isOpen && (
+                              <button
+                                className='seller-quote-btn'
+                                onClick={() => setQuoteFormOpen((prev) => ({ ...prev, [order._id]: true }))}
+                              >
+                                Submit Quote
+                              </button>
+                            )}
+                            {needsQuote && isOpen && (
+                              <button
+                                className='seller-quote-btn seller-quote-btn--cancel'
+                                onClick={() => setQuoteFormOpen((prev) => ({ ...prev, [order._id]: false }))}
+                              >
+                                Cancel
+                              </button>
+                            )}
+                            {!needsQuote && !quoteSubmitted && (
+                              <span className='seller-table__muted'>—</span>
+                            )}
+                          </td>
+                        </tr>
+
+                        {/* ── Inline quote form row — only when open ── */}
+                        {needsQuote && isOpen && (
+                          <tr key={`${order._id}-quote`} className='seller-quote-form-row'>
+                            <td colSpan={8}>
+                              <div className='seller-quote-form'>
+                                <p className='seller-quote-form__title'>
+                                  Submit delivery quote for order {String(order._id).slice(-8)}
+                                </p>
+                                <div className='seller-quote-form__fields'>
+                                  {/* Amount */}
+                                  <div className='seller-quote-form__field'>
+                                    <label className='seller-quote-form__label'>Amount (KES)</label>
+                                    <input
+                                      className='seller-quote-form__input'
+                                      type='number'
+                                      min='1'
+                                      placeholder='e.g. 1500'
+                                      value={quoteAmount[order._id] || ''}
+                                      onChange={(e) => setQuoteAmount((prev) => ({ ...prev, [order._id]: e.target.value }))}
+                                    />
+                                  </div>
+                                  {/* Courier — dropdown, no free text */}
+                                  <div className='seller-quote-form__field'>
+                                    <label className='seller-quote-form__label'>Courier</label>
+                                    <select
+                                      className='seller-quote-form__input'
+                                      value={quoteCourier[order._id] || ''}
+                                      onChange={(e) => setQuoteCourier((prev) => ({ ...prev, [order._id]: e.target.value }))}
+                                    >
+                                      <option value=''>Select courier</option>
+                                      <option value='Sendy'>Sendy</option>
+                                      <option value='Fargo'>Fargo</option>
+                                      <option value='G4S'>G4S</option>
+                                      <option value='Wells Fargo'>Wells Fargo</option>
+                                      <option value='Own Transport'>Own Transport</option>
+                                      <option value='Other'>Other</option>
+                                    </select>
+                                  </div>
+                                  {/* Estimated days — number only */}
+                                  <div className='seller-quote-form__field'>
+                                    <label className='seller-quote-form__label'>Estimated Days</label>
+                                    <input
+                                      className='seller-quote-form__input'
+                                      type='number'
+                                      min='1'
+                                      max='30'
+                                      placeholder='e.g. 3'
+                                      value={quoteEtaDays[order._id] || ''}
+                                      onChange={(e) => setQuoteEtaDays((prev) => ({ ...prev, [order._id]: e.target.value }))}
+                                    />
+                                  </div>
+                                </div>
+                                <button
+                                  className='seller-quote-form__submit'
+                                  onClick={() => submitQuote(order._id)}
+                                  disabled={
+                                    quoteSubmitting[order._id] ||
+                                    !quoteAmount[order._id] ||
+                                    !quoteCourier[order._id] ||
+                                    !quoteEtaDays[order._id]
+                                  }
+                                >
+                                  {quoteSubmitting[order._id] ? 'Submitting...' : 'Submit to ShopZone'}
+                                </button>
+                                <p className='seller-quote-form__note'>
+                                  ShopZone admin will review your quote before forwarding it to the buyer. Do not include phone numbers or contact details.
+                                </p>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    );
+                  })}
                 </tbody>
               </Table>
             )}

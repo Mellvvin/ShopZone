@@ -18,6 +18,7 @@
 //   ?userId=mongoId — all enquiries from a specific user
 // ─────────────────────────────────────────────────────────────
 const Enquiry = require('../models/Enquiry');
+const User    = require('../models/User');
 
 // @desc    Create a new enquiry (from any form on the site)
 // @route   POST /api/enquiries
@@ -58,7 +59,17 @@ const createEnquiry = async (req, res) => {
       userId:   req.user ? req.user._id : null,
     });
 
-    const saved = await enquiry.save();
+const saved = await enquiry.save();
+
+    // ── If this is a seller application from a logged-in user ──
+    // Set their sellerStatus to 'pending' so they appear on the
+    // AdminSellersPage Pending tab immediately. Without this the
+    // enquiry saves but the user never shows up for admin to approve.
+    if (type === 'seller_application' && req.user) {
+      await User.findByIdAndUpdate(req.user._id, {
+        sellerStatus: 'pending',
+      });
+    }
 
     res.status(201).json({
       message: 'Enquiry received. We will be in touch within 24 hours.',

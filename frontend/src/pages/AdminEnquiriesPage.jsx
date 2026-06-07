@@ -273,7 +273,7 @@ const AdminEnquiriesPage = () => {
         headers: { Authorization: `Bearer ${userInfo.token}` },
     };
 
-    // ── Fetch enquiries with current filters ──────────────────
+ // ── Fetch enquiries with current filters ──────────────────
     const fetchEnquiries = useCallback(async () => {
         try {
             setLoading(true);
@@ -309,13 +309,14 @@ const AdminEnquiriesPage = () => {
     // ── Count new (unread) enquiries ──────────────────────────
     const newCount = enquiries.filter(e => e.status === 'new').length;
 
-    // ── Type filter tabs ──────────────────────────────────────
+  // ── Type filter tabs ──────────────────────────────────────
     const TYPE_TABS = [
-        { key: 'all',                 label: 'All',                icon: FaEnvelope },
-        { key: 'bulk_order',          label: 'Bulk Orders',        icon: FaBoxOpen },
-        { key: 'seller_application',  label: 'Seller Applications',icon: FaStore },
-        { key: 'contact',             label: 'Contact',            icon: FaHeadset },
-        { key: 'general',             label: 'General',            icon: FaQuestionCircle },
+        { key: 'all',                label: 'All',                 icon: FaEnvelope,       countMod: '' },
+        { key: 'unread',             label: 'Unread',              icon: FaExclamationTriangle, countMod: 'red' },
+        { key: 'bulk_order',         label: 'Bulk Orders',         icon: FaBoxOpen,        countMod: 'typed' },
+        { key: 'seller_application', label: 'Seller Applications', icon: FaStore,          countMod: 'typed' },
+        { key: 'contact',            label: 'Contact',             icon: FaHeadset,        countMod: 'typed' },
+        { key: 'general',            label: 'General',             icon: FaQuestionCircle, countMod: 'typed' },
     ];
 
     return (
@@ -342,23 +343,41 @@ const AdminEnquiriesPage = () => {
                 )}
             </div>
 
-            {/* ── Type filter tabs ────────────────────────── */}
+           {/* ── Type filter tabs ────────────────────────── */}
             <div className='enq-tabs' role='tablist'>
                 {TYPE_TABS.map(tab => {
                     const Icon = tab.icon;
-                    const count = countByType(tab.key);
+                    // Unread tab count comes from newCount — a separate
+                    // count that is always available regardless of active filters.
+                    // All other tabs count from the current enquiries list.
+                    const count = tab.key === 'unread'
+                        ? newCount
+                        : countByType(tab.key);
+
+                    // Unread tab is active when typeFilter is all AND statusFilter is new.
+                    // All other tabs are active when their key matches typeFilter.
+                    const isActive = tab.key === 'unread'
+                        ? typeFilter === 'all' && statusFilter === 'new'
+                        : typeFilter === tab.key && statusFilter !== 'new';
+
+                    // Unread tab sets statusFilter to new and resets typeFilter.
+                    // All other tabs reset statusFilter to all and set their typeFilter.
+                    const handleClick = tab.key === 'unread'
+                        ? () => { setTypeFilter('all'); setStatusFilter('new'); setSelected(null); }
+                        : () => { setTypeFilter(tab.key); setStatusFilter('all'); setSelected(null); };
+
                     return (
                         <button
                             key={tab.key}
-                            className={`enq-tab ${typeFilter === tab.key ? 'enq-tab--active' : ''}`}
-                            onClick={() => { setTypeFilter(tab.key); setSelected(null); }}
+                            className={`enq-tab ${isActive ? 'enq-tab--active' : ''}`}
+                            onClick={handleClick}
                             role='tab'
-                            aria-selected={typeFilter === tab.key}
+                            aria-selected={isActive}
                         >
                             <Icon aria-hidden='true' />
                             {tab.label}
                             {count > 0 && (
-                                <span className={`enq-tab__count ${tab.key === 'all' ? '' : 'enq-tab__count--typed'}`}>
+                                <span className={`enq-tab__count ${tab.countMod ? `enq-tab__count--${tab.countMod}` : ''}`}>
                                     {count}
                                 </span>
                             )}
@@ -366,7 +385,6 @@ const AdminEnquiriesPage = () => {
                     );
                 })}
             </div>
-
             {/* ── Filters and search bar ───────────────────── */}
             <div className='enq-filters'>
 
