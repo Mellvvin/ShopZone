@@ -374,6 +374,63 @@ const updateSellerStatus = async (req, res) => {
   }
 };
 
+// @desc    Get full profile for a user — all linked history (admin only)
+// @route   GET /api/users/:id/full-profile
+// @access  Private/Admin
+const getUserFullProfile = async (req, res) => {
+  try {
+    const Order        = require('../models/Order');
+    const Product      = require('../models/Product');
+    const Enquiry      = require('../models/Enquiry');
+    const Notification = require('../models/Notification');
+
+    // Run all queries in parallel for performance
+    const [user, orders, products, enquiries, notifications] = await Promise.all([
+      // User document — exclude password
+      User.findById(req.params.id).select('-password').lean(),
+
+      // All orders where this user is the buyer — newest first
+      Order.find({ user: req.params.id })
+        .sort({ createdAt: -1 })
+        .select('_id totalPrice status isPaid isDelivered createdAt orderItems hasTier2Items')
+        .lean(),
+
+      // All products where seller field matches this user — newest first
+      Product.find({ seller: req.params.id })
+        .sort({ createdAt: -1 })
+        .select('_id name price image category brand countInStock isOnSale isClearance isFeatured createdAt')
+        .lean(),
+
+      // All enquiries submitted by this user — newest first
+      Enquiry.find({ userId: req.params.id })
+        .sort({ createdAt: -1 })
+        .select('_id type status message business createdAt resolvedAt adminNotes')
+        .lean(),
+
+      // All notifications sent to this user — newest first, limit 50
+      Notification.find({ userId: req.params.id })
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .select('_id type title message isRead createdAt relatedOrderId')
+        .lean(),
+    ]);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user,
+      orders,
+      products,
+      enquiries,
+      notifications,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ── Exports ───────────────────────────────────────────────────
 module.exports = {
   registerUser,
@@ -386,4 +443,5 @@ module.exports = {
   updateUser,
   deleteUser,
   updateSellerStatus,
+  getUserFullProfile,
 };

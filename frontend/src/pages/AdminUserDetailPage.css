@@ -1,0 +1,870 @@
+/* frontend/src/pages/AdminUserDetailPage.css
+ * ─────────────────────────────────────────────────────────────
+ * Admin User Detail page.
+ * Full-width own layout matching the admin design system.
+ * Shows complete user history: account info, seller profile,
+ * orders, products, enquiries, notifications.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ── Page wrapper ────────────────────────────────────────────── */
+/* Breaks out of the App.jsx Bootstrap Container using negative
+   margins so this page is full-width like other admin pages. */
+.aud-page {
+    min-height: 100vh;
+    background: var(--off-white);
+    padding-bottom: 80px;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    width: 100vw;
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.aud-header {
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.08);
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.aud-back-btn {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border: 1.5px solid rgba(0, 33, 71, 0.15);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--oxford-blue);
+    font-size: 0.84rem;
+    font-weight: 600;
+    font-family: inherit;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.aud-back-btn:hover {
+    background: rgba(0, 33, 71, 0.04);
+}
+
+.aud-header__left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Large initials avatar */
+.aud-header__avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.aud-header__name {
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    font-weight: 800;
+    color: var(--oxford-blue);
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+}
+
+.aud-header__meta {
+    font-size: 0.82rem;
+    color: #767676;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.aud-header__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+.aud-header__badge--admin {
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.aud-header__badge--seller {
+    background: #eafaf1;
+    color: #27ae60;
+    border: 1px solid #27ae60;
+}
+
+/* ── Body ────────────────────────────────────────────────────── */
+.aud-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ── Cards ───────────────────────────────────────────────────── */
+.aud-card {
+    background: #fff;
+    border: 1.5px solid rgba(0, 33, 71, 0.08);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+/* Seller card has a subtle left accent border */
+.aud-card--seller {
+    border-left: 4px solid #27ae60;
+}
+
+.aud-card__title {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+    margin: 0 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.aud-card__title svg {
+    color: var(--tan);
+    font-size: 1rem;
+}
+
+.aud-card__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: rgba(0, 33, 71, 0.08);
+    color: var(--oxford-blue);
+    margin-left: auto;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+/* ── Account info grid ───────────────────────────────────────── */
+.aud-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.aud-info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.05);
+}
+
+.aud-info-row:last-child {
+    border-bottom: none;
+}
+
+.aud-info-row svg {
+    color: var(--tan);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.aud-info-label {
+    font-weight: 600;
+    color: #767676;
+    min-width: 130px;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.aud-info-value {
+    color: var(--oxford-blue);
+    font-weight: 500;
+}
+
+.aud-info-link {
+    color: var(--oxford-blue);
+    text-decoration: underline;
+    text-decoration-color: var(--tan);
+}
+
+/* ── Seller section ──────────────────────────────────────────── */
+.aud-seller-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.aud-seller-header .aud-card__title {
+    margin-bottom: 0;
+}
+
+.aud-seller-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.aud-seller-status--pending {
+    background: #fff8f0;
+    color: #f0a500;
+    border: 1px solid #f0a500;
+}
+
+.aud-seller-status--approved {
+    background: #eafaf1;
+    color: #27ae60;
+    border: 1px solid #27ae60;
+}
+
+.aud-seller-status--suspended {
+    background: #fdf0f0;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+.aud-seller-status--rejected {
+    background: rgba(0, 33, 71, 0.05);
+    color: #767676;
+    border: 1px solid rgba(0, 33, 71, 0.12);
+}
+
+.aud-seller-status--none {
+    background: #f8f9fa;
+    color: #767676;
+}
+
+.aud-seller-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0, 33, 71, 0.06);
+}
+
+.aud-action-btn {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: inherit;
+    transition: opacity 0.15s;
+}
+
+.aud-action-btn:hover {
+    opacity: 0.85;
+}
+
+.aud-action-btn--approve {
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.aud-action-btn--reject {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.aud-action-btn--suspend {
+    background: #f0a500;
+    color: #fff;
+}
+
+/* ── Tables shared styles ────────────────────────────────────── */
+.aud-table-wrap {
+    overflow-x: auto;
+}
+
+.aud-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    min-width: 600px;
+}
+
+.aud-table thead th {
+    background: var(--oxford-blue);
+    color: var(--tan);
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 10px 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.aud-table tbody td {
+    padding: 11px 12px;
+    color: #444;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.05);
+}
+
+.aud-row--alt td {
+    background: rgba(0, 33, 71, 0.012);
+}
+
+/* ── Table cell types ────────────────────────────────────────── */
+.aud-cell-id {
+    font-weight: 700;
+    color: var(--oxford-blue) !important;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.aud-cell-muted {
+    color: #767676 !important;
+    font-size: 0.8rem;
+}
+
+.aud-cell-price {
+    font-weight: 600;
+    color: var(--oxford-blue) !important;
+    white-space: nowrap;
+}
+
+.aud-cell-name {
+    font-weight: 600;
+    color: var(--oxford-blue) !important;
+}
+
+.aud-cell-message {
+    color: #555 !important;
+    font-size: 0.8rem;
+    max-width: 200px;
+}
+
+/* Tier 2 bulk flag inline */
+.aud-tier2-flag {
+    display: inline-block;
+    margin-left: 5px;
+    background: rgba(210, 180, 140, 0.2);
+    color: var(--oxford-blue);
+    border: 1px solid var(--tan);
+    border-radius: 3px;
+    font-size: 0.58rem;
+    font-weight: 700;
+    padding: 1px 4px;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+}
+
+/* Product thumbnail */
+.aud-thumb {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 33, 71, 0.08);
+    display: block;
+}
+
+/* ── Order status badges ─────────────────────────────────────── */
+.aud-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.aud-badge--pending {
+    background: rgba(0, 33, 71, 0.07);
+    color: #666;
+}
+
+.aud-badge--processing {
+    background: #e8f0fe;
+    color: #2980b9;
+}
+
+.aud-badge--dispatched {
+    background: #fff3e0;
+    color: #e67e22;
+}
+
+.aud-badge--delivered {
+    background: #eafaf1;
+    color: #27ae60;
+}
+
+.aud-badge--cancelled {
+    background: #fdf0f0;
+    color: #e74c3c;
+}
+
+/* ── Enquiry type/status badges ──────────────────────────────── */
+.aud-enq-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #fff;
+}
+
+.aud-enq-badge.aud-enq-type--bulk {
+    background: #2980b9;
+}
+
+.aud-enq-badge.aud-enq-type--seller {
+    background: #8e44ad;
+}
+
+.aud-enq-badge.aud-enq-type--contact {
+    background: #27ae60;
+}
+
+.aud-enq-badge.aud-enq-type--general {
+    background: #e67e22;
+}
+
+.aud-enq-badge.aud-enq-type--support {
+    background: #c0392b;
+}
+
+.aud-enq-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.aud-enq-status--new {
+    background: #fdf0f0;
+    color: #c0392b;
+}
+
+.aud-enq-status--read {
+    background: #fff8f0;
+    color: #e67e22;
+}
+
+.aud-enq-status--actioned {
+    background: #e8f0fe;
+    color: #2980b9;
+}
+
+.aud-enq-status--closed {
+    background: #eafaf1;
+    color: #27ae60;
+}
+
+/* ── Bool indicators ─────────────────────────────────────────── */
+.aud-bool--yes {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #27ae60;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.aud-bool--no {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #767676;
+    font-size: 0.78rem;
+}
+
+/* ── Stock indicators ────────────────────────────────────────── */
+.aud-stock--in {
+    color: #27ae60;
+    font-weight: 700;
+}
+
+.aud-stock--out {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+/* ── Flag badges ─────────────────────────────────────────────── */
+.aud-flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.aud-flag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.aud-flag--featured {
+    background: rgba(0, 33, 71, 0.08);
+    color: var(--oxford-blue);
+    border: 1px solid rgba(0, 33, 71, 0.15);
+}
+
+.aud-flag--sale {
+    background: #eafaf1;
+    color: #27ae60;
+    border: 1px solid #27ae60;
+}
+
+.aud-flag--clearance {
+    background: #fff8f0;
+    color: #f0a500;
+    border: 1px solid #f0a500;
+}
+
+/* ── Link button ─────────────────────────────────────────────── */
+.aud-link-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-radius: 5px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.aud-link-btn:hover {
+    opacity: 0.85;
+    color: var(--tan);
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.aud-empty {
+    color: #767676;
+    font-size: 0.85rem;
+    font-style: italic;
+    margin: 0;
+    padding: 8px 0;
+}
+
+/* ── Loading / error states ──────────────────────────────────── */
+.aud-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 80px 24px;
+    color: #767676;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.aud-state--error {
+    color: #c0392b;
+}
+
+.aud-state svg {
+    font-size: 2.5rem;
+    color: var(--tan);
+}
+
+.aud-state--error svg {
+    color: #c0392b;
+}
+
+.aud-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(0, 33, 71, 0.1);
+    border-top-color: var(--oxford-blue);
+    border-radius: 50%;
+    animation: audSpin 0.8s linear infinite;
+}
+
+@keyframes audSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.aud-retry-btn {
+    all: unset;
+    cursor: pointer;
+    padding: 8px 20px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    font-family: inherit;
+}
+
+/* ── Notifications list ──────────────────────────────────────── */
+.aud-notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.aud-notif {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: rgba(0, 33, 71, 0.02);
+    border: 1px solid rgba(0, 33, 71, 0.06);
+}
+
+.aud-notif--unread {
+    background: rgba(210, 180, 140, 0.08);
+    border-color: rgba(210, 180, 140, 0.3);
+}
+
+.aud-notif__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0, 33, 71, 0.15);
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.aud-notif--unread .aud-notif__dot {
+    background: var(--tan);
+}
+
+.aud-notif__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.aud-notif__title {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    margin-bottom: 2px;
+}
+
+.aud-notif__message {
+    display: block;
+    font-size: 0.78rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+.aud-notif__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.aud-notif__date {
+    font-size: 0.7rem;
+    color: #767676;
+    white-space: nowrap;
+}
+
+.aud-notif__unread-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--tan);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* ── Expandable enquiry rows ─────────────────────────────────── */
+.aud-row--clickable:hover td {
+    background: rgba(0, 33, 71, 0.03);
+}
+
+.aud-cell-expand {
+    text-align: right;
+    width: 32px;
+}
+
+.aud-expand-icon {
+    font-size: 0.9rem;
+    color: #767676;
+    display: inline-block;
+    transition: transform 0.2s ease;
+    user-select: none;
+}
+
+.aud-expand-icon--open {
+    transform: rotate(180deg);
+    color: var(--oxford-blue);
+}
+
+/* Expanded detail row */
+.aud-row--expanded td {
+    padding: 0 !important;
+    border-bottom: 2px solid rgba(0, 33, 71, 0.08);
+}
+
+.aud-enq-detail {
+    background: rgba(0, 33, 71, 0.02);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.aud-enq-detail__block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.aud-enq-detail__block--notes {
+    background: #fffdf5;
+    border: 1px solid rgba(210, 180, 140, 0.3);
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.aud-enq-detail__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #767676;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.aud-enq-detail__internal {
+    font-size: 0.6rem;
+    font-weight: 700;
+    background: #fdf0f0;
+    color: #c0392b;
+    border-radius: 3px;
+    padding: 1px 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.aud-enq-detail__text {
+    font-size: 0.84rem;
+    color: #444;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.aud-enq-detail__link {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    text-decoration: underline;
+    text-decoration-color: var(--tan);
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+.aud-enq-detail__link:hover {
+    color: var(--oxford-blue);
+    opacity: 0.8;
+}
+
+/* ── Notification links and states ───────────────────────────── */
+.aud-notif__order-link {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    text-decoration: underline;
+    text-decoration-color: var(--tan);
+    white-space: nowrap;
+    margin-top: 4px;
+    display: block;
+}
+
+.aud-notif__order-link:hover {
+    color: var(--oxford-blue);
+    opacity: 0.8;
+}
+
+.aud-notif--expandable:hover {
+    background: rgba(0, 33, 71, 0.03);
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .aud-header {
+        padding: 20px 16px;
+    }
+
+    .aud-body {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .aud-card {
+        padding: 18px 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .aud-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .aud-info-label {
+        min-width: 100px;
+    }
+
+    .aud-seller-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

@@ -44,6 +44,7 @@ import BulkOrdersPage from './pages/BulkOrdersPage';
 import AboutPage from './pages/AboutPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import AdminSellersPage from './pages/AdminSellersPage';
+import AdminUserDetailPage from './pages/AdminUserDetailPage';
 
 
 
@@ -57,7 +58,7 @@ const App = () => {
 
       {/* id="main-content" is the target for the skip link */}
       {/* Container restored — full-width pages manage their own width internally */}
-      <main id='main-content' className='py-3'>
+    <main id='main-content' className='py-3'>
         <Container>
           <Routes>
           {/* ── Public Routes ── */}
@@ -93,6 +94,9 @@ const App = () => {
           <Route path='/admin/users' element={<AdminUserListPage />} />
           <Route path='/admin/enquiries' element={<AdminEnquiriesPage />} />
           <Route path='/admin/sellers' element={<AdminSellersPage />} />
+        {/* ── Admin User Detail ── */}
+          <Route path='/admin/users/:id' element={<AdminUserDetailPage />} />
+
           {/* ── 404 ── */}
           <Route path='*' element={<NotFoundPage />} />
         </Routes>

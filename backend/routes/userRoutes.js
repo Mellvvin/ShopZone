@@ -11,6 +11,7 @@ const {
   updateUser,
   deleteUser,
   updateSellerStatus,
+  getUserFullProfile,
 } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -24,6 +25,9 @@ router.route('/profile')
 
 router.route('/')
   .get(protect, admin, getAllUsers);
+
+// Full profile aggregation — must be before /:id to avoid route conflict
+router.get('/:id/full-profile', protect, admin, getUserFullProfile);
 
 router.route('/:id')
   .get(protect, admin, getUserById)
