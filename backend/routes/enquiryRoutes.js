@@ -26,25 +26,15 @@ const {
 
 const { protect, admin } = require('../middleware/authMiddleware');
 
-// ── Optional auth helper ─────────────────────────────────────
-// This is a lightweight middleware that runs protect() but does
-// NOT reject the request if no token is present. It allows
-// logged-in users to have their userId saved on the enquiry
-// while still allowing anonymous/logged-out form submissions.
-const optionalAuth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  // If no token at all, skip auth and continue as anonymous
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next();
-  }
-  // Token is present — run the standard protect middleware
-  protect(req, res, next);
-};
+// optionalAuth removed — POST /api/enquiries now requires login.
+// All enquiries must be linked to a real user account.
 
-// ── Public route ─────────────────────────────────────────────
-// POST /api/enquiries — any visitor can submit a form.
-// If the user is logged in their userId is attached.
-router.post('/', optionalAuth, createEnquiry);
+// ── Authenticated route ───────────────────────────────────────
+// POST /api/enquiries — user must be logged in.
+// Enforces that all enquiries are linked to a real user account.
+// This prevents anonymous spam, DOS via dummy data, and ensures
+// every enquiry appears correctly on AdminUserDetailPage.
+router.post('/', protect, createEnquiry);
 
 // ── Admin-only routes ────────────────────────────────────────
 router.get('/',    protect, admin, getEnquiries);

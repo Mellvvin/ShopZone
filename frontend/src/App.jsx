@@ -41,6 +41,7 @@ import ShippingPolicyPage from './pages/ShippingPolicyPage';
 import ReturnsPolicyPage from './pages/ReturnsPolicyPage';
 import BrandsPage from './pages/BrandsPage';
 import BulkOrdersPage from './pages/BulkOrdersPage';
+import NewArrivalsPage from './pages/NewArrivalsPage';
 import AboutPage from './pages/AboutPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import AdminSellersPage from './pages/AdminSellersPage';
@@ -97,7 +98,10 @@ const App = () => {
         {/* ── Admin User Detail ── */}
           <Route path='/admin/users/:id' element={<AdminUserDetailPage />} />
 
-          {/* ── 404 ── */}
+        {/* ── New Arrivals ── */}
+          <Route path='/new-arrivals' element={<NewArrivalsPage />} />
+
+        {/* ── 404 ── */}
           <Route path='*' element={<NotFoundPage />} />
         </Routes>
         </Container>

@@ -83,11 +83,15 @@ const { id } = useParams();
     });
   };
 
-  const submitReviewHandler = (e) => {
+const submitReviewHandler = (e) => {
     e.preventDefault();
+    // Guard against DOM manipulation — userInfo check before dispatch
+    if (!userInfo) {
+      navigate('/login', { state: { from: `/product/${id}` } });
+      return;
+    }
     dispatch(createProductReview({ productId: id, rating: Number(rating), comment }));
   };
-
   return (
     <>
       <Link className='btn btn-light my-3' to='/'>Go Back</Link>

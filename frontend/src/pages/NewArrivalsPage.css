@@ -1,0 +1,172 @@
+/* frontend/src/pages/NewArrivalsPage.css
+ * ─────────────────────────────────────────────────────────────
+ * New Arrivals page styles.
+ * Working page design system — matches SpecialOffersPage pattern.
+ * Clean hero strip, product grid, no heavy animation.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+/* ── Page wrapper ────────────────────────────────────────────── */
+.na-page {
+    min-height: 100vh;
+    background: var(--off-white);
+}
+
+/* ── Hero strip ──────────────────────────────────────────────── */
+.na-hero {
+    background: var(--oxford-blue);
+    padding: 48px 0 40px;
+}
+
+.na-hero__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.na-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--tan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+    border: 1px solid rgba(210, 180, 140, 0.3);
+    padding: 4px 12px;
+    border-radius: 999px;
+}
+
+.na-hero__title {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 900;
+    color: #fff;
+    margin: 0 0 10px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.na-hero__sub {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0;
+    max-width: 480px;
+    line-height: 1.6;
+}
+
+.na-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 7px;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+
+.na-back-link:hover {
+    color: var(--tan);
+    border-color: rgba(210, 180, 140, 0.4);
+}
+
+/* ── Content area ────────────────────────────────────────────── */
+.na-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+}
+
+/* Product count line */
+.na-count {
+    font-size: 0.82rem;
+    color: #767676;
+    margin: 0 0 24px;
+    font-weight: 500;
+}
+
+/* ── Product grid ────────────────────────────────────────────── */
+.na-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+/* ── Loading / empty / error states ─────────────────────────── */
+.na-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 80px 24px;
+    text-align: center;
+    color: #767676;
+}
+
+.na-spinner {
+    color: var(--oxford-blue);
+    width: 2rem;
+    height: 2rem;
+}
+
+.na-empty {
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.na-error {
+    margin: 32px 0;
+}
+
+.na-browse-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 24px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-radius: 7px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.15s;
+}
+
+.na-browse-btn:hover {
+    opacity: 0.88;
+    color: var(--tan);
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .na-hero {
+        padding: 32px 0 28px;
+    }
+
+    .na-hero__inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .na-content {
+        padding: 24px 16px 60px;
+    }
+
+    .na-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 14px;
+    }
+}

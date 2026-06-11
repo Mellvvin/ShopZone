@@ -157,6 +157,14 @@ const orderSchema = new mongoose.Schema(
       default: 0.0,
     },
 
+  // ── Payment reference ────────────────────────────────────────────────
+    // Set after payment is confirmed. Links this order to its Payment
+    // document so the full payment audit trail is always reachable.
+    paymentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref:  'Payment',
+    },
+
     // ── Payment status ──────────────────────────────────────────────────
     isPaid: { type: Boolean, required: true, default: false },
     paidAt: { type: Date },

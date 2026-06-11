@@ -22,6 +22,8 @@ const uploadRoutes  = require('./routes/uploadRoutes');
 // Enquiry routes — handles all form submissions site-wide
 // (bulk orders, seller applications, contact, support)
 const enquiryRoutes = require('./routes/enquiryRoutes');
+// Payment routes — handles payment records, confirmations, and listing for admins
+const paymentRoutes = require('./routes/paymentRoutes'); 
 // Notification routes — all private, no public POST since notifications are system-generated 
 const notificationRoutes = require('./routes/notificationRoutes');
 const sellerRoutes       = require('./routes/sellerRoutes');
@@ -35,6 +37,10 @@ app.use('/api/upload',    uploadRoutes);
 // Enquiry endpoint — catch-all for all forms until dedicated
 // models exist in Steps 6, 8, and 15
 app.use('/api/enquiries', enquiryRoutes);
+//payment routes - handles creation of payment records when orders are placed, as well as manual confirmation by admin. 
+// This is separate from the STK push flow which is handled by the M-Pesa webhook and
+app.use('/api/payments', paymentRoutes);
+
 // Notification endpoints — all private, no public POST since notifications are system-generated
 app.use('/api/notifications', notificationRoutes);
 // Seller dashboard — all routes protected by protect + seller middleware

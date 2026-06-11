@@ -56,19 +56,55 @@ const createEnquiry = async (req, res) => {
       // If a logged-in user submitted this form, link to their account
       // req.user is set by authMiddleware when a JWT is present.
       // For public forms it will be undefined — that is fine.
-      userId:   req.user ? req.user._id : null,
+      userId: req.user._id,
     });
 
 const saved = await enquiry.save();
 
-    // ── If this is a seller application from a logged-in user ──
-    // Set their sellerStatus to 'pending' so they appear on the
-    // AdminSellersPage Pending tab immediately. Without this the
-    // enquiry saves but the user never shows up for admin to approve.
+ // ── If this is a seller application from a logged-in user ──
+    // Set sellerStatus to 'pending' AND upsert the User document
+    // with all profile and seller-specific fields from the form.
+    // This makes the User document the single source of truth —
+    // not just the Enquiry data field.
+    //
+    // Fields updated on the User document:
+    //   isSeller           — true, they have started the process
+    //   sellerStatus       — pending, waiting for admin review
+    //   phone              — if provided and not already set
+    //   county             — if provided and not already set
+    //   businessName       — top-level user field
+    //   businessType       — always 'business' for seller applicants
+    //   sellerProfile.*    — seller-specific sub-document fields
     if (type === 'seller_application' && req.user) {
-      await User.findByIdAndUpdate(req.user._id, {
+      // Build the update object — only overwrite fields that have
+      // values in the form so we never blank out existing profile data
+      const userUpdate = {
+        isSeller:     true,
         sellerStatus: 'pending',
-      });
+        businessType: 'business',
+      };
+
+      // Top-level profile fields — only set if the form provided them
+      // and the user hasn't already set them on their profile
+      if (req.body.business) userUpdate.businessName = req.body.business.trim();
+      if (req.body.phone)    userUpdate.phone        = req.body.phone.trim();
+
+      // County comes from the data payload (structured form field)
+      if (data?.county) userUpdate.county = data.county.trim();
+
+      // Seller profile sub-document — these fields only exist here
+      // They are set regardless of whether they existed before because
+      // this application form is the canonical source for seller data
+      userUpdate['sellerProfile.businessName']    = req.body.business?.trim() || '';
+      userUpdate['sellerProfile.description']     = data?.description?.trim()  || '';
+      if (data?.kraPin)      userUpdate['sellerProfile.kraPin']       = data.kraPin.trim();
+      if (data?.mpesaNumber) userUpdate['sellerProfile.mpesaNumber']  = data.mpesaNumber.trim();
+
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: userUpdate },
+        { new: true }
+      );
     }
 
     res.status(201).json({

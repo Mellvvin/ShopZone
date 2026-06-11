@@ -225,6 +225,26 @@
     margin-bottom: 1.25rem;
 }
 
+/* Forgot password link — sits inline with the password label */
+.login-password-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.login-forgot-link {
+    font-size: 0.78rem;
+    color: var(--tan);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-forgot-link:hover {
+    text-decoration: underline;
+    color: var(--tan);
+}
+
 /* Footer note */
 .login-footer-note {
     text-align: center;
@@ -234,7 +254,6 @@
     line-height: 1.5;
 }
 
-/* ── Mobile — stack panels vertically ──────────────────────── */
 /* ── Mobile — stack panels vertically ──────────────────────── */
 @media (max-width: 768px) {
     .login-page {

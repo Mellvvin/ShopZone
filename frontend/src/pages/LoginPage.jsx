@@ -33,7 +33,9 @@ const LoginPage = () => {
 
   useEffect(() => { document.title = 'Sign In — ShopZone'; }, []);
 
-  const redirect = location.search ? location.search.split('=')[1] : '/';
+// Support both location.state.from (used by all login gates)
+  // and the legacy ?redirect= query param for backwards compat
+  const redirect = location.state?.from || (location.search ? location.search.split('=')[1] : '/');
 
   useEffect(() => {
     if (userInfo) {
@@ -125,10 +127,14 @@ const LoginPage = () => {
               />
             </Form.Group>
 
-            {/* Password */}
+           {/* Password */}
             <Form.Group className='mb-4'>
               <div className='login-password-row'>
                 <Form.Label className='login-label'>Password</Form.Label>
+                {/* Forgot password — links to /forgot-password (Step 24) */}
+                <Link to='/forgot-password' className='login-forgot-link'>
+                  Forgot password?
+                </Link>
               </div>
               <Form.Control
                 type='password'

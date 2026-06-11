@@ -5,6 +5,8 @@
 // topic cards, split form layout, scroll reveals.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import {
     FaHeadset, FaShoppingBag, FaBoxOpen, FaStore,
@@ -144,6 +146,10 @@ const CONTACT_INFO = [
 // ── Main component ────────────────────────────────────────────────────────────
 const ContactPage = () => {
 
+    const navigate     = useNavigate();
+    const location     = useLocation();
+    const { userInfo } = useSelector((state) => state.auth);
+
     // ── Platform stats from API ───────────────────────────────
     const [platformStats, setPlatformStats] = useState({
         countiesServed:   47,
@@ -203,28 +209,37 @@ const ContactPage = () => {
 
     const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
-   // ── Form submission — posts to /api/enquiries ─────────────
-    // No longer opens a mailto link. Data is stored in the database
-    // and visible in the admin enquiries page at /admin/enquiries.
-    // When Step 15 (Support Tickets) is built, contact enquiries
-    // will migrate to the ticket model automatically.
+  // ── Form submission — posts to /api/enquiries ─────────────
+    // Requires login. If not logged in, redirects to /login with
+    // state.from set so the user returns here after signing in.
+    // Auth token is included in the header so userId is saved on
+    // the enquiry document — this is what makes it appear on
+    // AdminUserDetailPage for the correct user.
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Hard gate — not logged in means we redirect, not submit
+        if (!userInfo) {
+            navigate('/login', { state: { from: location.pathname } });
+            return;
+        }
         setSubmitLoading(true);
         setSubmitError('');
         try {
-            await axios.post('/api/enquiries', {
-                type:    'contact',
-                name:    formData.name,
-                email:   formData.email,
-                message: formData.message,
-                // Store topic in the structured data field so admin
-                // can filter by it and it migrates cleanly to tickets
-                data: {
-                    topic:      formData.topic,
-                    topicLabel: TOPICS.find(t => t.id === formData.topic)?.label || formData.topic,
+            await axios.post(
+                '/api/enquiries',
+                {
+                    type:    'contact',
+                    name:    formData.name,
+                    email:   formData.email,
+                    message: formData.message,
+                    data: {
+                        topic:      formData.topic,
+                        topicLabel: TOPICS.find(t => t.id === formData.topic)?.label || formData.topic,
+                    },
                 },
-            });
+                // Auth header — attaches userId to the enquiry in the backend
+                { headers: { Authorization: `Bearer ${userInfo.token}` } }
+            );
             setSubmitted(true);
         } catch (err) {
             setSubmitError(err.response?.data?.message || 'Failed to send message. Please try again.');

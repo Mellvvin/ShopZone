@@ -14,7 +14,8 @@
 //   8. Application CTA — the conversion moment
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import {
     FaStore, FaShieldAlt, FaChartLine, FaTruck,
@@ -26,6 +27,20 @@ import {
     FaStar, FaRocket, FaClock, FaEye, FaEyeSlash,
 } from 'react-icons/fa';
 import './BecomeSellerPage.css';
+
+// ── Kenyan counties for the delivery county dropdown ──────────
+const COUNTIES = [
+    'Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Thika',
+    'Malindi','Kitale','Garissa','Kakamega','Nyeri','Meru',
+    'Kisii','Machakos','Kilifi','Uasin Gishu','Kirinyaga',
+    "Murang'a",'Kiambu','Kajiado','Laikipia','Samburu',
+    'Trans Nzoia','West Pokot','Siaya','Vihiga','Bungoma',
+    'Busia','Migori','Homa Bay','Nyamira','Kericho','Bomet',
+    'Narok','Nyandarua','Nandi','Baringo','Elgeyo-Marakwet',
+    'Turkana','Marsabit','Isiolo','Tharaka-Nithi','Embu',
+    'Kitui','Makueni','Taita Taveta','Kwale','Tana River',
+    'Lamu','Mandera','Wajir',
+];
 
 // ── Scroll reveal wrapper ─────────────────────────────────────────────────────
 const Reveal = ({ children, className = '', delay = 0, direction = 'up' }) => {
@@ -278,7 +293,9 @@ const PROMISES = [
 ];
 
 const BecomeSellerPage = () => {
-    const navigate = useNavigate();
+    const navigate     = useNavigate();
+    const location     = useLocation();
+    const { userInfo } = useSelector((state) => state.auth);
 
     // ── Platform stats from API ───────────────────────────────
     // Fetched once on mount. Fallback values display until resolved.
@@ -299,15 +316,21 @@ const BecomeSellerPage = () => {
             });
     }, []);
 
-    const [formData, setFormData] = useState({
-        businessName: '',
-        contactName: '',
-        email: '',
-        phone: '',
-        products: '',
-        county: '',
-        message: '',
+const [formData, setFormData] = useState({
+        businessName:  '',
+        contactName:   '',
+        email:         '',
+        phone:         '',
+        // Seller-specific fields — saved to sellerProfile on the User
+        // document when the enquiry is processed by the backend
+        kraPin:        '',
+        mpesaNumber:   '',
+        description:   '',
+        products:      '',
+        county:        '',
+        message:       '',
     });
+
 const [submitted, setSubmitted]         = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitError, setSubmitError]     = useState('');
@@ -332,33 +355,51 @@ const [submitted, setSubmitted]         = useState(false);
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    // ── Form submission — posts to /api/enquiries ─────────────
-    // Replaces the old mailto hack. Data is stored in MongoDB and
-    // visible in the admin enquiries page at /admin/enquiries.
-    // When Step 6 (Seller Approval) is built, seller_application
-    // enquiries will migrate to the dedicated seller application model.
+ // ── Form submission — posts to /api/enquiries ─────────────
+    // Requires login. Redirects to /login with state.from if the
+    // user is not authenticated.
+    // Auth token included so:
+    //   1. userId is saved on the Enquiry document
+    //   2. The backend upserts the User document with profile and
+    //      sellerProfile fields from the form payload
+    //   3. sellerStatus is set to 'pending' on the User document
+    // All three happen in enquiryController.createEnquiry.
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Hard gate — must be logged in to apply
+        if (!userInfo) {
+            navigate('/login', { state: { from: location.pathname } });
+            return;
+        }
         setSubmitLoading(true);
         setSubmitError('');
         try {
-            await axios.post('/api/enquiries', {
-                type:     'seller_application',
-                name:     formData.contactName,
-                email:    formData.email,
-                phone:    formData.phone,
-                business: formData.businessName,
-                message:  formData.message,
-                // Store full application payload in the data field so
-                // nothing is lost when it migrates to the seller model
-                data: {
-                    businessName: formData.businessName,
-                    contactName:  formData.contactName,
-                    products:     formData.products,
-                    county:       formData.county,
-                    message:      formData.message,
+            await axios.post(
+                '/api/enquiries',
+                {
+                    type:     'seller_application',
+                    name:     formData.contactName,
+                    email:    formData.email,
+                    phone:    formData.phone,
+                    business: formData.businessName,
+                    message:  formData.message,
+                    // Full payload stored in data field for migration
+                    // to the seller application model in Step 6
+                    data: {
+                        businessName: formData.businessName,
+                        contactName:  formData.contactName,
+                        kraPin:       formData.kraPin,
+                        mpesaNumber:  formData.mpesaNumber,
+                        description:  formData.description,
+                        products:     formData.products,
+                        county:       formData.county,
+                        message:      formData.message,
+                    },
                 },
-            });
+                // Auth header — backend uses this to link enquiry to user
+                // and upsert the user document with seller profile fields
+                { headers: { Authorization: `Bearer ${userInfo.token}` } }
+            );
             setSubmitted(true);
         } catch (err) {
             setSubmitError(
@@ -712,9 +753,10 @@ const [submitted, setSubmitted]         = useState(false);
                                         onClick={() => {
                                             setSubmitted(false);
                                             setSubmitError('');
-                                            setFormData({
+                                          setFormData({
                                                 businessName: '', contactName: '', email: '',
-                                                phone: '', products: '', county: '', message: '',
+                                                phone: '', kraPin: '', mpesaNumber: '',
+                                                description: '', products: '', county: '', message: '',
                                             });
                                         }}
                                     >
@@ -792,16 +834,66 @@ const [submitted, setSubmitted]         = useState(false);
                                     </div>
 
                                     <div className='bs-apply__form-row'>
-                                        <div className='bs-apply__form-group'>
+                                       <div className='bs-apply__form-group'>
                                             <label htmlFor='bs-county'>Your County</label>
-                                            <input
+                                            <select
                                                 id='bs-county'
                                                 name='county'
-                                                type='text'
-                                                placeholder='e.g. Nairobi, Mombasa, Kisumu'
                                                 value={formData.county}
                                                 onChange={handleChange}
                                                 required
+                                            >
+                                                <option value=''>Select your county</option>
+                                                {COUNTIES.map(c => (
+                                                    <option key={c} value={c}>{c}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                  {/* Business description — goes into sellerProfile.description */}
+                                    <div className='bs-apply__form-group'>
+                                        <label htmlFor='bs-description'>
+                                            Describe your business <span className='bs-apply__required'>*</span>
+                                        </label>
+                                        <textarea
+                                            id='bs-description'
+                                            name='description'
+                                            rows={3}
+                                            placeholder='What you sell, your typical stock quantities, how long you have been in business...'
+                                            value={formData.description}
+                                            onChange={handleChange}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className='bs-apply__form-row'>
+                                        {/* KRA PIN — goes into sellerProfile.kraPin */}
+                                        <div className='bs-apply__form-group'>
+                                            <label htmlFor='bs-kraPin'>
+                                                KRA PIN <span className='bs-apply__hint'>(optional but recommended)</span>
+                                            </label>
+                                            <input
+                                                id='bs-kraPin'
+                                                name='kraPin'
+                                                type='text'
+                                                placeholder='e.g. A012345678Z'
+                                                value={formData.kraPin}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                        {/* M-Pesa number — goes into sellerProfile.mpesaNumber */}
+                                        <div className='bs-apply__form-group'>
+                                            <label htmlFor='bs-mpesaNumber'>
+                                                M-Pesa Payout Number <span className='bs-apply__hint'>(for receiving payments)</span>
+                                            </label>
+                                            <input
+                                                id='bs-mpesaNumber'
+                                                name='mpesaNumber'
+                                                type='tel'
+                                                placeholder='+254 700 000 000'
+                                                value={formData.mpesaNumber}
+                                                onChange={handleChange}
                                             />
                                         </div>
                                     </div>
@@ -811,8 +903,8 @@ const [submitted, setSubmitted]         = useState(false);
                                         <textarea
                                             id='bs-message'
                                             name='message'
-                                            rows={4}
-                                            placeholder='Stock quantities, special requirements, how you heard about us...'
+                                            rows={3}
+                                            placeholder='Special requirements, how you heard about us...'
                                             value={formData.message}
                                             onChange={handleChange}
                                         />
@@ -825,13 +917,13 @@ const [submitted, setSubmitted]         = useState(false);
                                         </p>
                                     )}
 
-                                    <button
+                                   <button
                                         type='submit'
                                         className='bs-apply__submit'
                                         disabled={
                                             !formData.businessName || !formData.contactName ||
                                             !formData.email || !formData.phone || !formData.products ||
-                                            !formData.county || submitLoading
+                                            !formData.county || !formData.description || submitLoading
                                         }
                                     >
                                         <FaRocket aria-hidden='true' />

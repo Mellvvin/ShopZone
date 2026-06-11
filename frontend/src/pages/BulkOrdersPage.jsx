@@ -14,7 +14,8 @@
 // CTA strip at bottom.
 // ─────────────────────────────────────────────────────────────
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import {
     FaBoxOpen, FaTruck, FaShieldAlt, FaHandshake,
@@ -108,6 +109,10 @@ const UNIT_TYPES = [
 
 // ─────────────────────────────────────────────────────────────
 const BulkOrdersPage = () => {
+
+    const navigate     = useNavigate();
+    const location     = useLocation();
+    const { userInfo } = useSelector((state) => state.auth);
 
     // ── Typewriter state — hero accent line ───────────────────
     const [typed, setTyped]   = useState('');
@@ -240,13 +245,15 @@ const BulkOrdersPage = () => {
     };
 
    // ── Form submission — posts to /api/enquiries ─────────────
-    // Stores the bulk order request in MongoDB so admin can see
-    // and action it from /admin/enquiries.
-    // When Step 8 (Manual RFQ Flow) is built this will migrate
-    // to POST /api/rfq and trigger the full sourcing workflow.
+    // Requires login. Anonymous submissions are rejected both here
+    // and at the backend. Auth token included so userId saves correctly.
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Basic validation — required fields
+        // Hard gate — redirect to login if not authenticated
+        if (!userInfo) {
+            navigate('/login', { state: { from: location.pathname } });
+            return;
+        }
         if (!form.name || !form.email || !form.item || !form.quantity || !form.unitType || !form.county) {
             setFormError('Please fill in all required fields.');
             return;
@@ -254,25 +261,26 @@ const BulkOrdersPage = () => {
         setSubmitLoading(true);
         setFormError('');
         try {
-            await axios.post('/api/enquiries', {
-                type:    'bulk_order',
-                name:    form.name,
-                // Email is not collected on this form — left empty.
-                // Step 8 will add email to the RFQ form.
-                email:   form.email,
-                business: form.business || '',
-                message: form.notes || '',
-                // Store the full structured form payload so nothing
-                // is lost when this migrates to the RFQ model
-                data: {
-                    item:     form.item,
-                    quantity: form.quantity,
-                    unitType: form.unitType,
-                    county:   form.county,
-                    budget:   form.budget,
-                    notes:    form.notes,
+            await axios.post(
+                '/api/enquiries',
+                {
+                    type:     'bulk_order',
+                    name:     form.name,
+                    email:    form.email,
+                    business: form.business || '',
+                    message:  form.notes || '',
+                    data: {
+                        item:     form.item,
+                        quantity: form.quantity,
+                        unitType: form.unitType,
+                        county:   form.county,
+                        budget:   form.budget,
+                        notes:    form.notes,
+                    },
                 },
-            });
+                // Auth header — attaches userId to enquiry in backend
+                { headers: { Authorization: `Bearer ${userInfo.token}` } }
+            );
             setSubmitted(true);
         } catch (err) {
             setFormError(

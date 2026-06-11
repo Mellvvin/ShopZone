@@ -917,6 +917,7 @@
 }
 
 .bs-apply__form-group input,
+.bs-apply__form-group select,
 .bs-apply__form-group textarea {
     padding: 14px 16px;
     border: 1.5px solid rgba(0, 33, 71, 0.12);
@@ -1252,6 +1253,20 @@
     50% {
         transform: translateY(-6px);
     }
+}
+
+/* Required marker on form labels */
+.bs-apply__required {
+    color: #e74c3c;
+    margin-left: 2px;
+}
+
+/* Hint text on optional fields */
+.bs-apply__hint {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #767676;
+    margin-left: 4px;
 }
 
 /* Responsive — hide illustration on smaller screens */

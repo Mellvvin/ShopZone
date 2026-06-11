@@ -41,8 +41,9 @@ const CartPage = () => {
     dispatch(updateCartQty({ id: item.product, qty: Math.max(1, parsed) }));
   };
 
-  const checkoutHandler = () => {
-    if (!userInfo) navigate('/login?redirect=shipping');
+const checkoutHandler = () => {
+    // Redirect to login with state.from so LoginPage returns to /shipping
+    if (!userInfo) navigate('/login', { state: { from: '/shipping' } });
     else navigate('/shipping');
   };
 

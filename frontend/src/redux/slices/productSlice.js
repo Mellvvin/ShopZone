@@ -119,6 +119,7 @@ export const listProducts = createAsyncThunk(
       if (filters.clearance) params.append('clearance', 'true');
       if (filters.tag)      params.append('tag',       filters.tag);
       if (filters.brand)    params.append('brand',     filters.brand);
+      if (filters.sort)     params.append('sort',      filters.sort);
 
       // ── Fetch from backend ─────────────────────────────────
       const queryString = params.toString();
