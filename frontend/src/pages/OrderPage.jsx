@@ -217,9 +217,10 @@ const OrderPage = () => {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
     if (!userInfo) { navigate('/login'); return; }
     fetchOrder();
+    fetchPayment();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
@@ -266,9 +267,86 @@ const OrderPage = () => {
     }
   };
 
-// ── Admin: mark order as paid (manual — until M-Pesa Step 20 is built) ──
-  // This lets admin confirm payment received via bank transfer, cash,
-  // or any manual method. M-Pesa will automate this in Step 20.
+  // ── Payment attachment state (admin manual payment flow) ─────────────────
+  // Admin pastes the raw M-Pesa SMS or fills in reference details.
+  // On confirm, the backend creates/confirms the Payment document,
+  // marks the order as paid, and sends a notification to the buyer.
+  const [paymentRecord, setPaymentRecord]         = useState(null);
+  const [paymentLoading, setPaymentLoading]       = useState(false);
+  const [showPaymentForm, setShowPaymentForm]     = useState(false);
+  const [paymentForm, setPaymentForm]             = useState({
+    rawMessage:         '',
+    mpesaReceiptNumber: '',
+    reference:          '',
+    method:             'mpesa_manual',
+    notes:              '',
+  });
+  const [paymentFormLoading, setPaymentFormLoading] = useState(false);
+  const [paymentFormError, setPaymentFormError]     = useState('');
+
+  // Fetch the payment record for this order
+  const fetchPayment = async () => {
+    try {
+      setPaymentLoading(true);
+      const { data } = await axios.get(`/api/payments/order/${orderId}`, config);
+      setPaymentRecord(data);
+    } catch {
+      // 404 means no payment record yet — that is fine
+      setPaymentRecord(null);
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  // Admin confirms payment by pasting M-Pesa message or reference
+  const confirmPaymentHandler = async (e) => {
+    e.preventDefault();
+    if (!paymentRecord) {
+      setPaymentFormError('No payment record found. Create one first.');
+      return;
+    }
+    if (!paymentForm.rawMessage && !paymentForm.mpesaReceiptNumber && !paymentForm.reference) {
+      setPaymentFormError('Provide the M-Pesa message, receipt number, or reference.');
+      return;
+    }
+    setPaymentFormLoading(true);
+    setPaymentFormError('');
+    try {
+      await axios.put(
+        `/api/payments/${paymentRecord._id}/confirm`,
+        paymentForm,
+        config
+      );
+      showToast('Payment confirmed. Order marked as paid.', 'success');
+      setShowPaymentForm(false);
+      fetchOrder();
+      fetchPayment();
+    } catch (err) {
+      setPaymentFormError(err.response?.data?.message || 'Failed to confirm payment.');
+    } finally {
+      setPaymentFormLoading(false);
+    }
+  };
+
+  // Create a pending payment record if one does not exist yet
+  const createPaymentRecord = async () => {
+    try {
+      setPaymentFormLoading(true);
+      await axios.post(
+        `/api/payments/order/${orderId}`,
+        { method: paymentForm.method },
+        config
+      );
+      showToast('Payment record created.', 'success');
+      fetchPayment();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to create payment record.', 'error');
+    } finally {
+      setPaymentFormLoading(false);
+    }
+  };
+
+  // ── Admin: legacy mark as paid (kept as fallback) ─────────────────────────
   const markPaidHandler = async () => {
     try {
       setDeliverLoading(true);
@@ -571,6 +649,137 @@ const OrderPage = () => {
                 </span>
               )}
             </div>
+
+            {/* ── Admin: manual payment attachment panel ───────────────
+                Shown to admin when the order is unpaid. Admin can paste
+                the raw M-Pesa SMS to confirm payment. On confirm the
+                backend creates the Payment document, marks isPaid true,
+                and sends a notification to the buyer.
+            ─────────────────────────────────────────────────────────── */}
+            {userInfo?.isAdmin && !order.isPaid && order.status !== 'cancelled' && (
+              <div className='order-payment-attach'>
+                <div className='order-payment-attach__header'>
+                  <FaMoneyBillWave aria-hidden='true' />
+                  <span>Attach Payment</span>
+                </div>
+
+                {/* Show existing payment record status */}
+                {paymentRecord ? (
+                  <div className='order-payment-attach__record'>
+                    <span className='order-payment-attach__record-label'>
+                      Payment record: <strong>{paymentRecord.status}</strong>
+                    </span>
+                    {paymentRecord.status === 'pending' && (
+                      <button
+                        className='order-payment-attach__toggle'
+                        onClick={() => setShowPaymentForm(!showPaymentForm)}
+                      >
+                        {showPaymentForm ? 'Cancel' : 'Confirm Payment'}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className='order-payment-attach__record'>
+                    <span className='order-payment-attach__record-label'>
+                      No payment record yet
+                    </span>
+                    <button
+                      className='order-payment-attach__toggle'
+                      onClick={createPaymentRecord}
+                      disabled={paymentFormLoading}
+                    >
+                      {paymentFormLoading ? 'Creating…' : 'Create Payment Record'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Confirm payment form */}
+                {showPaymentForm && paymentRecord?.status === 'pending' && (
+                  <form
+                    className='order-payment-attach__form'
+                    onSubmit={confirmPaymentHandler}
+                    noValidate
+                  >
+                    {/* Method selector */}
+                    <div className='order-payment-attach__field'>
+                      <label>Payment Method</label>
+                      <select
+                        value={paymentForm.method}
+                        onChange={e => setPaymentForm(p => ({ ...p, method: e.target.value }))}
+                      >
+                        <option value='mpesa_manual'>M-Pesa (Manual)</option>
+                        <option value='bank_transfer'>Bank Transfer</option>
+                        <option value='cash'>Cash</option>
+                        <option value='other'>Other</option>
+                      </select>
+                    </div>
+
+                    {/* Raw M-Pesa message — the key field */}
+                    <div className='order-payment-attach__field'>
+                      <label>
+                        Paste M-Pesa Confirmation SMS
+                        <span className='order-payment-attach__hint'>
+                          {' '}(receipt number extracted automatically)
+                        </span>
+                      </label>
+                      <textarea
+                        rows={4}
+                        placeholder='e.g. QHJ4X2K9PL Confirmed. KES 3,500.00 received from JOHN KAMAU 0722XXXXXX on 8/6/26 at 10:32 AM. Account Number ShopZone.'
+                        value={paymentForm.rawMessage}
+                        onChange={e => setPaymentForm(p => ({ ...p, rawMessage: e.target.value }))}
+                      />
+                    </div>
+
+                    {/* Manual receipt number override */}
+                    <div className='order-payment-attach__field'>
+                      <label>M-Pesa Receipt Number <span className='order-payment-attach__hint'>(if not in SMS above)</span></label>
+                      <input
+                        type='text'
+                        placeholder='e.g. QHJ4X2K9PL'
+                        value={paymentForm.mpesaReceiptNumber}
+                        onChange={e => setPaymentForm(p => ({ ...p, mpesaReceiptNumber: e.target.value }))}
+                      />
+                    </div>
+
+                    {/* Reference — for bank transfers */}
+                    <div className='order-payment-attach__field'>
+                      <label>Reference / Transaction ID <span className='order-payment-attach__hint'>(bank transfers)</span></label>
+                      <input
+                        type='text'
+                        placeholder='Bank reference or transaction ID'
+                        value={paymentForm.reference}
+                        onChange={e => setPaymentForm(p => ({ ...p, reference: e.target.value }))}
+                      />
+                    </div>
+
+                    {/* Internal notes */}
+                    <div className='order-payment-attach__field'>
+                      <label>Internal Notes <span className='order-payment-attach__hint'>(optional)</span></label>
+                      <input
+                        type='text'
+                        placeholder='Any notes for your records'
+                        value={paymentForm.notes}
+                        onChange={e => setPaymentForm(p => ({ ...p, notes: e.target.value }))}
+                      />
+                    </div>
+
+                    {paymentFormError && (
+                      <p className='order-payment-attach__error' role='alert'>
+                        {paymentFormError}
+                      </p>
+                    )}
+
+                    <button
+                      type='submit'
+                      className='order-payment-attach__submit'
+                      disabled={paymentFormLoading}
+                    >
+                      {paymentFormLoading ? 'Confirming…' : 'Confirm Payment & Mark Order Paid'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
 
             {/* Seller payout status — visible to admin and shown to buyer as trust signal */}
             {order.isDelivered && (
