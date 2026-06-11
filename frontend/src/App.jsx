@@ -42,6 +42,7 @@ import ReturnsPolicyPage from './pages/ReturnsPolicyPage';
 import BrandsPage from './pages/BrandsPage';
 import BulkOrdersPage from './pages/BulkOrdersPage';
 import NewArrivalsPage from './pages/NewArrivalsPage';
+import FeaturedPage from './pages/FeaturedPage';
 import AboutPage from './pages/AboutPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import AdminSellersPage from './pages/AdminSellersPage';
@@ -100,6 +101,9 @@ const App = () => {
 
         {/* ── New Arrivals ── */}
           <Route path='/new-arrivals' element={<NewArrivalsPage />} />
+
+          {/* ── Featured Products ── */}
+          <Route path='/featured' element={<FeaturedPage />} />
 
         {/* ── 404 ── */}
           <Route path='*' element={<NotFoundPage />} />

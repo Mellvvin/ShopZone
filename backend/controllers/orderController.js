@@ -47,6 +47,7 @@
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const Notification = require('../models/Notification');
 const {
   getShippingRate,
   hasAnyTier2Item,
@@ -238,9 +239,31 @@ const createOrder = async (req, res) => {
       status: 'pending',
     });
 
-    const createdOrder = await order.save();
+const createdOrder = await order.save();
 
-    // ── Step 7: Build response with delivery context ─────────────────────
+    // ── Step 7: Notify buyer that order has been placed ──────────────────
+    // Uses type 'transactional' — the only valid type for order events.
+    // relatedOrderId enables the View Order link in the notification bell.
+    try {
+      const orderNotification = new Notification({
+        userId:         req.user._id,
+        type:           'transactional',
+        title:          'Order Placed',
+        message:        `Your order #${createdOrder._id.toString().slice(-8).toUpperCase()} has been placed successfully. ` +
+                        (orderIsFullyTier2
+                          ? 'Our team will contact you within 24 hours with a delivery quote.'
+                          : `Total: KES ${serverTotalPrice.toLocaleString('en-KE', { minimumFractionDigits: 2 })}.`),
+        relatedOrderId: createdOrder._id,
+        isRead:         false,
+      });
+      await orderNotification.save();
+    } catch (notifErr) {
+      // Notification failure must never crash the order creation.
+      // Log it and continue — the order is already saved.
+      console.error('Order placed notification failed:', notifErr.message);
+    }
+
+    // ── Step 8: Build response with delivery context ─────────────────────
     const response = {
       ...createdOrder.toObject(),
       shippingInfo: {
@@ -360,7 +383,24 @@ const updateOrderToDelivered = async (req, res) => {
     // Phase 3: a scheduled job will auto-release after T+2 from deliveredAt.
     // We do NOT auto-release here — admin must explicitly confirm.
 
-    const updatedOrder = await order.save();
+const updatedOrder = await order.save();
+
+    // Notify buyer that their order has been delivered
+    try {
+      const deliveredNotification = new Notification({
+        userId:         order.user,
+        type:           'transactional',
+        title:          'Order Delivered',
+        message:        `Your order #${order._id.toString().slice(-8).toUpperCase()} has been marked as delivered. ` +
+                        'If you have any issues with your delivery, please report it from your order page.',
+        relatedOrderId: order._id,
+        isRead:         false,
+      });
+      await deliveredNotification.save();
+    } catch (notifErr) {
+      console.error('Order delivered notification failed:', notifErr.message);
+    }
+
     res.json(updatedOrder);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -456,7 +496,24 @@ const sendDeliveryQuote = async (req, res) => {
       (order.itemsPrice + amount + order.taxPrice).toFixed(2)
     );
 
-    const updatedOrder = await order.save();
+const updatedOrder = await order.save();
+
+    // Notify buyer that a delivery quote is waiting for their approval
+    try {
+      const quoteNotification = new Notification({
+        userId:         order.user,
+        type:           'transactional',
+        title:          'Delivery Quote Ready',
+        message:        `A delivery quote of KES ${Number(amount).toLocaleString('en-KE', { minimumFractionDigits: 2 })} has been sent for order #${order._id.toString().slice(-8).toUpperCase()}. ` +
+                        'Please review and approve or reject it to continue.',
+        relatedOrderId: order._id,
+        isRead:         false,
+      });
+      await quoteNotification.save();
+    } catch (notifErr) {
+      console.error('Quote sent notification failed:', notifErr.message);
+    }
+
     res.json(updatedOrder);
 
   } catch (error) {
@@ -524,7 +581,7 @@ const rejectDeliveryQuote = async (req, res) => {
       return res.status(400).json({ message: 'No active quote to reject' });
     }
 
-    // Buyer rejected the quote — cancel the order and restore stock
+// Buyer rejected the quote — cancel the order and restore stock
     order.deliveryQuote.status = 'buyer_rejected';
     order.status = 'cancelled';
 
@@ -532,6 +589,23 @@ const rejectDeliveryQuote = async (req, res) => {
     await _restoreStock(order.orderItems);
 
     const updatedOrder = await order.save();
+
+    // Notify buyer that their order is cancelled following quote rejection
+    try {
+      const rejectNotification = new Notification({
+        userId:         order.user,
+        type:           'transactional',
+        title:          'Order Cancelled',
+        message:        `You rejected the delivery quote for order #${order._id.toString().slice(-8).toUpperCase()}. ` +
+                        'The order has been cancelled and stock restored. You can place a new order at any time.',
+        relatedOrderId: order._id,
+        isRead:         false,
+      });
+      await rejectNotification.save();
+    } catch (notifErr) {
+      console.error('Quote rejected notification failed:', notifErr.message);
+    }
+
     res.json({
       ...updatedOrder.toObject(),
       message: 'Delivery quote rejected. Order has been cancelled and stock restored.',
@@ -574,13 +648,32 @@ const releaseSellerPayout = async (req, res) => {
     order.sellerPayoutReleased = true;
     order.sellerPayoutReleasedAt = Date.now();
 
-    const updatedOrder = await order.save();
+const updatedOrder = await order.save();
+
+    // Notify the order user (buyer) that payout has been released.
+    // In Step 5 when the seller dashboard is live, this notification
+    // will be sent to the seller's userId instead.
+    // For now order.user is the buyer — this gives admin a confirmation trail.
+    try {
+      const payoutNotification = new Notification({
+        userId:         order.user,
+        type:           'transactional',
+        title:          'Payout Released',
+        message:        `The seller payout for order #${order._id.toString().slice(-8).toUpperCase()} has been released. ` +
+                        `KES ${(order.totalPrice - order.platformCommission - order.shippingPrice).toLocaleString('en-KE', { minimumFractionDigits: 2 })} sent to supplier.`,
+        relatedOrderId: order._id,
+        isRead:         false,
+      });
+      await payoutNotification.save();
+    } catch (notifErr) {
+      console.error('Payout released notification failed:', notifErr.message);
+    }
+
     res.json({
       ...updatedOrder.toObject(),
       message: `Payout of KES ${(order.totalPrice - order.platformCommission - order.shippingPrice).toFixed(2)} ` +
         `released to seller. Platform commission: KES ${order.platformCommission.toFixed(2)}.`,
     });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

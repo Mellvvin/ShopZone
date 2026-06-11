@@ -139,9 +139,9 @@ const confirmPayment = async (req, res) => {
     // ── Create notification for the buyer ────────────────────
     // This is the first place in the codebase where a Notification
     // is created for a payment event — closing Issue 6 partially.
-    const notification = new Notification({
+  const notification = new Notification({
       userId:         order.user,
-      type:           'payment',
+      type:           'transactional',
       title:          'Payment Confirmed',
       message:        `Your payment of KES ${order.totalPrice.toLocaleString('en-KE', { minimumFractionDigits: 2 })} for order #${order._id.toString().slice(-8).toUpperCase()} has been received. Your order is now being processed.`,
       relatedOrderId: order._id,

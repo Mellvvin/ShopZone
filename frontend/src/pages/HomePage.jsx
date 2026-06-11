@@ -194,14 +194,14 @@ useEffect(() => {
           <div className='homepage__hero-offset' aria-hidden='true' />
           <CategoryCards />
 
-         <div className='homepage__section-wrapper' id='featured-section'>
+     <div className='homepage__section-wrapper' id='featured-section'>
             <ProductRow
               title='Featured Products'
               subtitle='Handpicked wholesale favourites for your business'
               products={featuredProducts}
               loading={loadingFeatured}
               error={errorFeatured}
-              viewAllHref='/?featured=true'
+              viewAllHref='/featured'
               icon={FaStar}
             />
           </div>
