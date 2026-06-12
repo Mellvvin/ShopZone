@@ -23,6 +23,15 @@ const {
 
 const { protect, admin } = require('../middleware/authMiddleware');
 
+// optionalAuth — reads the JWT if present but never rejects the request.
+// Used on the public products route so admin can see all product statuses
+// while buyers only see approved products.
+const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return next();
+  protect(req, res, next);
+};
+
 // ── Public: get all products with optional filters ────────────
 // GET /api/products
 // GET /api/products?keyword=rice&category=Food+%26+Grocery
@@ -30,7 +39,7 @@ const { protect, admin } = require('../middleware/authMiddleware');
 // GET /api/products?featured=true
 // GET /api/products?deals=true
 router.route('/')
-  .get(getProducts)
+  .get(optionalAuth, getProducts)
   .post(protect, admin, createProduct);
 
 // ── Public: get distinct brand names with product counts ──────

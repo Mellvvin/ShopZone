@@ -91,7 +91,7 @@ const enquirySchema = mongoose.Schema(
       default: 'new',
     },
 
-    // ── User link ────────────────────────────────────────────
+ // ── User link ────────────────────────────────────────────
     // If the submitter is a logged-in registered user, store
     // their user ID here so admin can see full enquiry history
     // per user and diagnose recurring issues.
@@ -99,6 +99,17 @@ const enquirySchema = mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      default: null,
+    },
+
+    // ── Order link ───────────────────────────────────────────
+    // Set when this enquiry is a support issue about a specific order.
+    // type: 'support' enquiries should always have this set.
+    // Links the enquiry to the order so admin can see full order
+    // context alongside the complaint without asking the buyer for the ID.
+    orderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Order',
       default: null,
     },
 

@@ -427,7 +427,20 @@ const [orders, setOrders]               = useState([]);
                       )}
                     </td>
                     <td>
-                      <Link to={`/order/${order._id}`} className='btn btn-sm btn-dark'>Details</Link>
+                      <div className='profile-order-actions'>
+                        <Link to={`/order/${order._id}`} className='btn btn-sm btn-dark'>
+                          Details
+                        </Link>
+                        {/* Report Issue — only for active and delivered orders, not cancelled */}
+                        {order.status !== 'cancelled' && (
+                          <Link
+                            to={`/order/${order._id}#report`}
+                            className='profile-report-link'
+                          >
+                            Report Issue
+                          </Link>
+                        )}
+                      </div>
                     </td>
                  </tr>
                     ))}

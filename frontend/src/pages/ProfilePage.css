@@ -354,3 +354,25 @@
 .profile-password-info__link:hover {
     color: var(--tan-dark, #b8966a);
 }
+
+/* Order action cell — Details + Report Issue side by side */
+.profile-order-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.profile-report-link {
+    font-size: 0.72rem;
+    color: #999;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+    transition: color 0.15s;
+}
+
+.profile-report-link:hover {
+    color: #c0392b;
+}
+

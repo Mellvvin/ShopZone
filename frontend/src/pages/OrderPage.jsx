@@ -283,6 +283,28 @@ useEffect(() => {
   });
   const [paymentFormLoading, setPaymentFormLoading] = useState(false);
   const [paymentFormError, setPaymentFormError]     = useState('');
+  const [showReceipt, setShowReceipt]               = useState(false);
+
+  // Auto-expand the Report Issue form if the URL hash is #report.
+  // This fires when ProfilePage "Report Issue" link navigates here.
+  useEffect(() => {
+    if (window.location.hash === '#report') {
+      setShowIssueForm(true);
+      // Scroll to the report section after a short delay so the
+      // order content has rendered before we try to scroll to it
+      setTimeout(() => {
+        const el = document.getElementById('order-report-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+  }, [orderId]);
+
+    // ── Report Issue form state ───────────────────────────────
+  const [showIssueForm, setShowIssueForm]           = useState(false);
+  const [issueMessage, setIssueMessage]             = useState('');
+  const [issueLoading, setIssueLoading]             = useState(false);
+  const [issueError, setIssueError]                 = useState('');
+  const [issueSuccess, setIssueSuccess]             = useState(false);
 
   // Fetch the payment record for this order
   const fetchPayment = async () => {
@@ -380,6 +402,47 @@ useEffect(() => {
       showToast(err.response?.data?.message || 'Failed to update order', 'error');
     } finally {
       setDeliverLoading(false);
+    }
+  };
+
+ // ── Report Issue — submits a support enquiry linked to this order ─────────
+  // Pre-fills orderId so admin immediately knows which order is affected.
+  // Buyer only needs to describe the problem — everything else is automatic.
+  const submitIssueHandler = async (e) => {
+    e.preventDefault();
+    if (!issueMessage.trim()) {
+      setIssueError('Please describe the issue before submitting.');
+      return;
+    }
+    setIssueLoading(true);
+    setIssueError('');
+    try {
+      await axios.post(
+        '/api/enquiries',
+        {
+          type:     'support',
+          name:     userInfo.name,
+          email:    userInfo.email,
+          message:  issueMessage.trim(),
+          orderId:  order._id,
+          // Store structured order context in data field for admin
+          data: {
+            orderId:      order._id,
+            orderRef:     order._id.toString().slice(-8).toUpperCase(),
+            orderTotal:   order.totalPrice,
+            orderStatus:  order.status,
+            isPaid:       order.isPaid,
+            isDelivered:  order.isDelivered,
+          },
+        },
+        config
+      );
+      setIssueSuccess(true);
+      setIssueMessage('');
+    } catch (err) {
+      setIssueError(err.response?.data?.message || 'Failed to submit. Please try again.');
+    } finally {
+      setIssueLoading(false);
     }
   };
 
@@ -637,11 +700,16 @@ useEffect(() => {
               <FaCreditCard className='order-section__icon' aria-hidden='true' />
               <h2 className='order-section__title'>Payment</h2>
             </div>
-            <div className='order-payment-row'>
+           <div className='order-payment-row'>
               <span className='order-payment-method'>{order.paymentMethod}</span>
               {order.isPaid ? (
                 <span className='order-badge order-badge--paid'>
                   <FaCheckCircle aria-hidden='true' /> Paid — {new Date(order.paidAt).toLocaleDateString('en-KE')}
+                </span>
+              ) : paymentRecord ? (
+                // Payment record exists but not yet confirmed — buyer knows we received something
+                <span className='order-badge order-badge--review'>
+                  <FaClock aria-hidden='true' /> Payment under review
                 </span>
               ) : (
                 <span className='order-badge order-badge--unpaid'>
@@ -649,6 +717,107 @@ useEffect(() => {
                 </span>
               )}
             </div>
+
+            {/* ── View Receipt panel — shown when payment is confirmed ──
+                Buyer can see the M-Pesa receipt, reference, method,
+                and admin notes. Admin sees everything including who
+                confirmed the payment and when.
+            ─────────────────────────────────────────────────────────── */}
+            {order.isPaid && paymentRecord?.status === 'confirmed' && (
+              <div className='order-receipt'>
+                <button
+                  className='order-receipt__toggle'
+                  onClick={() => setShowReceipt(v => !v)}
+                  aria-expanded={showReceipt}
+                >
+                  <FaCheckCircle aria-hidden='true' />
+                  {showReceipt ? 'Hide Receipt' : 'View Receipt'}
+                </button>
+
+                {showReceipt && (
+                  <div className='order-receipt__body'>
+                    {/* Method */}
+                    <div className='order-receipt__row'>
+                      <span className='order-receipt__label'>Payment Method</span>
+                      <span className='order-receipt__value'>
+                        {paymentRecord.method === 'mpesa_manual' && 'M-Pesa (Manual)'}
+                        {paymentRecord.method === 'mpesa_stk'    && 'M-Pesa (STK Push)'}
+                        {paymentRecord.method === 'bank_transfer' && 'Bank Transfer'}
+                        {paymentRecord.method === 'cash'          && 'Cash'}
+                        {paymentRecord.method === 'other'         && 'Other'}
+                      </span>
+                    </div>
+
+                    {/* M-Pesa receipt number */}
+                    {paymentRecord.mpesaReceiptNumber && (
+                      <div className='order-receipt__row'>
+                        <span className='order-receipt__label'>M-Pesa Receipt</span>
+                        <span className='order-receipt__value order-receipt__value--code'>
+                          {paymentRecord.mpesaReceiptNumber}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Reference for bank transfers */}
+                    {paymentRecord.reference && (
+                      <div className='order-receipt__row'>
+                        <span className='order-receipt__label'>Reference</span>
+                        <span className='order-receipt__value order-receipt__value--code'>
+                          {paymentRecord.reference}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Amount */}
+                    <div className='order-receipt__row'>
+                      <span className='order-receipt__label'>Amount Paid</span>
+                      <span className='order-receipt__value order-receipt__value--amount'>
+                        {formatKES(paymentRecord.amount)}
+                      </span>
+                    </div>
+
+                    {/* Confirmed at */}
+                    {paymentRecord.confirmedAt && (
+                      <div className='order-receipt__row'>
+                        <span className='order-receipt__label'>Confirmed On</span>
+                        <span className='order-receipt__value'>
+                          {new Date(paymentRecord.confirmedAt).toLocaleString('en-KE', {
+                            day: 'numeric', month: 'long', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Raw M-Pesa SMS — shown to admin only, it contains phone numbers */}
+                    {userInfo?.isAdmin && paymentRecord.rawMessage && (
+                      <div className='order-receipt__row order-receipt__row--full'>
+                        <span className='order-receipt__label'>M-Pesa Message (admin)</span>
+                        <span className='order-receipt__value order-receipt__value--raw'>
+                          {paymentRecord.rawMessage}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Admin notes — shown to admin only */}
+                    {userInfo?.isAdmin && paymentRecord.notes && (
+                      <div className='order-receipt__row order-receipt__row--full'>
+                        <span className='order-receipt__label'>Admin Notes</span>
+                        <span className='order-receipt__value'>{paymentRecord.notes}</span>
+                      </div>
+                    )}
+
+                    {/* Confirmed by — admin only */}
+                    {userInfo?.isAdmin && paymentRecord.confirmedBy?.name && (
+                      <div className='order-receipt__row'>
+                        <span className='order-receipt__label'>Confirmed By</span>
+                        <span className='order-receipt__value'>{paymentRecord.confirmedBy.name}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ── Admin: manual payment attachment panel ───────────────
                 Shown to admin when the order is unpaid. Admin can paste
@@ -965,6 +1134,71 @@ useEffect(() => {
 
         </div>
       </div>
+
+{/* ── Report an Issue ───────────────────────────────────────── */}
+          {order.status !== 'cancelled' && (
+            <div className='order-report' id='order-report-section'>
+              <button
+                className='order-report__toggle'
+                onClick={() => { setShowIssueForm(v => !v); setIssueSuccess(false); setIssueError(''); }}
+                aria-expanded={showIssueForm}
+              >
+                {showIssueForm ? 'Hide' : 'Report an Issue with this Order'}
+              </button>
+
+              {showIssueForm && (
+                <div className='order-report__form-wrap'>
+                  {issueSuccess ? (
+                    <div className='order-report__success'>
+                      <FaCheckCircle aria-hidden='true' />
+                      <div>
+                        <strong>Issue reported.</strong>
+                        <p>Our team will review your report and get back to you within 24 hours.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <form onSubmit={submitIssueHandler} noValidate>
+                      {/* Order reference — read-only so buyer sees what is being reported */}
+                      <div className='order-report__ref'>
+                        <span className='order-report__ref-label'>Order</span>
+                        <span className='order-report__ref-value'>
+                          #{order._id.toString().slice(-8).toUpperCase()}
+                        </span>
+                        <span className='order-report__ref-full'>{order._id}</span>
+                      </div>
+
+                      <div className='order-report__field'>
+                        <label htmlFor='issue-message' className='order-report__label'>
+                          Describe the issue <span className='order-report__required'>*</span>
+                        </label>
+                        <textarea
+                          id='issue-message'
+                          className='order-report__textarea'
+                          rows={4}
+                          placeholder='e.g. Wrong items received, damaged packaging, missing quantity...'
+                          value={issueMessage}
+                          onChange={e => setIssueMessage(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      {issueError && (
+                        <p className='order-report__error' role='alert'>{issueError}</p>
+                      )}
+
+                      <button
+                        type='submit'
+                        className='order-report__submit'
+                        disabled={issueLoading || !issueMessage.trim()}
+                      >
+                        {issueLoading ? 'Submitting…' : 'Submit Report'}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
       {/* ── Cancel confirmation modal ──────────────────────────────────── */}
       {showCancelModal && (

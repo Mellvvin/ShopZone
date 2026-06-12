@@ -1034,3 +1034,285 @@
   color: #888;
   cursor: not-allowed;
 }
+
+/* ── Payment under review badge ─────────────────────────────── */
+.order-badge--review {
+  background: rgba(241, 196, 15, 0.12);
+  color: #b7860b;
+  border: 1px solid rgba(241, 196, 15, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ── View Receipt panel ──────────────────────────────────────── */
+.order-receipt {
+  margin-top: 12px;
+}
+
+.order-receipt__toggle {
+  all: unset;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+  padding: 6px 12px;
+  border: 1.5px solid rgba(0, 33, 71, 0.15);
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.order-receipt__toggle:hover {
+  background: rgba(0, 33, 71, 0.05);
+}
+
+.order-receipt__toggle svg {
+  color: #27ae60;
+  font-size: 0.85rem;
+}
+
+.order-receipt__body {
+  margin-top: 10px;
+  border: 1.5px solid rgba(0, 33, 71, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.order-receipt__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(0, 33, 71, 0.06);
+  font-size: 0.82rem;
+}
+
+.order-receipt__row:last-child {
+  border-bottom: none;
+}
+
+/* Full-width rows for long text like raw SMS and notes */
+.order-receipt__row--full {
+  flex-direction: column;
+  gap: 5px;
+}
+
+.order-receipt__label {
+  color: #767676;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.order-receipt__value {
+  color: var(--oxford-blue);
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Monospace for receipt codes */
+.order-receipt__value--code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  background: rgba(0, 33, 71, 0.04);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Amount stands out */
+.order-receipt__value--amount {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #27ae60;
+}
+
+/* Raw SMS wraps — it's long */
+.order-receipt__value--raw {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #555;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: rgba(0, 33, 71, 0.03);
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 33, 71, 0.07);
+}
+
+/* ── Report an Issue section ─────────────────────────────────── */
+.order-report {
+  margin-top: 12px;
+}
+
+.order-report__toggle {
+  all: unset;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #767676;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+
+.order-report__toggle:hover {
+  color: var(--oxford-blue);
+}
+
+.order-report__form-wrap {
+  margin-top: 12px;
+  border: 1.5px solid rgba(0, 33, 71, 0.1);
+  border-radius: 10px;
+  padding: 16px;
+  background: #fff;
+}
+
+/* Order reference strip */
+.order-report__ref {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  background: rgba(0, 33, 71, 0.04);
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.order-report__ref-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #767676;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.order-report__ref-value {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--oxford-blue);
+}
+
+.order-report__ref-full {
+  font-size: 0.68rem;
+  font-family: 'Courier New', Courier, monospace;
+  color: #aaa;
+  word-break: break-all;
+}
+
+.order-report__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.order-report__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+}
+
+.order-report__required {
+  color: #c0392b;
+  margin-left: 2px;
+}
+
+.order-report__textarea {
+  padding: 10px 12px;
+  border: 1.5px solid rgba(0, 33, 71, 0.12);
+  border-radius: 7px;
+  font-size: 0.83rem;
+  font-family: inherit;
+  color: var(--oxford-blue);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.order-report__textarea:focus {
+  border-color: var(--tan);
+  box-shadow: 0 0 0 3px rgba(210, 180, 140, 0.15);
+}
+
+.order-report__error {
+  font-size: 0.78rem;
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.07);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: 6px;
+  padding: 7px 10px;
+  margin: 0 0 10px;
+}
+
+.order-report__submit {
+  all: unset;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px;
+  background: var(--oxford-blue);
+  color: var(--tan);
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  transition: opacity 0.15s;
+  box-sizing: border-box;
+}
+
+.order-report__submit:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.order-report__submit:disabled {
+  background: #ccc;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.order-report__success {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(39, 174, 96, 0.08);
+  border: 1px solid rgba(39, 174, 96, 0.25);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--oxford-blue);
+}
+
+.order-report__success svg {
+  color: #27ae60;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.order-report__success strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.order-report__success p {
+  margin: 0;
+  color: #555;
+}

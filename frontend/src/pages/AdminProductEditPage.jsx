@@ -142,7 +142,11 @@ const CHANGE_LABELS = {
   isClearance:          (o, n) => n ? 'Listed as CLEARANCE' : 'Removed from clearance',
   image:                (o, n) => 'Product image updated',
   description:          (o, n) => `Description: "${trunc(o, 60)}" → "${trunc(n, 60)}"`,
+  seller:               (o, n) => `Seller assigned: ${o || 'none'} → ${n || 'none'}`,
+  status:               (o, n) => `Product status: ${o} → ${n}`,
+  adminFeedback:        (o, n) => `Admin feedback updated`,
 };
+
 
 const AdminProductEditPage = () => {
   const { id } = useParams();
@@ -164,6 +168,11 @@ const AdminProductEditPage = () => {
   const [isOnSale, setIsOnSale]       = useState(false);
   const [isClearance, setIsClearance] = useState(false);
   const [brand, setBrand]             = useState('');
+  const [seller, setSeller]           = useState('');
+  const [status, setStatus]           = useState('approved');
+  const [adminFeedback, setAdminFeedback] = useState('');
+  const [sellers, setSellers]         = useState([]);
+  const [sellersLoading, setSellersLoading] = useState(false);
   const [unitType, setUnitType]       = useState('Per Unit');
   const [minimumOrderQuantity, setMinimumOrderQuantity] = useState(1);
   const [itemsPerUnit, setItemsPerUnit]   = useState('');
@@ -206,6 +215,25 @@ const AdminProductEditPage = () => {
     fetchProduct();
   }, [userInfo, navigate]);
 
+// ── Fetch all approved sellers for the seller dropdown ────
+  useEffect(() => {
+    if (!userInfo?.isAdmin) return;
+    const fetchSellers = async () => {
+      try {
+        setSellersLoading(true);
+        const { data } = await axios.get('/api/users?isSeller=true', {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        });
+        setSellers(data);
+      } catch (err) {
+        console.error('Could not load sellers:', err.message);
+      } finally {
+        setSellersLoading(false);
+      }
+    };
+    fetchSellers();
+  }, [userInfo]);
+
   const fetchProduct = async () => {
     try {
       setLoading(true);
@@ -233,6 +261,9 @@ const AdminProductEditPage = () => {
         isBulkOnly:           data.isBulkOnly || false,
         leadTimeDays:         data.leadTimeDays ?? '',
         tags:                 data.tags || [],
+        seller:               data.seller?._id || data.seller || '',
+        status:               data.status || 'approved',
+        adminFeedback:        data.adminFeedback || '',
       };
 
       setIsNewUnsaved(data.name === 'Draft Product' && !data.image);
@@ -256,6 +287,9 @@ const AdminProductEditPage = () => {
       setIsBulkOnly(loaded.isBulkOnly);
       setLeadTimeDays(loaded.leadTimeDays);
       setTagList(loaded.tags);
+      setSeller(loaded.seller);
+      setStatus(loaded.status);
+      setAdminFeedback(loaded.adminFeedback);
 
       originalSnapshot.current = loaded;
       setLoading(false);
@@ -369,6 +403,9 @@ const AdminProductEditPage = () => {
     isBulkOnly,
     leadTimeDays:         String(leadTimeDays),
     tags:                 tagList,
+    seller,
+    status,
+    adminFeedback:        adminFeedback.trim(),
   });
 
   // ── Diff current vs snapshot ──────────────────────────────
@@ -502,6 +539,9 @@ const AdminProductEditPage = () => {
           dimensions:           current.dimensions,
           isBulkOnly:           current.isBulkOnly,
           leadTimeDays:         current.leadTimeDays !== '' ? Number(current.leadTimeDays) : null,
+          seller:               current.seller || null,
+          status:               current.status,
+          adminFeedback:        current.adminFeedback,
         },
         authConfig
       );
@@ -978,6 +1018,67 @@ const AdminProductEditPage = () => {
                       onChange={(e) => { setImage(e.target.value); clearFieldError('image'); }}
                     />
                   </Form.Group>
+
+              {/* ── Seller Assignment ──────────────────── */}
+                  <div className='ape-section-box ape-section-box--blue mt-3'>
+                    <p className='ape-section-label'>Seller Assignment</p>
+
+                    <Form.Group className='mb-3'>
+                      <Form.Label className='ape-field-label'>Assigned Seller</Form.Label>
+                      {sellersLoading ? (
+                        <div><Spinner animation='border' size='sm' /> Loading sellers…</div>
+                      ) : (
+                        <Form.Select value={seller} onChange={(e) => setSeller(e.target.value)}>
+                          <option value=''>No seller assigned (admin-managed)</option>
+                          {sellers
+                            .filter(s => s.isSeller && s.sellerStatus === 'approved')
+                            .map(s => (
+                              <option key={s._id} value={s._id}>
+                                {s.name} — {s.email}
+                              </option>
+                            ))}
+                        </Form.Select>
+                      )}
+                      <Form.Text className='ape-hint'>
+                        Assign this product to an approved seller. Leave blank for admin-managed products.
+                      </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className='mb-3'>
+                      <Form.Label className='ape-field-label'>Product Status</Form.Label>
+                      <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                        <option value='draft'>Draft</option>
+                        <option value='submitted'>Submitted (awaiting review)</option>
+                        <option value='needs_changes'>Needs Changes</option>
+                        <option value='approved'>Approved — Live on storefront</option>
+                        <option value='rejected'>Rejected</option>
+                        <option value='archived'>Archived</option>
+                      </Form.Select>
+                      <Form.Text className='ape-hint'>
+                        Only <strong>Approved</strong> products are visible to buyers.
+                      </Form.Text>
+                    </Form.Group>
+
+                    {/* Admin feedback — shown to seller when needs_changes or rejected */}
+                    {(status === 'needs_changes' || status === 'rejected') && (
+                      <Form.Group className='mb-3'>
+                        <Form.Label className='ape-field-label'>
+                          Feedback to Seller
+                          {status === 'needs_changes' && <span className='ape-required'>*</span>}
+                        </Form.Label>
+                        <Form.Control
+                          as='textarea'
+                          rows={3}
+                          placeholder='Explain what needs to change or why this product was rejected. This is shown to the seller on their dashboard.'
+                          value={adminFeedback}
+                          onChange={(e) => setAdminFeedback(e.target.value)}
+                        />
+                        <Form.Text className='ape-hint'>
+                          Keep this professional. The seller will see this message on their dashboard.
+                        </Form.Text>
+                      </Form.Group>
+                    )}
+                  </div>
 
                 </Col>
               </Row>

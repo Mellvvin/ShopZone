@@ -17,15 +17,17 @@
 //   ?search=name or email or business or message text
 //   ?userId=mongoId — all enquiries from a specific user
 // ─────────────────────────────────────────────────────────────
-const Enquiry = require('../models/Enquiry');
-const User    = require('../models/User');
+const Enquiry      = require('../models/Enquiry');
+const User         = require('../models/User');
+const leoProfanity = require('leo-profanity');
+leoProfanity.loadDictionary('en');
 
 // @desc    Create a new enquiry (from any form on the site)
 // @route   POST /api/enquiries
 // @access  Public
 const createEnquiry = async (req, res) => {
   try {
-    const {
+  const {
       type,
       name,
       email,
@@ -33,32 +35,41 @@ const createEnquiry = async (req, res) => {
       business,
       message,
       data,
+      orderId,
     } = req.body;
 
-    // ── Basic validation ────────────────────────────────────
+ // ── Basic validation ────────────────────────────────────
     if (!type || !name || !email) {
       return res.status(400).json({
         message: 'type, name, and email are required',
       });
     }
 
+    // ── Profanity check on message ───────────────────────────
+    // Screens the free-text message field before saving.
+    // Admin and other buyers should never see obscene language
+    // in the enquiries queue. Applies to all enquiry types.
+    if (message && leoProfanity.check(message)) {
+      return res.status(400).json({
+        message: 'Your message contains language that is not permitted on ShopZone. Please keep your enquiry courteous and professional.',
+      });
+    }
+
     // ── Build the enquiry document ──────────────────────────
-    const enquiry = new Enquiry({
+   const enquiry = new Enquiry({
       type,
       name:     name.trim(),
       email:    email.trim().toLowerCase(),
       phone:    phone    || '',
       business: business || '',
       message:  message  || '',
-      // Store the full form payload for future migration
       data:     data     || {},
       status:   'new',
-      // If a logged-in user submitted this form, link to their account
-      // req.user is set by authMiddleware when a JWT is present.
-      // For public forms it will be undefined — that is fine.
-      userId: req.user._id,
+      userId:   req.user._id,
+      // Link to the specific order if this is a support enquiry.
+      // Stored as ObjectId — validates that it is a real MongoDB ID.
+      orderId:  orderId  || null,
     });
-
 const saved = await enquiry.save();
 
  // ── If this is a seller application from a logged-in user ──
@@ -145,12 +156,17 @@ const getEnquiries = async (req, res) => {
       filter.resolvedAt = null;
     }
 
-    // ── Filter by user ───────────────────────────────────────
-    // Used on the admin user detail page to show all enquiries
-    // submitted by a specific registered user.
-    // e.g. ?userId=64abc...
+ // ── Filter by user ───────────────────────────────────────
     if (req.query.userId) {
       filter.userId = req.query.userId;
+    }
+
+    // ── Filter by order ──────────────────────────────────────
+    // Used on AdminOrderListPage or OrderPage to show all support
+    // enquiries linked to a specific order.
+    // e.g. ?orderId=64abc...
+    if (req.query.orderId) {
+      filter.orderId = req.query.orderId;
     }
 
     // ── Text search across key fields ────────────────────────
@@ -167,9 +183,10 @@ const getEnquiries = async (req, res) => {
     }
 
     // ── Fetch and sort newest first ──────────────────────────
-    const enquiries = await Enquiry.find(filter)
+const enquiries = await Enquiry.find(filter)
       .sort({ createdAt: -1 })
-      .populate('userId', 'name email'); // show user name/email if linked
+      .populate('userId',  'name email')
+      .populate('orderId', '_id totalPrice status createdAt');
 
     res.json(enquiries);
 
@@ -184,7 +201,8 @@ const getEnquiries = async (req, res) => {
 const getEnquiryById = async (req, res) => {
   try {
     const enquiry = await Enquiry.findById(req.params.id)
-      .populate('userId', 'name email');
+      .populate('userId',  'name email')
+      .populate('orderId', '_id totalPrice status createdAt');
 
     if (!enquiry) {
       return res.status(404).json({ message: 'Enquiry not found' });

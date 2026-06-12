@@ -245,7 +245,7 @@ const createdOrder = await order.save();
     // Uses type 'transactional' — the only valid type for order events.
     // relatedOrderId enables the View Order link in the notification bell.
     try {
-      const orderNotification = new Notification({
+    const orderNotification = new Notification({
         userId:         req.user._id,
         type:           'transactional',
         title:          'Order Placed',
@@ -254,6 +254,7 @@ const createdOrder = await order.save();
                           ? 'Our team will contact you within 24 hours with a delivery quote.'
                           : `Total: KES ${serverTotalPrice.toLocaleString('en-KE', { minimumFractionDigits: 2 })}.`),
         relatedOrderId: createdOrder._id,
+        link:           `/order/${createdOrder._id}`,
         isRead:         false,
       });
       await orderNotification.save();
@@ -387,13 +388,14 @@ const updatedOrder = await order.save();
 
     // Notify buyer that their order has been delivered
     try {
-      const deliveredNotification = new Notification({
+   const deliveredNotification = new Notification({
         userId:         order.user,
         type:           'transactional',
         title:          'Order Delivered',
         message:        `Your order #${order._id.toString().slice(-8).toUpperCase()} has been marked as delivered. ` +
                         'If you have any issues with your delivery, please report it from your order page.',
         relatedOrderId: order._id,
+        link:           `/order/${order._id}`,
         isRead:         false,
       });
       await deliveredNotification.save();
@@ -500,13 +502,14 @@ const updatedOrder = await order.save();
 
     // Notify buyer that a delivery quote is waiting for their approval
     try {
-      const quoteNotification = new Notification({
+   const quoteNotification = new Notification({
         userId:         order.user,
         type:           'transactional',
         title:          'Delivery Quote Ready',
         message:        `A delivery quote of KES ${Number(amount).toLocaleString('en-KE', { minimumFractionDigits: 2 })} has been sent for order #${order._id.toString().slice(-8).toUpperCase()}. ` +
                         'Please review and approve or reject it to continue.',
         relatedOrderId: order._id,
+        link:           `/order/${order._id}`,
         isRead:         false,
       });
       await quoteNotification.save();
@@ -592,13 +595,14 @@ const rejectDeliveryQuote = async (req, res) => {
 
     // Notify buyer that their order is cancelled following quote rejection
     try {
-      const rejectNotification = new Notification({
+ const rejectNotification = new Notification({
         userId:         order.user,
         type:           'transactional',
         title:          'Order Cancelled',
         message:        `You rejected the delivery quote for order #${order._id.toString().slice(-8).toUpperCase()}. ` +
                         'The order has been cancelled and stock restored. You can place a new order at any time.',
         relatedOrderId: order._id,
+        link:           `/order/${order._id}`,
         isRead:         false,
       });
       await rejectNotification.save();
@@ -655,13 +659,14 @@ const updatedOrder = await order.save();
     // will be sent to the seller's userId instead.
     // For now order.user is the buyer — this gives admin a confirmation trail.
     try {
-      const payoutNotification = new Notification({
+    const payoutNotification = new Notification({
         userId:         order.user,
         type:           'transactional',
         title:          'Payout Released',
         message:        `The seller payout for order #${order._id.toString().slice(-8).toUpperCase()} has been released. ` +
                         `KES ${(order.totalPrice - order.platformCommission - order.shippingPrice).toLocaleString('en-KE', { minimumFractionDigits: 2 })} sent to supplier.`,
         relatedOrderId: order._id,
+        link:           `/order/${order._id}`,
         isRead:         false,
       });
       await payoutNotification.save();

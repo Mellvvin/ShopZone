@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
 import {
   Row, Col, Image, ListGroup,
   Button, Spinner, Alert, Form, Card,
@@ -48,9 +49,13 @@ const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [qty, setQty]         = useState(1);
-  const [rating, setRating]   = useState(0);
-  const [comment, setComment] = useState('');
+const [qty, setQty]             = useState(1);
+  const [rating, setRating]       = useState(0);
+  const [comment, setComment]     = useState('');
+  // Verified purchase state — true if the user has a delivered
+  // order containing this product. Checked on mount.
+  const [verifiedPurchase, setVerifiedPurchase] = useState(false);
+  const [purchaseChecked,  setPurchaseChecked]  = useState(false);
 
   const {
     product, loadingDetails, errorDetails,
@@ -59,10 +64,39 @@ const { id } = useParams();
 
   const { userInfo } = useSelector((state) => state.auth);
 
-  useEffect(() => {
+useEffect(() => {
     if (reviewSuccess) { setRating(0); setComment(''); dispatch(resetProductReview()); }
     dispatch(listProductDetails(id));
   }, [dispatch, id, reviewSuccess]);
+
+  // ── Verified purchase check ────────────────────────────────
+  // Fetches the user's orders on mount and checks if any delivered
+  // order contains this product. If yes, the review form is shown.
+  // If no, the form is replaced with an explanatory message.
+  // Only runs when the user is logged in.
+  useEffect(() => {
+    if (!userInfo) { setPurchaseChecked(true); return; }
+    const checkPurchase = async () => {
+      try {
+        const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+        const { data } = await axios.get('/api/orders/myorders', config);
+        // Check if any delivered order contains this product ID
+     const bought = data.some(
+          (order) =>
+            order.status === 'delivered' &&
+            order.orderItems.some((item) => item.product?.toString() === id)
+        );
+        setVerifiedPurchase(bought);
+      } catch {
+        // If the check fails, default to not showing the form.
+        // The backend enforces the same rule so no security gap.
+        setVerifiedPurchase(false);
+      } finally {
+        setPurchaseChecked(true);
+      }
+    };
+    checkPurchase();
+  }, [userInfo, id]);
 
   useEffect(() => {
     document.title = product?.name ? `${product.name} — ShopZone` : 'Product — ShopZone';
@@ -190,10 +224,14 @@ const submitReviewHandler = (e) => {
             <Col md={6}>
               <h3 className='page-title mb-4'>Customer Reviews</h3>
 
-              {product.reviews && product.reviews.length === 0 ? (
+          {!product?.reviews || product.reviews.length === 0 ? (
                 <Alert className='pp-alert-tan'>No reviews yet. Be the first to review this product!</Alert>
               ) : (
-                <ListGroup variant='flush'>
+                <>
+                  <p className='pp-review-count-line'>
+                    {product.reviews.length} review{product.reviews.length !== 1 ? 's' : ''}
+                  </p>
+                  <ListGroup variant='flush'>
                   {product.reviews && product.reviews.map((review) => (
                     <ListGroup.Item key={review._id} className='pp-review-item'>
                       <div className='d-flex justify-content-between align-items-center mb-1'>
@@ -208,7 +246,8 @@ const submitReviewHandler = (e) => {
                       <p className='pp-review-comment'>{review.comment}</p>
                     </ListGroup.Item>
                   ))}
-                </ListGroup>
+               </ListGroup>
+                </>
               )}
 
               {/* Review form */}
@@ -226,7 +265,25 @@ const submitReviewHandler = (e) => {
                 {reviewSuccess && <Alert className='pp-alert-tan'>Review submitted successfully!</Alert>}
                 {reviewError   && <Alert variant='danger'>{reviewError}</Alert>}
 
-                {userInfo ? (
+                {!userInfo ? (
+                  // Not logged in
+                  <Alert className='pp-alert-tan'>
+                    Please <Link to='/login' className='pp-link'>sign in</Link> to write a review.
+                  </Alert>
+                ) : !purchaseChecked ? (
+                  // Still checking purchase status
+                  <div className='text-center py-3'>
+                    <Spinner animation='border' size='sm' className='pp-spinner' />
+                  </div>
+                ) : !verifiedPurchase ? (
+                  // Logged in but has not bought and received this product
+                  <Alert className='pp-alert-tan'>
+                    <strong>Verified purchases only.</strong> You can leave a review once you have
+                    purchased this product and your order has been delivered. This ensures all
+                    reviews on ShopZone are genuine.
+                  </Alert>
+                ) : (
+                  // Logged in and has a delivered order with this product
                   <Form onSubmit={submitReviewHandler}>
                     <Form.Group className='mb-3'>
                       <Form.Label className='pp-form-label'>Your Rating</Form.Label>
@@ -234,17 +291,23 @@ const submitReviewHandler = (e) => {
                     </Form.Group>
                     <Form.Group controlId='comment' className='mb-3'>
                       <Form.Label>Your Review</Form.Label>
-                      <Form.Control as='textarea' rows={4} placeholder='Share your thoughts about this product...' value={comment} onChange={(e) => setComment(e.target.value)} required />
+                      <Form.Control
+                        as='textarea'
+                        rows={4}
+                        placeholder='Share your honest thoughts about this product. Be specific — quality, packaging, accuracy of description...'
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        required
+                        minLength={10}
+                      />
                     </Form.Group>
                     <Button type='submit' variant='dark' className='w-100' disabled={reviewLoading || rating === 0}>
                       {reviewLoading ? <Spinner animation='border' size='sm' /> : 'Submit Review'}
                     </Button>
-                    {rating === 0 && <p className='pp-rating-hint'>Please select a star rating before submitting</p>}
+                    {rating === 0 && (
+                      <p className='pp-rating-hint'>Please select a star rating before submitting</p>
+                    )}
                   </Form>
-                ) : (
-                  <Alert className='pp-alert-tan'>
-                    Please <Link to='/login' className='pp-link'>sign in</Link> to write a review.
-                  </Alert>
                 )}
               </Card>
             </Col>

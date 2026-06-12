@@ -159,10 +159,110 @@ const updateSellerProfile = async (req, res) => {
   }
 };
 
+// @desc    Submit a new product for admin review
+// @route   POST /api/seller/products
+// @access  Private/Seller
+//
+// Seller-submitted products always start with status 'submitted'.
+// They are NOT publicly visible until admin approves them.
+// The seller field is set to req.user._id automatically.
+// The user field (who created the record) is also set to req.user._id.
+// Admin can later override any field before approving.
+const createSellerProduct = async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      category,
+      price,
+      countInStock,
+      brand,
+      unitType,
+      minimumOrderQuantity,
+      itemsPerUnit,
+      weightPerUnit,
+      dimensions,
+      isBulkOnly,
+      leadTimeDays,
+      tags,
+    } = req.body;
+
+    // ── Required field validation ────────────────────────────
+    if (!name || !description || !category || price === undefined) {
+      return res.status(400).json({
+        message: 'Name, description, category, and price are required.',
+      });
+    }
+
+    if (name.trim().length < 3) {
+      return res.status(400).json({ message: 'Product name must be at least 3 characters.' });
+    }
+
+    if (description.trim().length < 20) {
+      return res.status(400).json({ message: 'Description must be at least 20 characters.' });
+    }
+
+    if (Number(price) < 0) {
+      return res.status(400).json({ message: 'Price cannot be negative.' });
+    }
+
+    // ── Build the product document ───────────────────────────
+    const product = new Product({
+      // Ownership — both user and seller point to the submitting seller
+      user:   req.user._id,
+      seller: req.user._id,
+
+      // Core fields
+      name:        name.trim(),
+      description: description.trim(),
+      category,
+      price:       Number(price),
+      countInStock: Number(countInStock) || 0,
+
+      // Wholesale fields
+      brand:                brand?.trim()              || '',
+      unitType:             unitType                   || 'Per Unit',
+      minimumOrderQuantity: Number(minimumOrderQuantity) || 1,
+      itemsPerUnit:         itemsPerUnit ? Number(itemsPerUnit) : null,
+      weightPerUnit:        weightPerUnit ? Number(weightPerUnit) : null,
+      dimensions:           dimensions?.trim()         || '',
+      isBulkOnly:           Boolean(isBulkOnly),
+      leadTimeDays:         leadTimeDays ? Number(leadTimeDays) : null,
+
+      // Tags — accept comma-separated string or array
+      tags: Array.isArray(tags)
+        ? tags.map(t => t.trim().toLowerCase()).filter(Boolean)
+        : (tags || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean),
+
+      // Merchandising flags — seller cannot set these, admin controls them
+      isFeatured:  false,
+      isOnSale:    false,
+      isClearance: false,
+
+      // Status — always 'submitted', never 'approved', for seller submissions
+      // Admin must explicitly approve before the product goes public
+      status: 'submitted',
+
+      // Default image — seller image upload comes in Issue 4 (screenshot/upload)
+      image: '/images/sample.jpg',
+    });
+
+    const saved = await product.save();
+
+    res.status(201).json({
+      message: 'Product submitted successfully. ShopZone admin will review it before it goes live.',
+      product: saved,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getSellerDashboard,
   getSellerProducts,
   getSellerOrders,
   getSellerProfile,
   updateSellerProfile,
+  createSellerProduct,
 };

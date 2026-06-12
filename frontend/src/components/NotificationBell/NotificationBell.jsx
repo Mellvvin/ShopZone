@@ -99,9 +99,14 @@ const NotificationBell = () => {
         // Silent fail
       }
     }
-    if (notif.relatedOrderId) {
+  // Navigate to the link attached to this notification.
+    // link is set at creation time in the backend controller.
+    // relatedOrderId fallback handles notifications created before
+    // the link field was added.
+    const destination = notif.link || (notif.relatedOrderId ? `/order/${notif.relatedOrderId}` : null);
+    if (destination) {
       setOpen(false);
-      navigate(`/order/${notif.relatedOrderId}`);
+      navigate(destination);
     }
   };
 

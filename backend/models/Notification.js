@@ -32,9 +32,18 @@ const notificationSchema = mongoose.Schema(
     message: { type: String, required: true },
     // Whether the user has read this notification
     isRead: { type: Boolean, default: false },
-    // Optional links to related records — used for navigation on click
+// Optional links to related records — used for navigation on click
     relatedOrderId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Order',   default: null },
     relatedEnquiryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Enquiry', default: null },
+
+    // link — the frontend route this notification navigates to when clicked.
+    // Set at creation time so the bell never has to infer the destination.
+    // Examples: '/order/abc123', '/bulk-orders', '/seller/dashboard'
+    // If null, clicking the notification marks it read but does not navigate.
+    link: {
+      type:    String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

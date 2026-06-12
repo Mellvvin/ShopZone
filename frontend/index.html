@@ -6,13 +6,218 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ShopZone</title>
   </head>
-<body style="background-color: #FAF8F5; margin: 0;">
+<body style="margin: 0; padding: 0;">
   <div id="root">
-    <!-- Optional: A simple loading state while React initializes -->
-    <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
-      ShopZone
+    <div id="sz-splash" style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #002147;
+      gap: 0;
+      overflow: hidden;
+      position: relative;
+    ">
+
+      <!-- Background orbs -->
+      <div style="
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(210,180,140,0.07) 0%, transparent 70%);
+        border-radius: 50%;
+        top: -100px;
+        right: -100px;
+        animation: sz-drift 8s ease-in-out infinite alternate;
+      "></div>
+      <div style="
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(210,180,140,0.05) 0%, transparent 70%);
+        border-radius: 50%;
+        bottom: -80px;
+        left: -80px;
+        animation: sz-drift 10s ease-in-out infinite alternate-reverse;
+      "></div>
+
+      <!-- Floating particles -->
+      <div style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;">
+        <div
+          style="position:absolute; width:3px; height:3px; background:rgba(210,180,140,0.4); border-radius:50%; left:15%; top:70%; animation: sz-float 6s ease-in-out infinite; animation-delay:0s;">
+        </div>
+        <div
+          style="position:absolute; width:2px; height:2px; background:rgba(210,180,140,0.3); border-radius:50%; left:30%; top:80%; animation: sz-float 8s ease-in-out infinite; animation-delay:1s;">
+        </div>
+        <div
+          style="position:absolute; width:4px; height:4px; background:rgba(210,180,140,0.25); border-radius:50%; left:55%; top:75%; animation: sz-float 7s ease-in-out infinite; animation-delay:2s;">
+        </div>
+        <div
+          style="position:absolute; width:2px; height:2px; background:rgba(210,180,140,0.35); border-radius:50%; left:75%; top:85%; animation: sz-float 9s ease-in-out infinite; animation-delay:0.5s;">
+        </div>
+        <div
+          style="position:absolute; width:3px; height:3px; background:rgba(210,180,140,0.2); border-radius:50%; left:85%; top:60%; animation: sz-float 6.5s ease-in-out infinite; animation-delay:3s;">
+        </div>
+        <div
+          style="position:absolute; width:2px; height:2px; background:rgba(210,180,140,0.4); border-radius:50%; left:20%; top:40%; animation: sz-float 7.5s ease-in-out infinite; animation-delay:1.5s;">
+        </div>
+        <div
+          style="position:absolute; width:3px; height:3px; background:rgba(210,180,140,0.3); border-radius:50%; left:65%; top:30%; animation: sz-float 8.5s ease-in-out infinite; animation-delay:4s;">
+        </div>
+      </div>
+
+      <!-- Logo mark -->
+      <div style="
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #D2B48C 0%, #b8976a 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 32px rgba(210,180,140,0.25);
+        animation: sz-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+        position: relative;
+        z-index: 1;
+      ">
+        <span style="
+          font-family: Georgia, serif;
+          font-size: 28px;
+          font-weight: 700;
+          color: #002147;
+          letter-spacing: -1px;
+          line-height: 1;
+        ">S</span>
+      </div>
+
+      <!-- Wordmark -->
+      <div style="
+        font-family: Georgia, serif;
+        font-size: 32px;
+        font-weight: 700;
+        color: #FAF8F5;
+        letter-spacing: -0.5px;
+        line-height: 1;
+        margin-bottom: 6px;
+        animation: sz-fade-up 0.6s ease both;
+        animation-delay: 0.15s;
+        opacity: 0;
+        position: relative;
+        z-index: 1;
+      ">
+        Shop<span style="color: #D2B48C;">Zone</span>
+      </div>
+
+      <!-- Tagline -->
+      <div style="
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(250,248,245,0.45);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin-bottom: 48px;
+        animation: sz-fade-up 0.6s ease both;
+        animation-delay: 0.3s;
+        opacity: 0;
+        position: relative;
+        z-index: 1;
+      ">Wholesale Marketplace</div>
+
+      <!-- Loading bar -->
+      <div style="
+        width: 120px;
+        height: 2px;
+        background: rgba(210,180,140,0.15);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+        animation: sz-fade-up 0.4s ease both;
+        animation-delay: 0.4s;
+        opacity: 0;
+      ">
+        <div style="
+          height: 100%;
+          width: 40%;
+          background: linear-gradient(90deg, transparent, #D2B48C, transparent);
+          border-radius: 2px;
+          animation: sz-shimmer 1.4s ease-in-out infinite;
+        "></div>
+      </div>
+
     </div>
   </div>
+
+  <style>
+    @keyframes sz-float {
+      0% {
+        transform: translateY(0px) translateX(0px);
+        opacity: 0;
+      }
+
+      20% {
+        opacity: 1;
+      }
+
+      80% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(-120px) translateX(10px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes sz-drift {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(30px, 20px) scale(1.1);
+      }
+    }
+
+    @keyframes sz-pop {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes sz-fade-up {
+      0% {
+        transform: translateY(12px);
+        opacity: 0;
+      }
+
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes sz-shimmer {
+      0% {
+        transform: translateX(-200%);
+      }
+
+      100% {
+        transform: translateX(350%);
+      }
+    }
+  </style>
+
   <script type="module" src="/src/main.jsx"></script>
 </body>
+
 </html>

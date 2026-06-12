@@ -83,7 +83,7 @@ const [activeTab,       setActiveTab]       = useState('overview');
     fetchStats();
   }, [userInfo]);
 
-  // ── Fetch products when tab is active ─────────────────────
+// ── Fetch products when tab is active ─────────────────────
   useEffect(() => {
     if (activeTab !== 'products' || !userInfo?.isSeller) return;
     const fetchProducts = async () => {
@@ -99,6 +99,74 @@ const [activeTab,       setActiveTab]       = useState('overview');
     };
     fetchProducts();
   }, [activeTab, userInfo]);
+
+  // ── Product submission form state ─────────────────────────
+  const [showSubmitForm,   setShowSubmitForm]   = useState(false);
+  const [submitLoading,    setSubmitLoading]    = useState(false);
+  const [submitSuccess,    setSubmitSuccess]    = useState(false);
+  const [submitError,      setSubmitError]      = useState('');
+  const [newProduct, setNewProduct] = useState({
+    name:                 '',
+    description:          '',
+    category:             '',
+    price:                '',
+    countInStock:         '',
+    brand:                '',
+    unitType:             'Per Unit',
+    minimumOrderQuantity: '1',
+    itemsPerUnit:         '',
+    weightPerUnit:        '',
+    dimensions:           '',
+    isBulkOnly:           false,
+    leadTimeDays:         '',
+    tags:                 '',
+  });
+
+  const PRODUCT_CATEGORIES = [
+    'Electronics','Fashion & Apparel','Home & Kitchen','Food & Grocery',
+    'Beauty & Personal Care','Hardware & Tools','Office & Stationery',
+    'Agriculture & Garden','Baby & Kids','Sports & Outdoors',
+    'Health & Wellness','Fabric & Textiles','General Merchandise',
+  ];
+
+  const UNIT_TYPES = [
+    'Per Unit','Bale','Carton','Sack','Dozen','Kg',
+    'Box','Roll','Litre','Pallet','Piece','Pack',
+  ];
+
+  const handleProductFieldChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setNewProduct(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const submitNewProduct = async (e) => {
+    e.preventDefault();
+    setSubmitLoading(true);
+    setSubmitError('');
+    try {
+      await axios.post('/api/seller/products', newProduct, config);
+      setSubmitSuccess(true);
+      setShowSubmitForm(false);
+      // Refresh the products list so the newly submitted product appears
+      const { data } = await axios.get('/api/seller/products', config);
+      setProducts(data);
+      // Reset form
+      setNewProduct({
+        name: '', description: '', category: '', price: '',
+        countInStock: '', brand: '', unitType: 'Per Unit',
+        minimumOrderQuantity: '1', itemsPerUnit: '', weightPerUnit: '',
+        dimensions: '', isBulkOnly: false, leadTimeDays: '', tags: '',
+      });
+      setTimeout(() => setSubmitSuccess(false), 5000);
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Submission failed. Please try again.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
 // ── Fetch seller profile when tab is active ───────────────
   useEffect(() => {
@@ -292,50 +360,298 @@ const [activeTab,       setActiveTab]       = useState('overview');
           </>
         )}
 
-        {/* ══ PRODUCTS TAB ══════════════════════════════════ */}
+       {/* ══ PRODUCTS TAB ══════════════════════════════════ */}
         {activeTab === 'products' && (
           <div className='mt-3'>
+
+            {/* Success banner */}
+            {submitSuccess && (
+              <Alert variant='success' className='mb-3'>
+                Product submitted successfully. ShopZone admin will review it before it goes live.
+              </Alert>
+            )}
+
+            {/* Submit product toggle button */}
+            <div className='seller-products-header'>
+              <p className='seller-products-count'>
+                {products.length} product{products.length !== 1 ? 's' : ''} on your account
+              </p>
+              <button
+                className='seller-submit-btn'
+                onClick={() => { setShowSubmitForm(v => !v); setSubmitError(''); }}
+              >
+                {showSubmitForm ? 'Cancel' : '+ Submit New Product'}
+              </button>
+            </div>
+
+            {/* ── Product submission form ───────────────── */}
+            {showSubmitForm && (
+              <div className='seller-submit-form'>
+                <h5 className='seller-submit-form__title'>Submit a Product for Review</h5>
+                <p className='seller-submit-form__note'>
+                  Your product will not go live until ShopZone admin has reviewed and approved it.
+                  Do not include phone numbers, WhatsApp details, or direct contact information
+                  anywhere in this form — submissions containing contact details will be rejected.
+                </p>
+
+                {submitError && (
+                  <Alert variant='danger' className='mb-3'>{submitError}</Alert>
+                )}
+
+                <form onSubmit={submitNewProduct} noValidate>
+                  <div className='seller-submit-form__grid'>
+
+                    {/* Name */}
+                    <div className='seller-submit-form__field seller-submit-form__field--full'>
+                      <label>Product Name <span className='seller-submit-form__req'>*</span></label>
+                      <input
+                        type='text'
+                        name='name'
+                        value={newProduct.name}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. Sunlight Dish Soap — Carton of 24'
+                        required
+                      />
+                    </div>
+
+                    {/* Category */}
+                    <div className='seller-submit-form__field'>
+                      <label>Category <span className='seller-submit-form__req'>*</span></label>
+                      <select name='category' value={newProduct.category} onChange={handleProductFieldChange} required>
+                        <option value=''>Select category</option>
+                        {PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+
+                    {/* Brand */}
+                    <div className='seller-submit-form__field'>
+                      <label>Brand</label>
+                      <input
+                        type='text'
+                        name='brand'
+                        value={newProduct.brand}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. Unilever, Bidco, Samsung'
+                      />
+                    </div>
+
+                    {/* Price */}
+                    <div className='seller-submit-form__field'>
+                      <label>Price (KES) <span className='seller-submit-form__req'>*</span></label>
+                      <input
+                        type='number'
+                        name='price'
+                        value={newProduct.price}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. 2400'
+                        min='0'
+                        required
+                      />
+                    </div>
+
+                    {/* Stock */}
+                    <div className='seller-submit-form__field'>
+                      <label>Current Stock (units)</label>
+                      <input
+                        type='number'
+                        name='countInStock'
+                        value={newProduct.countInStock}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. 50'
+                        min='0'
+                      />
+                    </div>
+
+                    {/* Unit type */}
+                    <div className='seller-submit-form__field'>
+                      <label>Unit Type</label>
+                      <select name='unitType' value={newProduct.unitType} onChange={handleProductFieldChange}>
+                        {UNIT_TYPES.map(u => <option key={u} value={u}>{u}</option>)}
+                      </select>
+                    </div>
+
+                    {/* MOQ */}
+                    <div className='seller-submit-form__field'>
+                      <label>Minimum Order Quantity</label>
+                      <input
+                        type='number'
+                        name='minimumOrderQuantity'
+                        value={newProduct.minimumOrderQuantity}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. 5'
+                        min='1'
+                      />
+                    </div>
+
+                    {/* Items per unit */}
+                    <div className='seller-submit-form__field'>
+                      <label>Items Per Unit</label>
+                      <input
+                        type='number'
+                        name='itemsPerUnit'
+                        value={newProduct.itemsPerUnit}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. 24 bars per carton'
+                        min='1'
+                      />
+                    </div>
+
+                    {/* Weight */}
+                    <div className='seller-submit-form__field'>
+                      <label>Weight Per Unit (kg)</label>
+                      <input
+                        type='number'
+                        name='weightPerUnit'
+                        value={newProduct.weightPerUnit}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. 12.5'
+                        min='0'
+                        step='0.1'
+                      />
+                    </div>
+
+                    {/* Lead time */}
+                    <div className='seller-submit-form__field'>
+                      <label>Lead Time (days)</label>
+                      <input
+                        type='number'
+                        name='leadTimeDays'
+                        value={newProduct.leadTimeDays}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. 2'
+                        min='0'
+                      />
+                    </div>
+
+                    {/* Dimensions */}
+                    <div className='seller-submit-form__field'>
+                      <label>Dimensions</label>
+                      <input
+                        type='text'
+                        name='dimensions'
+                        value={newProduct.dimensions}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. 40 x 30 x 20 cm'
+                      />
+                    </div>
+
+                    {/* Tags */}
+                    <div className='seller-submit-form__field'>
+                      <label>Tags <span className='seller-submit-form__hint'>(comma separated)</span></label>
+                      <input
+                        type='text'
+                        name='tags'
+                        value={newProduct.tags}
+                        onChange={handleProductFieldChange}
+                        placeholder='e.g. bulk, wholesale, cleaning'
+                      />
+                    </div>
+
+                    {/* Description — full width */}
+                    <div className='seller-submit-form__field seller-submit-form__field--full'>
+                      <label>Description <span className='seller-submit-form__req'>*</span></label>
+                      <textarea
+                        name='description'
+                        value={newProduct.description}
+                        onChange={handleProductFieldChange}
+                        rows={4}
+                        placeholder='Describe the product clearly — size, contents, use case. Minimum 20 characters. Do not include contact details.'
+                        required
+                        minLength={20}
+                      />
+                    </div>
+
+                    {/* Bulk only checkbox */}
+                    <div className='seller-submit-form__field seller-submit-form__field--check'>
+                      <label className='seller-submit-form__check-label'>
+                        <input
+                          type='checkbox'
+                          name='isBulkOnly'
+                          checked={newProduct.isBulkOnly}
+                          onChange={handleProductFieldChange}
+                        />
+                        Wholesale / Bulk only — cannot be bought as single pieces
+                      </label>
+                    </div>
+
+                  </div>
+
+                  <button
+                    type='submit'
+                    className='seller-submit-form__submit'
+                    disabled={
+                      submitLoading ||
+                      !newProduct.name ||
+                      !newProduct.description ||
+                      !newProduct.category ||
+                      newProduct.price === ''
+                    }
+                  >
+                    {submitLoading ? 'Submitting…' : 'Submit for Review'}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* ── Products table ────────────────────────── */}
             {loading ? (
               <div className='text-center py-5'>
                 <Spinner animation='border' style={{ color: 'var(--oxford-blue)' }} />
               </div>
-            ) : products.length === 0 ? (
-              <Alert variant='info'>No products assigned to your account yet. Contact ShopZone to submit products.</Alert>
-            ) : (
-              <Table responsive hover className='seller-table'>
+            ) : products.length === 0 && !showSubmitForm ? (
+              <Alert variant='info' className='mt-3'>
+                You have no products yet. Click <strong>Submit New Product</strong> above to get started.
+              </Alert>
+            ) : products.length > 0 ? (
+              <Table responsive hover className='seller-table mt-3'>
                 <thead>
                   <tr>
                     <th>Product</th>
                     <th>Category</th>
                     <th>Price (KES)</th>
                     <th>Stock</th>
-                    <th>Status</th>
+                    <th>Review Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
-                    <tr key={p._id}>
-                      <td className='seller-table__name'>{p.name}</td>
-                      <td>{p.category}</td>
-                      <td>{Number(p.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}</td>
-                      <td>
-                        <Badge bg={p.countInStock > 0 ? 'success' : 'danger'}>
-                          {p.countInStock > 0 ? `${p.countInStock} units` : 'Out of stock'}
-                        </Badge>
-                      </td>
-                      <td>
-                        <Badge bg={p.isFeatured ? 'primary' : 'secondary'}>
-                          {p.isFeatured ? 'Featured' : 'Standard'}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
+                  {products.map((p) => {
+                    const statusMap = {
+                      draft:        { bg: 'secondary', label: 'Draft' },
+                      submitted:    { bg: 'warning',   label: 'Awaiting Review', text: 'dark' },
+                      needs_changes:{ bg: 'danger',    label: 'Changes Requested' },
+                      approved:     { bg: 'success',   label: 'Live' },
+                      rejected:     { bg: 'danger',    label: 'Rejected' },
+                      archived:     { bg: 'secondary', label: 'Archived' },
+                    };
+                    const s = statusMap[p.status] || { bg: 'secondary', label: p.status };
+                    return (
+                      <tr key={p._id}>
+                        <td className='seller-table__name'>{p.name}</td>
+                        <td>{p.category}</td>
+                        <td>{Number(p.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}</td>
+                        <td>
+                          <Badge bg={p.countInStock > 0 ? 'success' : 'danger'}>
+                            {p.countInStock > 0 ? `${p.countInStock} units` : 'Out of stock'}
+                          </Badge>
+                        </td>
+                        <td>
+                          <Badge bg={s.bg} text={s.text}>
+                            {s.label}
+                          </Badge>
+                          {/* Show admin feedback if changes are requested */}
+                          {p.status === 'needs_changes' && p.adminFeedback && (
+                            <p className='seller-table__feedback'>{p.adminFeedback}</p>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </Table>
-            )}
+            ) : null}
           </div>
         )}
-
+        
         {/* ══ ORDERS TAB ════════════════════════════════════ */}
         {activeTab === 'orders' && (
           <div className='mt-3'>

@@ -202,6 +202,30 @@ const productSchema = mongoose.Schema(
       trim: true,
     },
 
+  // ── Submission status ────────────────────────────────────
+    // Controls whether this product is publicly visible.
+    // Seller-submitted products start as 'submitted' and require
+    // admin approval before becoming 'approved' (publicly visible).
+    // Admin-created products default to 'approved' immediately.
+    //
+    // draft        — seller started but hasn't submitted yet
+    // submitted    — seller submitted, waiting for admin review
+    // needs_changes — admin sent back with feedback
+    // approved     — publicly visible on the storefront
+    // rejected     — permanently declined
+    // archived     — removed from public view, kept for records
+    status: {
+      type: String,
+      enum: ['draft', 'submitted', 'needs_changes', 'approved', 'rejected', 'archived'],
+      default: 'approved', // admin-created products are live immediately
+    },
+
+    // Admin feedback when status is 'needs_changes' or 'rejected'
+    adminFeedback: {
+      type: String,
+      default: '',
+    },
+
     // ── NEW: Bulk only flag ───────────────────────────────────
     // If true, this product cannot be purchased as single pieces.
     // The product detail page and cart will enforce the MOQ and

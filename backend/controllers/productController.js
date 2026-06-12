@@ -15,21 +15,28 @@
 //   Added getProductBrands endpoint for BrandsPage.
 //   Added getPlatformStats endpoint for all stats strips.
 // ─────────────────────────────────────────────────────────────
-const Product = require('../models/Product');
-const Order   = require('../models/Order');
-const User    = require('../models/User');
-const Enquiry = require('../models/Enquiry');
+const Product    = require('../models/Product');
+const Order      = require('../models/Order');
+const User       = require('../models/User');
+const Enquiry    = require('../models/Enquiry');
+// Profanity filter — screens review comments and enquiry messages
+// before they reach the database. Uses the leo-profanity package.
+// Add custom Kenyan slang or platform-specific terms as needed.
+const leoProfanity = require('leo-profanity');
+// Load the full English dictionary on startup
+leoProfanity.loadDictionary('en');
 
 // @desc    Fetch all products with optional filters
 // @route   GET /api/products
 // @access  Public
 const getProducts = async (req, res) => {
   try {
-    // ── Build the filter object from query params ──────────────
-    // We start with an empty filter and add conditions based on
-    // what was passed in the URL query string.
-    // Example: GET /api/products?keyword=samsung&category=Electronics
-    const filter = {};
+  // ── Build the filter object from query params ──────────────
+    // Public requests only see approved products.
+    // Admin requests (valid token + isAdmin) see all statuses so
+    // they can manage submitted, draft, and rejected products.
+    const isAdmin = req.user?.isAdmin;
+    const filter = isAdmin ? {} : { status: 'approved' };
 
     // ── Keyword search ────────────────────────────────────────
     // Searches across four fields simultaneously using $or.
@@ -189,7 +196,7 @@ const createProduct = async (req, res) => {
 // @access  Private/Admin
 const updateProduct = async (req, res) => {
   try {
- const {
+const {
       name,
       price,
       salePrice,
@@ -202,7 +209,6 @@ const updateProduct = async (req, res) => {
       isFeatured,
       isOnSale,
       isClearance,
-      // ── NEW: Wholesale and brand fields ───────────────────
       brand,
       unitType,
       minimumOrderQuantity,
@@ -211,6 +217,10 @@ const updateProduct = async (req, res) => {
       dimensions,
       isBulkOnly,
       leadTimeDays,
+      // ── Seller assignment and approval status ─────────────
+      seller,
+      status,
+      adminFeedback,
     } = req.body;
 
     const product = await Product.findById(req.params.id);
@@ -245,9 +255,21 @@ const updateProduct = async (req, res) => {
     if (itemsPerUnit      !== undefined) product.itemsPerUnit        = itemsPerUnit !== null ? Number(itemsPerUnit) : null;
     if (weightPerUnit     !== undefined) product.weightPerUnit       = weightPerUnit !== null ? Number(weightPerUnit) : null;
     if (dimensions        !== undefined) product.dimensions          = dimensions.trim();
-    if (isBulkOnly        !== undefined) product.isBulkOnly         = isBulkOnly ?? false;
+   if (isBulkOnly        !== undefined) product.isBulkOnly         = isBulkOnly ?? false;
     if (leadTimeDays      !== undefined) product.leadTimeDays        = leadTimeDays !== null ? Number(leadTimeDays) : null;
-    
+
+    // ── Seller assignment ─────────────────────────────────────
+    // Admin can assign or reassign a product to any approved seller.
+    // null means no seller — admin-managed product.
+    if (seller !== undefined) product.seller = seller || null;
+
+    // ── Approval status and feedback ──────────────────────────
+    // Admin sets status to approved/rejected/needs_changes.
+    // adminFeedback is shown to the seller on their dashboard
+    // when status is needs_changes or rejected.
+    if (status        !== undefined) product.status        = status;
+    if (adminFeedback !== undefined) product.adminFeedback = adminFeedback || '';
+
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } catch (error) {
@@ -280,26 +302,88 @@ const createProductReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
 
+    // ── Basic validation ───────────────────────────────────────
+    if (!rating || !comment || comment.trim().length < 10) {
+      return res.status(400).json({
+        message: 'Please provide a rating and a comment of at least 10 characters.',
+      });
+    }
+
+    // ── Profanity check ────────────────────────────────────────
+    // Blocks obscene language before it reaches the database.
+    // Returns a clear message so the user knows what to fix.
+    // Never shows which specific word was flagged — just asks them
+    // to keep the language courteous.
+    if (leoProfanity.check(comment)) {
+      return res.status(400).json({
+        message: 'Your review contains language that is not permitted on ShopZone. Please keep your feedback courteous and professional.',
+      });
+    }
+
     const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // ── Check if user already reviewed this product ────────────
+   // ── Verified purchase check ────────────────────────────────
+    // Only buyers who have received this product can review it.
+    // We check for a delivered order belonging to this user that
+    // contains this product ID in its orderItems array.
+    //
+    // This blocks:
+    //   — Sellers leaving bad reviews on competitor products
+    //   — Anyone who browsed but never bought
+    //   — Accounts created purely to review-bomb
+    //
+    // We require status 'delivered' not just isPaid, because a
+    // buyer should have actually received the goods before reviewing.
+    // The product ID is stored on orderItems as the 'product' field —
+    // this matches the non-negotiable cart rule: item.product = MongoDB ID.
+    const verifiedPurchase = await Order.findOne({
+      user:              req.user._id,
+      status:            'delivered',
+      'orderItems.product': product._id,
+    });
+
+    if (!verifiedPurchase) {
+      return res.status(400).json({
+        message: 'You can only review products you have purchased and received. Once your order is delivered, you will be able to leave a review.',
+      });
+    }
+
+    // ── Block sellers from reviewing their own products ────────
+    // Checked after the purchase check so the purchase check fires
+    // first — a seller who somehow bought their own product still
+    // cannot review it.
+    if (
+      req.user.isSeller &&
+      product.seller &&
+      product.seller.toString() === req.user._id.toString()
+    ) {
+      return res.status(400).json({
+        message: 'You cannot review your own product.',
+      });
+    }
+
+    // ── Block duplicate reviews ────────────────────────────────
+    // Each buyer can only submit one review per product even if
+    // they have ordered it multiple times.
     const alreadyReviewed = product.reviews.find(
       (r) => r.user.toString() === req.user._id.toString()
     );
 
     if (alreadyReviewed) {
-      return res.status(400).json({ message: 'You have already reviewed this product' });
+      return res.status(400).json({
+        message: 'You have already reviewed this product. Each buyer can leave one review per product.',
+      });
     }
 
     // ── Add the new review ─────────────────────────────────────
     const review = {
       name:    req.user.name,
       rating:  Number(rating),
-      comment,
+      comment: comment.trim(),
       user:    req.user._id,
     };
 

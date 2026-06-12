@@ -31,6 +31,7 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
+import { formatKES } from '../utils/formatKES';
 import {
   FaClipboardList,
   FaTruck,
@@ -45,9 +46,6 @@ import {
 } from 'react-icons/fa';
 import './AdminOrderListPage.css';
 
-// ── Helper: format KES ────────────────────────────────────────────────────
-const formatKES = (amount) =>
-  `KES ${Number(amount).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
 
 // ── Status badge config ───────────────────────────────────────────────────
 // Maps each order status to a CSS modifier and label
