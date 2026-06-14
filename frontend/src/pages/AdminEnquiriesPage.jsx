@@ -254,10 +254,13 @@ const AdminEnquiriesPage = () => {
     // ── Page title ────────────────────────────────────────────
     useEffect(() => { document.title = 'Admin: Enquiries — ShopZone'; }, []);
 
-    // ── Data state ────────────────────────────────────────────
-    const [enquiries, setEnquiries]   = useState([]);
-    const [loading, setLoading]       = useState(true);
-    const [error, setError]           = useState(null);
+// ── Data state ────────────────────────────────────────────
+    const [enquiries, setEnquiries]       = useState([]);
+    // allEnquiries is fetched once without filters and used only
+    // for tab badge counts — keeps counts stable when filters change.
+    const [allEnquiries, setAllEnquiries] = useState([]);
+    const [loading, setLoading]           = useState(true);
+    const [error, setError]               = useState(null);
 
     // ── Filter state ──────────────────────────────────────────
     const [typeFilter, setTypeFilter]       = useState('all');
@@ -297,17 +300,36 @@ const AdminEnquiriesPage = () => {
         }
     }, [typeFilter, statusFilter, resolvedFilter, search]);
 
+// ── Fetch all enquiries once for stable tab counts ─────────
+    // This runs once on mount regardless of filter changes.
+    // Tab badges always reflect the full dataset.
+    useEffect(() => {
+        if (!userInfo?.isAdmin) { navigate('/'); return; }
+        const fetchAll = async () => {
+            try {
+                const { data } = await axios.get('/api/enquiries', config);
+                setAllEnquiries(data);
+            } catch {
+                // Non-critical — counts fall back to 0 if this fails
+            }
+        };
+        fetchAll();
+    }, [userInfo]);
+
     useEffect(() => {
         if (!userInfo?.isAdmin) { navigate('/'); return; }
         fetchEnquiries();
     }, [fetchEnquiries]);
 
-    // ── Count enquiries by type for tab badges ─────────────────
+// ── Counts from the full unfiltered dataset ────────────────
+    // Using allEnquiries means these never change when filters are applied.
     const countByType = (type) =>
-        enquiries.filter(e => type === 'all' ? true : e.type === type).length;
+        allEnquiries.filter(e => type === 'all' ? true : e.type === type).length;
 
-    // ── Count new (unread) enquiries ──────────────────────────
-    const newCount = enquiries.filter(e => e.status === 'new').length;
+    const newCount         = allEnquiries.filter(e => e.status === 'new').length;
+    const totalCount       = allEnquiries.length;
+    const actionedCount    = allEnquiries.filter(e => e.status === 'actioned').length;
+    const closedCount      = allEnquiries.filter(e => e.status === 'closed').length;
 
   // ── Type filter tabs ──────────────────────────────────────
     const TYPE_TABS = [
@@ -334,13 +356,31 @@ const AdminEnquiriesPage = () => {
                     </div>
                 </div>
 
-                {/* New enquiries alert badge */}
-                {newCount > 0 && (
-                    <div className='enq-page__new-alert'>
-                        <FaExclamationTriangle aria-hidden='true' />
-                        {newCount} new unread {newCount === 1 ? 'enquiry' : 'enquiries'}
+               {/* Header count pills — always visible, match AdminProductListPage pattern */}
+                <div className='enq-page__pills'>
+                    <div className='enq-pill'>
+                        <span className='enq-pill__num'>{totalCount}</span>
+                        <span className='enq-pill__label'>Total</span>
                     </div>
-                )}
+                    {newCount > 0 && (
+                        <div className='enq-pill enq-pill--red'>
+                            <span className='enq-pill__num'>{newCount}</span>
+                            <span className='enq-pill__label'>Unread</span>
+                        </div>
+                    )}
+                    {actionedCount > 0 && (
+                        <div className='enq-pill enq-pill--blue'>
+                            <span className='enq-pill__num'>{actionedCount}</span>
+                            <span className='enq-pill__label'>Actioned</span>
+                        </div>
+                    )}
+                    {closedCount > 0 && (
+                        <div className='enq-pill enq-pill--green'>
+                            <span className='enq-pill__num'>{closedCount}</span>
+                            <span className='enq-pill__label'>Closed</span>
+                        </div>
+                    )}
+                </div>
             </div>
 
            {/* ── Type filter tabs ────────────────────────── */}

@@ -760,3 +760,66 @@
         font-size: 0.78rem;
     }
 }
+
+/* ── Header count pills ──────────────────────────────────────── */
+.enq-page__pills {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.enq-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: rgba(0, 33, 71, 0.06);
+    border: 1px solid rgba(0, 33, 71, 0.1);
+    min-width: 56px;
+}
+
+.enq-pill__num {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+    line-height: 1;
+}
+
+.enq-pill__label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #767676;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+}
+
+.enq-pill--red {
+    background: rgba(192, 57, 43, 0.08);
+    border-color: rgba(192, 57, 43, 0.2);
+}
+
+.enq-pill--red .enq-pill__num {
+    color: #c0392b;
+}
+
+.enq-pill--blue {
+    background: rgba(41, 128, 185, 0.08);
+    border-color: rgba(41, 128, 185, 0.2);
+}
+
+.enq-pill--blue .enq-pill__num {
+    color: #2980b9;
+}
+
+.enq-pill--green {
+    background: rgba(39, 174, 96, 0.08);
+    border-color: rgba(39, 174, 96, 0.2);
+}
+
+.enq-pill--green .enq-pill__num {
+    color: #27ae60;
+}

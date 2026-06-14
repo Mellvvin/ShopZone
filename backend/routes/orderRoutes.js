@@ -32,6 +32,7 @@ const {
   getPendingQuoteOrders,
   getPayoutQueue,
   submitSellerQuote,
+  updateOrderShipping,
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -73,5 +74,9 @@ router.put('/:id/delivery-quote/reject', protect, rejectDeliveryQuote);
 // ── Payout release (lightweight escrow) ───────────────────────────────────
 // Admin explicitly releases seller payment after delivery confirmed
 router.put('/:id/release-payout', protect, admin, releaseSellerPayout);
+
+// ── Generic order update route (for future use) ───────────────────────────
+// router.put('/:id', protect, updateOrder);
+router.put('/:id/shipping', protect, admin, updateOrderShipping);
 
 module.exports = router;

@@ -289,3 +289,38 @@
         padding: 2rem 1.25rem;
     }
 }
+
+/* ── Show password toggle ────────────────────────────────────── */
+.login-password-wrap {
+    position: relative;
+}
+
+/* Extra right padding so text never sits under the eye button */
+.login-input--password {
+    padding-right: 44px;
+}
+
+.login-eye-btn {
+    all: unset;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #999;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+    line-height: 1;
+}
+
+.login-eye-btn:hover {
+    color: var(--oxford-blue);
+}
+
+.login-eye-btn:focus-visible {
+    outline: 2px solid var(--tan);
+    outline-offset: 2px;
+    border-radius: 3px;
+}

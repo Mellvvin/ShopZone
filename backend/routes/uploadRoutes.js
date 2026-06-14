@@ -1,7 +1,18 @@
-const path = require('path');
+// backend/routes/uploadRoutes.js
+// ─────────────────────────────────────────────────────────────
+// Image upload route — accepts a single image file and saves it
+// to the local uploads/ folder.
+//
+// Auth: requires a logged-in user (protect middleware).
+// Both admin and approved sellers can upload images.
+// Images are stored locally for development — Cloudinary
+// migration happens in Step 22.
+// ─────────────────────────────────────────────────────────────
+const path    = require('path');
 const express = require('express');
-const multer = require('multer');
-const router = express.Router();
+const multer  = require('multer');
+const router  = express.Router();
+const { protect } = require('../middleware/authMiddleware');
 
 // 1. Setup Storage Engine
 const storage = multer.diskStorage({
@@ -38,7 +49,9 @@ const upload = multer({
 });
 
 // 3. The Route: Uploads a single image
-router.post('/', upload.single('image'), (req, res) => {
+// protect — must be logged in. Admin and approved sellers both
+// need this route. Anonymous uploads are never allowed.
+router.post('/', protect, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).send({ message: 'No file uploaded! Check your field name.' });
   }

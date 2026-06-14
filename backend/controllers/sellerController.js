@@ -243,8 +243,9 @@ const createSellerProduct = async (req, res) => {
       // Admin must explicitly approve before the product goes public
       status: 'submitted',
 
-      // Default image — seller image upload comes in Issue 4 (screenshot/upload)
-      image: '/images/sample.jpg',
+  // Image — seller uploads before submitting; validated in the frontend.
+      // Falls back to placeholder only if somehow missing.
+      image: req.body.image || '/images/sample.jpg',
     });
 
     const saved = await product.save();

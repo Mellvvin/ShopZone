@@ -105,6 +105,10 @@ const [activeTab,       setActiveTab]       = useState('overview');
   const [submitLoading,    setSubmitLoading]    = useState(false);
   const [submitSuccess,    setSubmitSuccess]    = useState(false);
   const [submitError,      setSubmitError]      = useState('');
+  // Image upload state for the submission form
+  const [imageUploading,   setImageUploading]   = useState(false);
+  const [imagePreview,     setImagePreview]     = useState('');
+  const [stockConfirmed,   setStockConfirmed]   = useState(false);
   const [newProduct, setNewProduct] = useState({
     name:                 '',
     description:          '',
@@ -120,6 +124,7 @@ const [activeTab,       setActiveTab]       = useState('overview');
     isBulkOnly:           false,
     leadTimeDays:         '',
     tags:                 '',
+    image:                '',
   });
 
   const PRODUCT_CATEGORIES = [
@@ -134,7 +139,7 @@ const [activeTab,       setActiveTab]       = useState('overview');
     'Box','Roll','Litre','Pallet','Piece','Pack',
   ];
 
-  const handleProductFieldChange = (e) => {
+const handleProductFieldChange = (e) => {
     const { name, value, type, checked } = e.target;
     setNewProduct(prev => ({
       ...prev,
@@ -142,24 +147,64 @@ const [activeTab,       setActiveTab]       = useState('overview');
     }));
   };
 
-  const submitNewProduct = async (e) => {
+  // ── Image upload handler ───────────────────────────────────
+  // Posts to /api/upload (which now accepts approved sellers).
+  // Stores the returned path on newProduct.image.
+  // Shows a preview so the seller can confirm the image before
+  // submitting. Admin will see the actual image during review.
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      setImageUploading(true);
+      setSubmitError('');
+      const { data } = await axios.post('/api/upload', formData, {
+        headers: {
+          'Content-Type':  'multipart/form-data',
+          Authorization:   `Bearer ${userInfo.token}`,
+        },
+      });
+      // data is the image path string e.g. "/uploads/image-123.jpg"
+      setNewProduct(prev => ({ ...prev, image: data }));
+      setImagePreview(data);
+    } catch (err) {
+      setSubmitError('Image upload failed. Please try again with a JPG or PNG under 5MB.');
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+ const submitNewProduct = async (e) => {
     e.preventDefault();
+    // Image is required — admin cannot review a product with no photo
+    if (!newProduct.image) {
+      setSubmitError('Please upload a product image before submitting.');
+      return;
+    }
+    if (!stockConfirmed) {
+      setSubmitError('Please confirm that the image shows your actual stock.');
+      return;
+    }
     setSubmitLoading(true);
     setSubmitError('');
     try {
       await axios.post('/api/seller/products', newProduct, config);
       setSubmitSuccess(true);
       setShowSubmitForm(false);
-      // Refresh the products list so the newly submitted product appears
+      // Refresh the products list
       const { data } = await axios.get('/api/seller/products', config);
       setProducts(data);
-      // Reset form
+      // Reset form and upload state
       setNewProduct({
         name: '', description: '', category: '', price: '',
         countInStock: '', brand: '', unitType: 'Per Unit',
         minimumOrderQuantity: '1', itemsPerUnit: '', weightPerUnit: '',
-        dimensions: '', isBulkOnly: false, leadTimeDays: '', tags: '',
+        dimensions: '', isBulkOnly: false, leadTimeDays: '', tags: '', image: '',
       });
+      setImagePreview('');
+      setStockConfirmed(false);
       setTimeout(() => setSubmitSuccess(false), 5000);
     } catch (err) {
       setSubmitError(err.response?.data?.message || 'Submission failed. Please try again.');
@@ -561,6 +606,47 @@ const [activeTab,       setActiveTab]       = useState('overview');
                       />
                     </div>
 
+                    {/* ── Product Image ─────────────────────── */}
+                    <div className='seller-submit-form__field seller-submit-form__field--full'>
+                      <label>
+                        Product Image <span className='seller-submit-form__req'>*</span>
+                      </label>
+
+                      {/* Photography tip panel */}
+                      <div className='seller-img-tip'>
+                        <strong>📸 Good photos sell more.</strong> Use natural light, a clean background,
+                        and show the actual packaging or carton. No phone numbers, watermarks, TikTok
+                        screenshots, or AI-generated renders — submissions with these will be rejected.
+                      </div>
+
+                      {/* Upload input */}
+                      <div className='seller-img-upload-row'>
+                        <label className='seller-img-upload-btn' htmlFor='seller-img-input'>
+                          {imageUploading ? 'Uploading…' : imagePreview ? 'Change Image' : 'Upload Image'}
+                          <input
+                            id='seller-img-input'
+                            type='file'
+                            accept='image/jpeg,image/png'
+                            onChange={handleImageUpload}
+                            disabled={imageUploading}
+                            className='seller-img-upload-btn__input'
+                          />
+                          
+                        </label>
+                        <span className='seller-img-upload-hint'>JPG or PNG, max 5MB</span>
+                      </div>
+
+                      {/* Preview */}
+                      {imagePreview && (
+                        <div className='seller-img-preview'>
+                          <img src={imagePreview} alt='Product preview' className='seller-img-preview__img' />
+                          <p className='seller-img-preview__label'>
+                            Image uploaded — admin will review this before approving.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Bulk only checkbox */}
                     <div className='seller-submit-form__field seller-submit-form__field--check'>
                       <label className='seller-submit-form__check-label'>
@@ -574,17 +660,33 @@ const [activeTab,       setActiveTab]       = useState('overview');
                       </label>
                     </div>
 
+                    {/* Stock confirmation checkbox */}
+                    <div className='seller-submit-form__field seller-submit-form__field--check'>
+                      <label className='seller-submit-form__check-label'>
+                        <input
+                          type='checkbox'
+                          checked={stockConfirmed}
+                          onChange={e => setStockConfirmed(e.target.checked)}
+                        />
+                        I confirm the image above shows my actual stock and is not AI-generated,
+                        watermarked, or taken from another seller's listing.
+                      </label>
+                    </div>
+
                   </div>
 
-                  <button
+                <button
                     type='submit'
                     className='seller-submit-form__submit'
                     disabled={
                       submitLoading ||
+                      imageUploading ||
                       !newProduct.name ||
                       !newProduct.description ||
                       !newProduct.category ||
-                      newProduct.price === ''
+                      newProduct.price === '' ||
+                      !newProduct.image ||
+                      !stockConfirmed
                     }
                   >
                     {submitLoading ? 'Submitting…' : 'Submit for Review'}
@@ -811,7 +913,7 @@ const [activeTab,       setActiveTab]       = useState('overview');
           </div>
         )}
 
-   {/* ══ PROFILE TAB ═══════════════════════════════════ */}
+   {/*{/* ══ PROFILE TAB ═══════════════════════════════════ */}
         {activeTab === 'profile' && (
           <div className='mt-3'>
             {loading ? (
@@ -819,88 +921,166 @@ const [activeTab,       setActiveTab]       = useState('overview');
                 <Spinner animation='border' style={{ color: 'var(--oxford-blue)' }} />
               </div>
             ) : (
-              <Card className='seller-profile-card'>
-                <Card.Body>
-                  <h5 className='seller-info-card__title mb-3'>Business Profile</h5>
+              <>
+                {/* ── Earnings and payout summary ───────────── */}
+                {stats && (
+                  <div className='sp-earnings'>
+                    <h5 className='sp-earnings__title'>Account Summary</h5>
+                    <div className='sp-earnings__grid'>
 
-                  {profileSuccess && (
-                    <Alert variant='success' className='mb-3'>Profile updated successfully.</Alert>
-                  )}
-                  {error && (
-                    <Alert variant='danger' className='mb-3'>{error}</Alert>
-                  )}
+                      {/* Total products */}
+                      <div className='sp-earnings__card'>
+                        <span className='sp-earnings__label'>My Products</span>
+                        <span className='sp-earnings__value'>{stats.totalProducts ?? 0}</span>
+                        <span className='sp-earnings__sub'>Listed on your account</span>
+                      </div>
 
-                  {/* Business name */}
-                  <div className='seller-profile-field'>
-                    <label className='seller-profile-label'>Business Name</label>
-                    <input
-                      className='seller-profile-input'
-                      type='text'
-                      value={spBusinessName}
-                      onChange={(e) => setSpBusinessName(e.target.value)}
-                      placeholder='Your registered business name'
-                    />
+                      {/* Total orders */}
+                      <div className='sp-earnings__card'>
+                        <span className='sp-earnings__label'>Total Orders</span>
+                        <span className='sp-earnings__value'>{stats.totalOrders ?? 0}</span>
+                        <span className='sp-earnings__sub'>All time</span>
+                      </div>
+
+                      {/* Pending orders */}
+                      <div className='sp-earnings__card sp-earnings__card--amber'>
+                        <span className='sp-earnings__label'>Pending Orders</span>
+                        <span className='sp-earnings__value'>{stats.pendingOrders ?? 0}</span>
+                        <span className='sp-earnings__sub'>Awaiting fulfilment</span>
+                      </div>
+
+                      {/* Payouts released */}
+                      <div className='sp-earnings__card sp-earnings__card--green'>
+                        <span className='sp-earnings__label'>Payouts Released</span>
+                        <span className='sp-earnings__value'>{stats.payoutReleased ?? 0}</span>
+                        <span className='sp-earnings__sub'>Orders paid out to you</span>
+                      </div>
+
+                    </div>
+
+                    {/* Payout method info strip */}
+                    <div className='sp-payout-info'>
+                      <div className='sp-payout-info__row'>
+                        <span className='sp-payout-info__label'>Payout Method</span>
+                        <span className='sp-payout-info__value'>
+                          {spMpesaNumber
+                            ? `M-Pesa — ${spMpesaNumber}`
+                            : <span className='sp-payout-info__missing'>Not set — add your M-Pesa number below</span>
+                          }
+                        </span>
+                      </div>
+                      <div className='sp-payout-info__row'>
+                        <span className='sp-payout-info__label'>KRA PIN</span>
+                        <span className='sp-payout-info__value'>
+                          {spKraPin || <span className='sp-payout-info__missing'>Not set</span>}
+                        </span>
+                      </div>
+                      <div className='sp-payout-info__row'>
+                        <span className='sp-payout-info__label'>Seller Status</span>
+                        <span className='sp-payout-info__value sp-payout-info__value--approved'>
+                          Approved
+                        </span>
+                      </div>
+                      <p className='sp-payout-info__note'>
+                        Payouts are released by ShopZone admin after delivery is confirmed.
+                        Ensure your M-Pesa number is correct — ShopZone will transfer your
+                        earnings directly to this number once payout is released.
+                        ShopZone's platform commission is deducted before payout.
+                      </p>
+                    </div>
                   </div>
+                )}
 
-                  {/* Business address */}
-                  <div className='seller-profile-field'>
-                    <label className='seller-profile-label'>Business Address</label>
-                    <input
-                      className='seller-profile-input'
-                      type='text'
-                      value={spBusinessAddress}
-                      onChange={(e) => setSpBusinessAddress(e.target.value)}
-                      placeholder='e.g. Stall 14, Kamukunji Market, Nairobi'
-                    />
-                  </div>
+                {/* ── Editable profile fields ───────────────── */}
+                <Card className='seller-profile-card mt-4'>
+                  <Card.Body>
+                    <h5 className='seller-info-card__title mb-3'>Business Profile</h5>
 
-                  {/* Description */}
-                  <div className='seller-profile-field'>
-                    <label className='seller-profile-label'>Business Description</label>
-                    <textarea
-                      className='seller-profile-input seller-profile-textarea'
-                      value={spDescription}
-                      onChange={(e) => setSpDescription(e.target.value)}
-                      placeholder='Brief description of what you supply'
-                      rows={3}
-                    />
-                  </div>
+                    {profileSuccess && (
+                      <Alert variant='success' className='mb-3'>Profile updated successfully.</Alert>
+                    )}
+                    {error && (
+                      <Alert variant='danger' className='mb-3'>{error}</Alert>
+                    )}
 
-                  {/* KRA PIN */}
-                  <div className='seller-profile-field'>
-                    <label className='seller-profile-label'>KRA PIN</label>
-                    <input
-                      className='seller-profile-input'
-                      type='text'
-                      value={spKraPin}
-                      onChange={(e) => setSpKraPin(e.target.value)}
-                      placeholder='e.g. A123456789B'
-                    />
-                    <span className='seller-profile-hint'>Used for invoice generation and tax compliance</span>
-                  </div>
+                    {/* Business name */}
+                    <div className='seller-profile-field'>
+                      <label className='seller-profile-label'>Business Name</label>
+                      <input
+                        className='seller-profile-input'
+                        type='text'
+                        value={spBusinessName}
+                        onChange={(e) => setSpBusinessName(e.target.value)}
+                        placeholder='Your registered business name'
+                      />
+                    </div>
 
-                  {/* M-Pesa number */}
-                  <div className='seller-profile-field'>
-                    <label className='seller-profile-label'>M-Pesa Payout Number</label>
-                    <input
-                      className='seller-profile-input'
-                      type='tel'
-                      value={spMpesaNumber}
-                      onChange={(e) => setSpMpesaNumber(e.target.value)}
-                      placeholder='e.g. 0712 345 678'
-                    />
-                    <span className='seller-profile-hint'>ShopZone releases payouts to this number after delivery confirmation</span>
-                  </div>
+                    {/* Business address */}
+                    <div className='seller-profile-field'>
+                      <label className='seller-profile-label'>Business Address</label>
+                      <input
+                        className='seller-profile-input'
+                        type='text'
+                        value={spBusinessAddress}
+                        onChange={(e) => setSpBusinessAddress(e.target.value)}
+                        placeholder='e.g. Stall 14, Kamukunji Market, Nairobi'
+                      />
+                    </div>
 
-                  <button
-                    className='seller-profile-save-btn'
-                    onClick={saveSellerProfile}
-                    disabled={profileSaving}
-                  >
-                    {profileSaving ? 'Saving...' : 'Save Profile'}
-                  </button>
-                </Card.Body>
-              </Card>
+                    {/* Description */}
+                    <div className='seller-profile-field'>
+                      <label className='seller-profile-label'>Business Description</label>
+                      <textarea
+                        className='seller-profile-input seller-profile-textarea'
+                        value={spDescription}
+                        onChange={(e) => setSpDescription(e.target.value)}
+                        placeholder='Brief description of what you supply'
+                        rows={3}
+                      />
+                    </div>
+
+                    {/* KRA PIN */}
+                    <div className='seller-profile-field'>
+                      <label className='seller-profile-label'>KRA PIN</label>
+                      <input
+                        className='seller-profile-input'
+                        type='text'
+                        value={spKraPin}
+                        onChange={(e) => setSpKraPin(e.target.value)}
+                        placeholder='e.g. A123456789B'
+                      />
+                      <span className='seller-profile-hint'>
+                        Used for invoice generation and KRA tax compliance
+                      </span>
+                    </div>
+
+                    {/* M-Pesa payout number */}
+                    <div className='seller-profile-field'>
+                      <label className='seller-profile-label'>M-Pesa Payout Number</label>
+                      <input
+                        className='seller-profile-input'
+                        type='tel'
+                        value={spMpesaNumber}
+                        onChange={(e) => setSpMpesaNumber(e.target.value)}
+                        placeholder='e.g. 0712 345 678'
+                      />
+                      <span className='seller-profile-hint'>
+                        ShopZone releases payouts to this number after delivery is confirmed and
+                        the dispute window has closed. Keep this accurate — incorrect numbers
+                        will delay your payout.
+                      </span>
+                    </div>
+
+                    <button
+                      className='seller-profile-save-btn'
+                      onClick={saveSellerProfile}
+                      disabled={profileSaving}
+                    >
+                      {profileSaving ? 'Saving...' : 'Save Profile'}
+                    </button>
+                  </Card.Body>
+                </Card>
+              </>
             )}
           </div>
         )}

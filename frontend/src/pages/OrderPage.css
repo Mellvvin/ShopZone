@@ -1316,3 +1316,145 @@
   margin: 0;
   color: #555;
 }
+
+/* ── Receipt download button ─────────────────────────────────── */
+.order-receipt-download {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.order-receipt-download__btn {
+  all: unset;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #27ae60;
+  padding: 7px 14px;
+  border: 1.5px solid #27ae60;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.order-receipt-download__btn:hover {
+  background: rgba(39, 174, 96, 0.08);
+}
+
+.order-receipt-download__hint {
+  font-size: 0.68rem;
+  color: #999;
+}
+
+/* ── Shipping fee edit panel ─────────────────────────────────── */
+.order-shipping-edit {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(0, 33, 71, 0.1);
+}
+
+.order-shipping-edit__toggle {
+  all: unset;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #767676;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+
+.order-shipping-edit__toggle:hover {
+  color: var(--oxford-blue);
+}
+
+.order-shipping-edit__form {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-shipping-edit__note {
+  font-size: 0.75rem;
+  color: #888;
+  line-height: 1.5;
+  padding: 8px 10px;
+  background: rgba(0, 33, 71, 0.03);
+  border-radius: 5px;
+}
+
+.order-shipping-edit__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.order-shipping-edit__field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--oxford-blue);
+}
+
+.order-shipping-edit__field input {
+  padding: 9px 12px;
+  border: 1.5px solid rgba(0, 33, 71, 0.12);
+  border-radius: 7px;
+  font-size: 0.83rem;
+  font-family: inherit;
+  color: var(--oxford-blue);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.order-shipping-edit__field input:focus {
+  border-color: var(--tan);
+  box-shadow: 0 0 0 3px rgba(210, 180, 140, 0.15);
+}
+
+/* ── Payment record info row ─────────────────────────────────── */
+.order-payment-attach__record-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.order-payment-attach__record-amount {
+  font-size: 0.78rem;
+  color: #555;
+}
+
+.order-payment-attach__amount-warn {
+  color: #e67e22;
+  font-weight: 700;
+}
+
+.order-payment-attach__record-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.order-payment-attach__toggle--confirm {
+  background: rgba(0, 33, 71, 0.12);
+  color: var(--oxford-blue);
+}
+
+.order-payment-attach__edit-note {
+  font-size: 0.75rem;
+  color: #555;
+  line-height: 1.6;
+  padding: 8px 10px;
+  background: rgba(0, 33, 71, 0.03);
+  border-radius: 5px;
+  border-left: 3px solid var(--tan);
+}

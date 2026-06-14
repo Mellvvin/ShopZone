@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { FaStore, FaLock, FaTruck, FaShieldAlt } from 'react-icons/fa';
+import { FaStore, FaLock, FaTruck, FaShieldAlt, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { login } from '../redux/slices/authSlice';
 import { showToast } from '../components/Toast/Toast';
 import './LoginPage.css';
@@ -22,8 +22,10 @@ const TRUST_POINTS = [
 ];
 
 const LoginPage = () => {
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
+const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
+  // Controls whether the password field shows plain text
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
@@ -136,14 +138,29 @@ const LoginPage = () => {
                   Forgot password?
                 </Link>
               </div>
-              <Form.Control
-                type='password'
-                placeholder='Enter your password'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className='login-input'
-                required
-              />
+              {/* Wrapper gives the eye toggle button a position anchor */}
+              <div className='login-password-wrap'>
+                <Form.Control
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder='Enter your password'
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className='login-input login-input--password'
+                  required
+                />
+                <button
+                  type='button'
+                  className='login-eye-btn'
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={0}
+                >
+                  {showPassword
+                    ? <FaEyeSlash aria-hidden='true' />
+                    : <FaEye aria-hidden='true' />
+                  }
+                </button>
+              </div>
             </Form.Group>
 
             {/* Submit */}

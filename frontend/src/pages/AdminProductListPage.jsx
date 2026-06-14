@@ -71,7 +71,7 @@ const AdminProductListPage = () => {
     };
 
     // ── Derived counts for pills and tab badges ───────────────
-    const outOfStockCount = useMemo(
+  const outOfStockCount = useMemo(
         () => products.filter(p => p.countInStock === 0).length,
         [products]
     );
@@ -87,15 +87,31 @@ const AdminProductListPage = () => {
         () => products.filter(p => p.isClearance).length,
         [products]
     );
+    // Seller submission review queue counts
+    const awaitingReviewCount = useMemo(
+        () => products.filter(p => p.status === 'submitted').length,
+        [products]
+    );
+    const rejectedCount = useMemo(
+        () => products.filter(p => p.status === 'rejected').length,
+        [products]
+    );
+    const needsChangesCount = useMemo(
+        () => products.filter(p => p.status === 'needs_changes').length,
+        [products]
+    );
 
     // ── Tab + search filtering ────────────────────────────────
     const filteredProducts = useMemo(() => {
         let list = products;
         // Tab filter
-        if (activeTab === 'featured')   list = list.filter(p => p.isFeatured);
-        if (activeTab === 'sale')       list = list.filter(p => p.isOnSale && !p.isClearance);
-        if (activeTab === 'clearance')  list = list.filter(p => p.isClearance);
-        if (activeTab === 'outofstock') list = list.filter(p => p.countInStock === 0);
+      if (activeTab === 'featured')       list = list.filter(p => p.isFeatured);
+        if (activeTab === 'sale')           list = list.filter(p => p.isOnSale && !p.isClearance);
+        if (activeTab === 'clearance')      list = list.filter(p => p.isClearance);
+        if (activeTab === 'outofstock')     list = list.filter(p => p.countInStock === 0);
+        if (activeTab === 'awaitingreview') list = list.filter(p => p.status === 'submitted');
+        if (activeTab === 'rejected')       list = list.filter(p => p.status === 'rejected');
+        if (activeTab === 'needschanges')   list = list.filter(p => p.status === 'needs_changes');
         // Search filter
         if (search.trim()) {
             const q = search.toLowerCase();
@@ -159,12 +175,15 @@ const AdminProductListPage = () => {
     };
 
     // ── Tab definitions ───────────────────────────────────────
-    const TABS = [
-        { key: 'all',        label: 'All Products', icon: FaBoxOpen,          count: products.length,   countMod: '' },
-        { key: 'featured',   label: 'Featured',     icon: FaStar,             count: featuredCount,     countMod: 'oxford' },
-        { key: 'sale',       label: 'On Sale',      icon: FaTag,              count: onSaleCount,       countMod: 'green' },
-        { key: 'clearance',  label: 'Clearance',    icon: FaEraser,           count: clearanceCount,    countMod: 'amber' },
-        { key: 'outofstock', label: 'Out of Stock', icon: FaExclamationCircle,count: outOfStockCount,   countMod: 'red' },
+ const TABS = [
+        { key: 'all',           label: 'All Products',    icon: FaBoxOpen,           count: products.length,    countMod: '' },
+        { key: 'awaitingreview',label: 'Awaiting Review', icon: FaExclamationCircle, count: awaitingReviewCount,countMod: 'amber' },
+        { key: 'needschanges',  label: 'Needs Changes',   icon: FaExclamationTriangle,count: needsChangesCount, countMod: 'amber' },
+        { key: 'rejected',      label: 'Rejected',        icon: FaExclamationTriangle,count: rejectedCount,     countMod: 'red' },
+        { key: 'featured',      label: 'Featured',        icon: FaStar,              count: featuredCount,      countMod: 'oxford' },
+        { key: 'sale',          label: 'On Sale',         icon: FaTag,               count: onSaleCount,        countMod: 'green' },
+        { key: 'clearance',     label: 'Clearance',       icon: FaEraser,            count: clearanceCount,     countMod: 'amber' },
+        { key: 'outofstock',    label: 'Out of Stock',    icon: FaExclamationCircle, count: outOfStockCount,    countMod: 'red' },
     ];
 
     return (
@@ -201,6 +220,12 @@ const AdminProductListPage = () => {
                             <span className='apl-count-pill__num'>{products.length}</span>
                             <span className='apl-count-pill__label'>Total</span>
                         </div>
+                       {awaitingReviewCount > 0 && (
+                            <div className='apl-count-pill apl-count-pill--amber'>
+                                <span className='apl-count-pill__num'>{awaitingReviewCount}</span>
+                                <span className='apl-count-pill__label'>Awaiting Review</span>
+                            </div>
+                        )}
                         {outOfStockCount > 0 && (
                             <div className='apl-count-pill apl-count-pill--red'>
                                 <span className='apl-count-pill__num'>{outOfStockCount}</span>
@@ -312,6 +337,7 @@ const AdminProductListPage = () => {
                                 <th>Brand</th>
                                 <th>Unit</th>
                                 <th>Stock</th>
+                                <th>Status</th>
                                 <th>Flags</th>
                                 <th>Actions</th>
                             </tr>
@@ -367,6 +393,22 @@ const AdminProductListPage = () => {
                                         <span className={product.countInStock > 0 ? 'apl-stock--in' : 'apl-stock--out'}>
                                             {product.countInStock}
                                         </span>
+                                    </td>
+
+                                 {/* Approval status */}
+                                    <td>
+                                        {(() => {
+                                            const statusMap = {
+                                                approved:     { cls: 'apl-status--approved',  label: 'Live' },
+                                                submitted:    { cls: 'apl-status--submitted',  label: 'Review' },
+                                                needs_changes:{ cls: 'apl-status--changes',   label: 'Changes' },
+                                                rejected:     { cls: 'apl-status--rejected',   label: 'Rejected' },
+                                                archived:     { cls: 'apl-status--archived',   label: 'Archived' },
+                                                draft:        { cls: 'apl-status--draft',      label: 'Draft' },
+                                            };
+                                            const s = statusMap[product.status] || { cls: 'apl-status--draft', label: product.status || 'Unknown' };
+                                            return <span className={`apl-status ${s.cls}`}>{s.label}</span>;
+                                        })()}
                                     </td>
 
                                     {/* Flags — featured, sale, clearance */}

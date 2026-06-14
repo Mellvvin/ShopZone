@@ -555,3 +555,43 @@
         font-size: 0.78rem;
     }
 }
+
+/* ── Product approval status badges ────────────────────────── */
+.apl-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.apl-status--approved {
+    background: rgba(39, 174, 96, 0.12);
+    color: #1a7a3f;
+}
+
+.apl-status--submitted {
+    background: rgba(241, 196, 15, 0.15);
+    color: #8a6500;
+}
+
+.apl-status--changes {
+    background: rgba(230, 126, 34, 0.12);
+    color: #b95a00;
+}
+
+.apl-status--rejected {
+    background: rgba(192, 57, 43, 0.1);
+    color: #a93226;
+}
+
+.apl-status--archived {
+    background: rgba(0, 0, 0, 0.06);
+    color: #666;
+}
+
+.apl-status--draft {
+    background: rgba(0, 0, 0, 0.06);
+    color: #888;
+}

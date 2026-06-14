@@ -847,6 +847,50 @@ const submitSellerQuote = async (req, res) => {
   }
 };
 
+// @desc    Admin: update shipping price on an unpaid order
+// @route   PUT /api/orders/:id/shipping
+// @access  Private/Admin
+//
+// Allows admin to correct the flat-rate delivery fee that was
+// estimated at checkout. Can only be done while the order is unpaid.
+// Once paid, the shipping price is locked as part of the payment record.
+const updateOrderShipping = async (req, res) => {
+  try {
+    const { shippingPrice } = req.body;
+
+    if (shippingPrice === undefined || Number(shippingPrice) < 0) {
+      return res.status(400).json({ message: 'A valid shipping price is required.' });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.isPaid) {
+      return res.status(400).json({
+        message: 'Cannot change shipping price on a paid order.',
+      });
+    }
+
+    const oldShipping = order.shippingPrice;
+    const newShipping = Number(shippingPrice);
+
+    // Recalculate total price with the corrected shipping
+    order.shippingPrice = newShipping;
+    order.totalPrice    = order.itemsPrice + newShipping + order.taxPrice;
+
+    const updated = await order.save();
+
+    res.json({
+      message: `Shipping updated from KES ${oldShipping.toFixed(2)} to KES ${newShipping.toFixed(2)}. Order total recalculated.`,
+      order: updated,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrderById,
@@ -863,4 +907,5 @@ module.exports = {
   getPendingQuoteOrders,
   getPayoutQueue,
   submitSellerQuote,
+  updateOrderShipping,
 };

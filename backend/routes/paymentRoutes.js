@@ -22,6 +22,7 @@ const {
   confirmPayment,
   getPaymentByOrder,
   getPayments,
+  updatePayment, // For future use if we want to allow editing pending payments
 } = require('../controllers/paymentController');
 
 const { protect, admin } = require('../middleware/authMiddleware');
@@ -33,5 +34,10 @@ router.get('/order/:orderId',   protect,       getPaymentByOrder);
 // ── Admin routes ──────────────────────────────────────────────
 router.put('/:id/confirm',      protect, admin, confirmPayment);
 router.get('/',                 protect, admin, getPayments);
+
+// ── Update a pending payment record (admin only) ──────────────
+// Used to correct amount or method before confirming.
+router.put('/:id', protect, admin, updatePayment);
+
 
 module.exports = router;

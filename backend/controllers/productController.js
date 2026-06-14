@@ -15,10 +15,11 @@
 //   Added getProductBrands endpoint for BrandsPage.
 //   Added getPlatformStats endpoint for all stats strips.
 // ─────────────────────────────────────────────────────────────
-const Product    = require('../models/Product');
-const Order      = require('../models/Order');
-const User       = require('../models/User');
-const Enquiry    = require('../models/Enquiry');
+const Product      = require('../models/Product');
+const Order        = require('../models/Order');
+const User         = require('../models/User');
+const Enquiry      = require('../models/Enquiry');
+const Notification = require('../models/Notification');
 // Profanity filter — screens review comments and enquiry messages
 // before they reach the database. Uses the leo-profanity package.
 // Add custom Kenyan slang or platform-specific terms as needed.
@@ -267,10 +268,64 @@ const {
     // Admin sets status to approved/rejected/needs_changes.
     // adminFeedback is shown to the seller on their dashboard
     // when status is needs_changes or rejected.
+    // Capture old status before overwriting so we can detect a change
+    const previousStatus = product.status;
+
     if (status        !== undefined) product.status        = status;
     if (adminFeedback !== undefined) product.adminFeedback = adminFeedback || '';
 
     const updatedProduct = await product.save();
+
+    // ── Product status change notification to seller ──────────
+    // Fires whenever admin changes the product status.
+    // Sends to product.seller (the user who submitted it).
+    // Skipped if there is no seller linked or status did not change.
+    // All wrapped in try/catch — notification failure must never
+    // crash the product save response.
+    if (
+      status !== undefined &&
+      status !== previousStatus &&
+      updatedProduct.seller
+    ) {
+      try {
+        // Build a human-readable message per status value
+        const statusMessages = {
+          approved:     `Your product "${updatedProduct.name}" has been approved and is now live on the ShopZone storefront.`,
+          needs_changes:`Your product "${updatedProduct.name}" requires changes before it can go live. ` +
+                        (adminFeedback ? `Admin feedback: ${adminFeedback}` : 'Check your dashboard for details.'),
+          rejected:     `Your product "${updatedProduct.name}" has been rejected. ` +
+                        (adminFeedback ? `Reason: ${adminFeedback}` : 'Contact ShopZone for more information.'),
+          submitted:    `Your product "${updatedProduct.name}" has been moved back to review. It is no longer visible on the storefront.`,
+          archived:     `Your product "${updatedProduct.name}" has been archived and removed from the storefront.`,
+          draft:        `Your product "${updatedProduct.name}" has been moved to draft status.`,
+        };
+
+        const message = statusMessages[status] || `The status of your product "${updatedProduct.name}" has been updated to ${status}.`;
+
+        const notification = new Notification({
+          userId:  updatedProduct.seller,  // the seller's user _id
+          type:    'transactional',
+          title:   status === 'approved'
+            ? 'Product Approved — Now Live'
+            : status === 'needs_changes'
+            ? 'Product Needs Changes'
+            : status === 'rejected'
+            ? 'Product Rejected'
+            : status === 'archived' || status === 'submitted'
+            ? 'Product Removed from Storefront'
+            : 'Product Status Updated',
+          message,
+          link:    '/seller/dashboard',
+          isRead:  false,
+        });
+
+        await notification.save();
+      } catch (notifErr) {
+        // Log but never crash the product update
+        console.error('Product status notification failed:', notifErr.message);
+      }
+    }
+
     res.json(updatedProduct);
   } catch (error) {
     res.status(500).json({ message: error.message });

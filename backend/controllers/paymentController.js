@@ -17,6 +17,10 @@ const Payment      = require('../models/Payment');
 const Order        = require('../models/Order');
 const Notification = require('../models/Notification');
 
+// ── Local KES formatter for error messages ───────────────────
+const formatKES = (n) =>
+  `KES ${Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
+
 // @desc    Create a pending payment record for an order
 // @route   POST /api/payments/order/:orderId
 // @access  Private
@@ -82,7 +86,7 @@ const confirmPayment = async (req, res) => {
       notes,
     } = req.body;
 
-    const payment = await Payment.findById(req.params.id);
+   const payment = await Payment.findById(req.params.id);
 
     if (!payment) {
       return res.status(404).json({ message: 'Payment not found' });
@@ -90,6 +94,27 @@ const confirmPayment = async (req, res) => {
 
     if (payment.status === 'confirmed') {
       return res.status(400).json({ message: 'Payment is already confirmed' });
+    }
+
+    // ── Fetch the order first — needed for amount validation ──
+    // Must come before the validation block to avoid the
+    // "Cannot access 'order' before initialization" error.
+    const order = await Order.findById(payment.orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // ── Amount validation ────────────────────────────────────
+    // Reject if the payment amount on the record is less than 95%
+    // of the order total. This blocks admin accidentally confirming
+    // a KES 9 M-Pesa message on a KES 100,000 order.
+    // The 5% tolerance handles rounding differences across methods.
+    // STK Push in Step 20 will validate exact amounts automatically.
+    const minimumAcceptable = order.totalPrice * 0.95;
+    if (payment.amount < minimumAcceptable) {
+      return res.status(400).json({
+        message: `Payment amount of ${formatKES(payment.amount)} is less than 95% of the order total of ${formatKES(order.totalPrice)}. Update the payment amount before confirming, or verify you have the correct M-Pesa message.`,
+      });
     }
 
     // ── Parse M-Pesa receipt number from raw message if not provided ──
@@ -113,12 +138,6 @@ const confirmPayment = async (req, res) => {
     if (notes)  payment.notes  = notes;
 
     await payment.save();
-
-    // ── Mark the Order as paid ───────────────────────────────
-    const order = await Order.findById(payment.orderId);
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
 
     order.isPaid    = true;
     order.paidAt    = new Date();
@@ -217,10 +236,52 @@ const getPayments = async (req, res) => {
   }
 };
 
+// @desc    Update a pending payment record before confirmation
+// @route   PUT /api/payments/:id
+// @access  Private/Admin
+//
+// Allows admin to correct the amount, method, or notes on a
+// payment record before confirming it. Cannot edit confirmed payments.
+const updatePayment = async (req, res) => {
+  try {
+    const payment = await Payment.findById(req.params.id);
+
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found' });
+    }
+
+    if (payment.status === 'confirmed') {
+      return res.status(400).json({
+        message: 'Cannot edit a confirmed payment. Contact support if a correction is needed.',
+      });
+    }
+
+    const { amount, method, notes } = req.body;
+
+    // Validate amount if provided
+    if (amount !== undefined) {
+      const numAmount = Number(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return res.status(400).json({ message: 'Amount must be a positive number.' });
+      }
+      payment.amount = numAmount;
+    }
+
+    if (method)           payment.method = method;
+    if (notes !== undefined) payment.notes  = notes;
+
+    const updated = await payment.save();
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ── Exports ──────────────────────────────────────────────────
 module.exports = {
   createPayment,
   confirmPayment,
+  updatePayment,
   getPaymentByOrder,
   getPayments,
 };

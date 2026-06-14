@@ -40,6 +40,7 @@ import {
   FaMoneyBillWave,
   FaChevronRight,
 } from 'react-icons/fa';
+import ReceiptModal from '../components/ReceiptModal/ReceiptModal';
 import './OrderPage.css';
 
 // ── Helper: format KES currency ───────────────────────────────────────────
@@ -283,7 +284,9 @@ useEffect(() => {
   });
   const [paymentFormLoading, setPaymentFormLoading] = useState(false);
   const [paymentFormError, setPaymentFormError]     = useState('');
-  const [showReceipt, setShowReceipt]               = useState(false);
+const [showReceipt, setShowReceipt]               = useState(false);
+  // Controls the printable receipt modal
+  const [showReceiptModal, setShowReceiptModal]     = useState(false);
 
   // Auto-expand the Report Issue form if the URL hash is #report.
   // This fires when ProfilePage "Report Issue" link navigates here.
@@ -368,28 +371,58 @@ useEffect(() => {
     }
   };
 
-  // ── Admin: legacy mark as paid (kept as fallback) ─────────────────────────
-  const markPaidHandler = async () => {
+  // ── Admin: edit payment amount/method before confirming ───────────────────
+  const [showEditPayment, setShowEditPayment] = useState(false);
+  const [editPaymentAmount, setEditPaymentAmount] = useState('');
+  const [editPaymentMethod, setEditPaymentMethod] = useState('mpesa_manual');
+  const [editPaymentLoading, setEditPaymentLoading] = useState(false);
+  const [editPaymentError, setEditPaymentError] = useState('');
+
+  const editPaymentHandler = async (e) => {
+    e.preventDefault();
+    if (!paymentRecord) return;
+    setEditPaymentLoading(true);
+    setEditPaymentError('');
     try {
-      setDeliverLoading(true);
       await axios.put(
-        `/api/orders/${orderId}/pay`,
-        {
-          id: 'MANUAL_ADMIN',
-          status: 'COMPLETED',
-          update_time: new Date().toISOString(),
-          payer: { email_address: userInfo.email },
-        },
+        `/api/payments/${paymentRecord._id}`,
+        { amount: editPaymentAmount, method: editPaymentMethod },
         config
       );
-      showToast('Order marked as paid', 'success');
-      fetchOrder();
+      showToast('Payment record updated.', 'success');
+      setShowEditPayment(false);
+      fetchPayment();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to mark as paid', 'error');
+      setEditPaymentError(err.response?.data?.message || 'Failed to update payment.');
     } finally {
-      setDeliverLoading(false);
+      setEditPaymentLoading(false);
     }
   };
+
+  // ── Admin: update shipping price ──────────────────────────────────────────
+  const [showShippingEdit, setShowShippingEdit] = useState(false);
+  const [newShippingPrice, setNewShippingPrice] = useState('');
+  const [shippingEditLoading, setShippingEditLoading] = useState(false);
+
+  const updateShippingHandler = async (e) => {
+    e.preventDefault();
+    setShippingEditLoading(true);
+    try {
+      const { data } = await axios.put(
+        `/api/orders/${orderId}/shipping`,
+        { shippingPrice: newShippingPrice },
+        config
+      );
+      showToast(data.message || 'Shipping price updated.', 'success');
+      setShowShippingEdit(false);
+      fetchOrder();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to update shipping.', 'error');
+    } finally {
+      setShippingEditLoading(false);
+    }
+  };
+
 
   // ── Admin: mark order as delivered ───────────────────────────────────────
   const markDeliveredHandler = async () => {
@@ -819,12 +852,7 @@ useEffect(() => {
               </div>
             )}
 
-            {/* ── Admin: manual payment attachment panel ───────────────
-                Shown to admin when the order is unpaid. Admin can paste
-                the raw M-Pesa SMS to confirm payment. On confirm the
-                backend creates the Payment document, marks isPaid true,
-                and sends a notification to the buyer.
-            ─────────────────────────────────────────────────────────── */}
+            {/* ── Admin: manual payment attachment panel ─────────────── */}
             {userInfo?.isAdmin && !order.isPaid && order.status !== 'cancelled' && (
               <div className='order-payment-attach'>
                 <div className='order-payment-attach__header'>
@@ -832,25 +860,103 @@ useEffect(() => {
                   <span>Attach Payment</span>
                 </div>
 
-                {/* Show existing payment record status */}
                 {paymentRecord ? (
-                  <div className='order-payment-attach__record'>
-                    <span className='order-payment-attach__record-label'>
-                      Payment record: <strong>{paymentRecord.status}</strong>
-                    </span>
-                    {paymentRecord.status === 'pending' && (
-                      <button
-                        className='order-payment-attach__toggle'
-                        onClick={() => setShowPaymentForm(!showPaymentForm)}
+                  <>
+                    {/* Payment record exists — show summary and actions */}
+                    <div className='order-payment-attach__record'>
+                      <div className='order-payment-attach__record-info'>
+                        <span className='order-payment-attach__record-label'>
+                          Payment record: <strong>{paymentRecord.status}</strong>
+                        </span>
+                        <span className='order-payment-attach__record-amount'>
+                          Amount on record: <strong>{formatKES(paymentRecord.amount)}</strong>
+                          {paymentRecord.amount < order.totalPrice * 0.95 && (
+                            <span className='order-payment-attach__amount-warn'>
+                              {' '}⚠ Below order total — edit before confirming
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className='order-payment-attach__record-actions'>
+                        {paymentRecord.status === 'pending' && (
+                          <>
+                            <button
+                              className='order-payment-attach__toggle'
+                              onClick={() => {
+                                setShowEditPayment(v => !v);
+                                setShowPaymentForm(false);
+                                setEditPaymentAmount(paymentRecord.amount);
+                                setEditPaymentMethod(paymentRecord.method);
+                              }}
+                            >
+                              {showEditPayment ? 'Cancel Edit' : 'Edit Amount'}
+                            </button>
+                            <button
+                              className='order-payment-attach__toggle order-payment-attach__toggle--confirm'
+                              onClick={() => {
+                                setShowPaymentForm(!showPaymentForm);
+                                setShowEditPayment(false);
+                              }}
+                            >
+                              {showPaymentForm ? 'Cancel' : 'Confirm Payment'}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Edit payment amount form */}
+                    {showEditPayment && paymentRecord.status === 'pending' && (
+                      <form
+                        className='order-payment-attach__form'
+                        onSubmit={editPaymentHandler}
+                        noValidate
                       >
-                        {showPaymentForm ? 'Cancel' : 'Confirm Payment'}
-                      </button>
+                        <p className='order-payment-attach__edit-note'>
+                          Correct the payment amount before confirming.
+                          The order total is <strong>{formatKES(order.totalPrice)}</strong>.
+                          Payment must be at least 95% of this amount to confirm.
+                        </p>
+                        <div className='order-payment-attach__field'>
+                          <label>Correct Amount (KES)</label>
+                          <input
+                            type='number'
+                            min='1'
+                            step='0.01'
+                            value={editPaymentAmount}
+                            onChange={e => setEditPaymentAmount(e.target.value)}
+                            placeholder={order.totalPrice}
+                          />
+                        </div>
+                        <div className='order-payment-attach__field'>
+                          <label>Payment Method</label>
+                          <select
+                            value={editPaymentMethod}
+                            onChange={e => setEditPaymentMethod(e.target.value)}
+                          >
+                            <option value='mpesa_manual'>M-Pesa (Manual)</option>
+                            <option value='bank_transfer'>Bank Transfer</option>
+                            <option value='cash'>Cash</option>
+                            <option value='other'>Other</option>
+                          </select>
+                        </div>
+                        {editPaymentError && (
+                          <p className='order-payment-attach__error' role='alert'>{editPaymentError}</p>
+                        )}
+                        <button
+                          type='submit'
+                          className='order-payment-attach__submit'
+                          disabled={editPaymentLoading}
+                        >
+                          {editPaymentLoading ? 'Saving…' : 'Save Changes'}
+                        </button>
+                      </form>
                     )}
-                  </div>
+                  </>
                 ) : (
                   <div className='order-payment-attach__record'>
                     <span className='order-payment-attach__record-label'>
-                      No payment record yet
+                      No payment record yet — create one before confirming payment.
                     </span>
                     <button
                       className='order-payment-attach__toggle'
@@ -869,7 +975,12 @@ useEffect(() => {
                     onSubmit={confirmPaymentHandler}
                     noValidate
                   >
-                    {/* Method selector */}
+                    <p className='order-payment-attach__edit-note'>
+                      Order total: <strong>{formatKES(order.totalPrice)}</strong>.
+                      Payment amount on record: <strong>{formatKES(paymentRecord.amount)}</strong>.
+                      The M-Pesa message must show at least <strong>{formatKES(order.totalPrice * 0.95)}</strong>.
+                    </p>
+
                     <div className='order-payment-attach__field'>
                       <label>Payment Method</label>
                       <select
@@ -883,13 +994,10 @@ useEffect(() => {
                       </select>
                     </div>
 
-                    {/* Raw M-Pesa message — the key field */}
                     <div className='order-payment-attach__field'>
                       <label>
                         Paste M-Pesa Confirmation SMS
-                        <span className='order-payment-attach__hint'>
-                          {' '}(receipt number extracted automatically)
-                        </span>
+                        <span className='order-payment-attach__hint'> (receipt number extracted automatically)</span>
                       </label>
                       <textarea
                         rows={4}
@@ -899,7 +1007,6 @@ useEffect(() => {
                       />
                     </div>
 
-                    {/* Manual receipt number override */}
                     <div className='order-payment-attach__field'>
                       <label>M-Pesa Receipt Number <span className='order-payment-attach__hint'>(if not in SMS above)</span></label>
                       <input
@@ -910,7 +1017,6 @@ useEffect(() => {
                       />
                     </div>
 
-                    {/* Reference — for bank transfers */}
                     <div className='order-payment-attach__field'>
                       <label>Reference / Transaction ID <span className='order-payment-attach__hint'>(bank transfers)</span></label>
                       <input
@@ -921,7 +1027,6 @@ useEffect(() => {
                       />
                     </div>
 
-                    {/* Internal notes */}
                     <div className='order-payment-attach__field'>
                       <label>Internal Notes <span className='order-payment-attach__hint'>(optional)</span></label>
                       <input
@@ -933,9 +1038,7 @@ useEffect(() => {
                     </div>
 
                     {paymentFormError && (
-                      <p className='order-payment-attach__error' role='alert'>
-                        {paymentFormError}
-                      </p>
+                      <p className='order-payment-attach__error' role='alert'>{paymentFormError}</p>
                     )}
 
                     <button
@@ -944,6 +1047,63 @@ useEffect(() => {
                       disabled={paymentFormLoading}
                     >
                       {paymentFormLoading ? 'Confirming…' : 'Confirm Payment & Mark Order Paid'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+
+          {/* ── View / download receipt when paid ─────────────────── */}
+            {order.isPaid && (
+              <div className='order-receipt-download'>
+                <button
+                  className='order-receipt-download__btn'
+                  onClick={() => setShowReceiptModal(true)}
+                  aria-label='View or print receipt'
+                >
+                  <FaCheckCircle aria-hidden='true' /> View Receipt
+                </button>
+                <span className='order-receipt-download__hint'>
+                  View, print, or save as PDF
+                </span>
+              </div>
+            )}
+
+            {/* ── Admin: edit delivery fee on unpaid orders ──────────── */}
+            {userInfo?.isAdmin && !order.isPaid && order.status !== 'cancelled' && (
+              <div className='order-shipping-edit'>
+                <button
+                  className='order-shipping-edit__toggle'
+                  onClick={() => {
+                    setShowShippingEdit(v => !v);
+                    setNewShippingPrice(order.shippingPrice);
+                  }}
+                >
+                  {showShippingEdit ? 'Cancel' : `Edit Delivery Fee (currently ${formatKES(order.shippingPrice)})`}
+                </button>
+                {showShippingEdit && (
+                  <form className='order-shipping-edit__form' onSubmit={updateShippingHandler} noValidate>
+                    <p className='order-shipping-edit__note'>
+                      Correcting the delivery fee will recalculate the order total.
+                      This can only be done while the order is unpaid.
+                    </p>
+                    <div className='order-shipping-edit__field'>
+                      <label>New Delivery Fee (KES)</label>
+                      <input
+                        type='number'
+                        min='0'
+                        step='50'
+                        value={newShippingPrice}
+                        onChange={e => setNewShippingPrice(e.target.value)}
+                        placeholder='e.g. 500'
+                      />
+                    </div>
+                    <button
+                      type='submit'
+                      className='order-payment-attach__submit'
+                      disabled={shippingEditLoading}
+                    >
+                      {shippingEditLoading ? 'Updating…' : 'Update Delivery Fee'}
                     </button>
                   </form>
                 )}
@@ -1085,19 +1245,10 @@ useEffect(() => {
                 </button>
               )}
 
-            {/* Admin: mark as paid — manual confirmation until M-Pesa (Step 20) */}
-            {userInfo?.isAdmin &&
-              !order.isPaid &&
-              order.status !== 'cancelled' && (
-                <button
-                  className='order-action-btn order-action-btn--paid'
-                  onClick={markPaidHandler}
-                  disabled={deliverLoading}
-                  aria-label='Mark order as paid'
-                >
-                  {deliverLoading ? 'Updating…' : 'Mark as Paid'}
-                </button>
-              )}
+            {/* Mark as Paid removed — payment must go through the payment
+                attachment panel and be confirmed via paymentController.
+                The confirmPayment function marks the order paid automatically.
+                This prevents bypassing payment validation. */}
 
             {/* Admin: mark as delivered — only available after payment confirmed */}
             {userInfo?.isAdmin &&
@@ -1234,6 +1385,15 @@ useEffect(() => {
             </div>
           </div>
         </div>
+      )}
+
+{/* ── Receipt modal ────────────────────────────────────────────── */}
+      {showReceiptModal && order && (
+        <ReceiptModal
+          order={order}
+          payment={paymentRecord}
+          onClose={() => setShowReceiptModal(false)}
+        />
       )}
 
     </div>
