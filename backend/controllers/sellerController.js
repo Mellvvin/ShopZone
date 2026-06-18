@@ -44,11 +44,50 @@ const getSellerDashboard = async (req, res) => {
       status: 'delivered',
     });
 
-    // Payout released vs pending
+    // Payout released count
     const payoutReleased = await Order.countDocuments({
       'orderItems.product': { $in: ids },
       sellerPayoutReleased: true,
     });
+
+    // ── Earnings calculations ─────────────────────────────────
+    // totalEarnings: sum of (priceAtPurchase × qty) for this seller's
+    // items across all paid delivered orders, minus platform commission.
+    // pendingPayoutAmount: same but for orders not yet paid out.
+    //
+    // We calculate per-item because an order may contain both this
+    // seller's products and other products — we only count this
+    // seller's items, not the full order total.
+    const COMMISSION_RATE = 0.06; // mirrors SHIPPING_CONSTANTS.COMMISSION_DEFAULT
+
+    const allRelevantOrders = await Order.find({
+      'orderItems.product': { $in: ids },
+      isPaid:     true,
+      isDelivered: true,
+    });
+
+    let totalEarnings       = 0; // KES earned across all paid+delivered orders
+    let pendingPayoutAmount = 0; // KES in delivered+paid orders not yet released
+
+    for (const order of allRelevantOrders) {
+      // Only sum this seller's items, not the entire order
+      const sellerItems = order.orderItems.filter((item) =>
+        ids.map(String).includes(String(item.product))
+      );
+
+      const sellerSubtotal = sellerItems.reduce(
+        (sum, item) => sum + item.priceAtPurchase * item.qty,
+        0
+      );
+
+      // Deduct commission to get what the seller actually receives
+      const sellerNet = sellerSubtotal * (1 - COMMISSION_RATE);
+      totalEarnings += sellerNet;
+
+      if (!order.sellerPayoutReleased) {
+        pendingPayoutAmount += sellerNet;
+      }
+    }
 
     res.json({
       totalProducts,
@@ -56,6 +95,8 @@ const getSellerDashboard = async (req, res) => {
       pendingOrders,
       fulfilledOrders,
       payoutReleased,
+      totalEarnings:       Number(totalEarnings.toFixed(2)),
+      pendingPayoutAmount: Number(pendingPayoutAmount.toFixed(2)),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

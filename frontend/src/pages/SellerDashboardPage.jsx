@@ -958,6 +958,28 @@ const handleProductFieldChange = (e) => {
 
                     </div>
 
+                   {/* ── KES earnings summary ─────────────────── */}
+                    {(stats.totalEarnings > 0 || stats.pendingPayoutAmount > 0) && (
+                      <div className='sp-kes-summary'>
+                        <div className='sp-kes-summary__row'>
+                          <span className='sp-kes-summary__label'>Total Earned (all time)</span>
+                          <span className='sp-kes-summary__value sp-kes-summary__value--green'>
+                            KES {Number(stats.totalEarnings || 0).toLocaleString('en-KE', { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className='sp-kes-summary__row'>
+                          <span className='sp-kes-summary__label'>Awaiting Payout Release</span>
+                          <span className='sp-kes-summary__value sp-kes-summary__value--amber'>
+                            KES {Number(stats.pendingPayoutAmount || 0).toLocaleString('en-KE', { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <p className='sp-kes-summary__note'>
+                          Figures shown after ShopZone's 6% platform commission deduction.
+                          Payout is released by admin after delivery is confirmed.
+                        </p>
+                      </div>
+                    )}
+
                     {/* Payout method info strip */}
                     <div className='sp-payout-info'>
                       <div className='sp-payout-info__row'>

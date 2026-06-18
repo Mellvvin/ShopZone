@@ -756,3 +756,52 @@
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* ── KES earnings summary ────────────────────────────────────── */
+.sp-kes-summary {
+    background: rgba(0, 33, 71, 0.03);
+    border: 1px solid rgba(0, 33, 71, 0.08);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
+.sp-kes-summary__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.05);
+    font-size: 0.84rem;
+}
+
+.sp-kes-summary__row:last-of-type {
+    border-bottom: none;
+}
+
+.sp-kes-summary__label {
+    font-weight: 600;
+    color: #767676;
+    font-size: 0.78rem;
+}
+
+.sp-kes-summary__value {
+    font-weight: 800;
+    font-size: 0.92rem;
+}
+
+.sp-kes-summary__value--green {
+    color: #27ae60;
+}
+
+.sp-kes-summary__value--amber {
+    color: #b7860b;
+}
+
+.sp-kes-summary__note {
+    font-size: 0.7rem;
+    color: #aaa;
+    margin: 8px 0 0;
+    line-height: 1.5;
+}

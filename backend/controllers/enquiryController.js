@@ -92,7 +92,10 @@ const saved = await enquiry.save();
       const userUpdate = {
         isSeller:     true,
         sellerStatus: 'pending',
-        businessType: 'business',
+        // 'business' is not a valid enum value — use a valid value from
+      // ['Retailer', 'Wholesaler', 'Distributor', 'Other', ''].
+      // We leave it empty so the seller can set it from their profile.
+      // businessType is not collected on BecomeSellerPage so we don't set it.
       };
 
       // Top-level profile fields — only set if the form provided them
