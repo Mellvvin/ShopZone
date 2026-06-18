@@ -145,31 +145,17 @@ const createOrder = async (req, res) => {
       decrementedItems.push({ product: item.product, qty: item.qty });
     }
 
-    // ── Step 2: Calculate shipping from the county rate table ───────────
-    // We calculate server-side — frontend value is ignored for security.
-    // A buyer cannot manipulate the shipping price by editing the request.
+    // ── Step 2: Get the county shipping data ────────────────────────────
+    // Tier 2 detection happens AFTER Step 3 once we have real product
+    // categories from the database. The frontend cart items do NOT carry
+    // a category field — only verifiedOrderItems (built in Step 3) do.
+    // Running Tier 2 detection here on req.body.orderItems would always
+    // return false because item.category would be undefined.
     const shippingData = getShippingRate(shippingAddress.county);
 
-    // Detect Tier 2 items
-    const orderHasTier2 = hasAnyTier2Item(orderItems);
-    const orderIsFullyTier2 = isFullyTier2Order(orderItems);
-
-    // Determine shipping tier and price
-    let shippingTier = 'standard';
-    let shippingPrice = shippingData.rate; // Tier 1: flat county rate in KES
-    let deliveryQuoteStatus = 'pending';
-
-    if (orderIsFullyTier2) {
-      // Entirely bulk/heavy goods — full Tier 2 flow
-      shippingTier = 'quote_required';
-      shippingPrice = 0; // Admin will set the actual amount after quoting
-    } else if (orderHasTier2) {
-      // Mixed order — some Tier 2 items. Charge Tier 1 flat rate for now
-      // and flag the order for admin attention re: the heavy items.
-      // Admin can manually adjust the shipping amount if needed.
-      shippingTier = 'standard';
-      shippingPrice = shippingData.rate + shippingData.tier2Surcharge;
-    }
+    // Placeholders — filled in after Step 3 once we have real categories
+    let shippingTier  = 'standard';
+    let shippingPrice = shippingData.rate;
 
     // ── Step 3: Server-side price verification ──────────────────────────
     // Re-calculate items price from actual product data to prevent
@@ -198,6 +184,23 @@ const createOrder = async (req, res) => {
         unit: product.unit || '',
         product: product._id,
       });
+    }
+
+    // ── Step 3b: Tier 2 detection — using verified items with real categories
+    // Now that verifiedOrderItems has category populated from the database,
+    // we can correctly detect Tier 2 items.
+    const orderHasTier2     = hasAnyTier2Item(verifiedOrderItems);
+    const orderIsFullyTier2 = isFullyTier2Order(verifiedOrderItems);
+
+    if (orderIsFullyTier2) {
+      // Entirely bulk/heavy goods — full Tier 2 flow
+      shippingTier  = 'quote_required';
+      shippingPrice = 0; // Admin will set the real amount after quoting
+    } else if (orderHasTier2) {
+      // Mixed order — apply tier 1 flat rate + tier 2 surcharge and flag
+      // for admin attention. Admin can override via updateOrderShipping.
+      shippingTier  = 'standard';
+      shippingPrice = shippingData.rate + shippingData.tier2Surcharge;
     }
 
     // ── Step 4: Calculate tax and total server-side ─────────────────────
