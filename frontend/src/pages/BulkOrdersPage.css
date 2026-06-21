@@ -676,3 +676,89 @@
         align-items: flex-start;
     }
 }
+
+/* ── Reference photo upload ──────────────────────────────────── */
+.bulk-optional {
+    font-weight: 400;
+    color: rgba(250, 248, 245, 0.5);
+    font-size: 0.75rem;
+}
+
+.bulk-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bulk-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    background: var(--tan) !important;
+    color: #002147;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.bulk-upload-btn:hover {
+    opacity: 0.88;
+}
+
+.bulk-upload-input {
+    display: none;
+}
+
+.bulk-upload-hint {
+    font-size: 0.72rem;
+    color: rgba(250, 248, 245, 0.5);
+}
+
+.bulk-upload-previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.bulk-upload-preview {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1.5px solid rgba(210, 180, 140, 0.3);
+}
+
+.bulk-upload-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bulk-upload-preview-remove {
+    all: unset;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.7rem;
+}
+
+.bulk-upload-preview-remove:hover {
+    background: rgba(192, 57, 43, 0.85);
+}

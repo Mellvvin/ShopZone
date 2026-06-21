@@ -107,10 +107,22 @@ const enquirySchema = mongoose.Schema(
     // type: 'support' enquiries should always have this set.
     // Links the enquiry to the order so admin can see full order
     // context alongside the complaint without asking the buyer for the ID.
-    orderId: {
+ orderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Order',
       default: null,
+    },
+
+    // ── Attachments ──────────────────────────────────────────
+    // Screenshot URLs uploaded by the submitter when they cannot
+    // describe an issue in words. Each entry is the path returned
+    // by POST /api/upload — the same upload endpoint already used
+    // for seller product images. Stored as plain strings, not
+    // ObjectIds. Used by ContactPage, BulkOrdersPage, and
+    // BecomeSellerPage forms.
+    attachments: {
+      type: [String],
+      default: [],
     },
 
     // ── Resolution tracking ──────────────────────────────────

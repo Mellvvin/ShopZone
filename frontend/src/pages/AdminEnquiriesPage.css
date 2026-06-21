@@ -823,3 +823,112 @@
 .enq-pill--green .enq-pill__num {
     color: #27ae60;
 }
+
+/* ── Related order card in detail panel ──────────────────────── */
+.enq-panel__order-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(0, 33, 71, 0.04);
+    border: 1px solid rgba(0, 33, 71, 0.1);
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.enq-panel__order-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.enq-panel__order-ref {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--oxford-blue);
+}
+
+.enq-panel__order-total {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #27ae60;
+}
+
+.enq-panel__order-status {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #767676;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.enq-panel__order-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--tan);
+    background: var(--oxford-blue);
+    padding: 6px 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+}
+
+.enq-panel__order-link:hover {
+    opacity: 0.85;
+}
+
+/* ── Attachments grid in detail panel ────────────────────────── */
+.enq-panel__attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.enq-panel__attachment {
+    display: block;
+    width: 90px;
+    height: 90px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1.5px solid rgba(0, 33, 71, 0.12);
+}
+
+.enq-panel__attachment-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ── List item indicators — order linked / attachments ───────── */
+.enq-item__order-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #2980b9;
+    background: rgba(41, 128, 185, 0.08);
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.enq-item__attachment-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #767676;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 8px;
+    border-radius: 20px;
+}

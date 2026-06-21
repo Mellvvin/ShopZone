@@ -21,7 +21,7 @@ import {
     FaBoxOpen, FaTruck, FaShieldAlt, FaHandshake,
     FaClipboardList, FaSearch, FaFileInvoiceDollar,
     FaCheckCircle, FaChevronDown, FaArrowRight,
-    FaWhatsapp, FaEnvelope,
+    FaWhatsapp, FaEnvelope, FaPaperclip, FaTimes,
 } from 'react-icons/fa';
 import './BulkOrdersPage.css';
 
@@ -141,9 +141,18 @@ const BulkOrdersPage = () => {
         name: '', email: '', business: '', item: '', quantity: '',
         unitType: '', county: '', budget: '', notes: '',
     });
-  const [submitted, setSubmitted]         = useState(false);
+    
+    // ── Form submission state ─────────────────────────────────
+    const [submitted, setSubmitted]         = useState(false);
     const [formError, setFormError]         = useState('');
     const [submitLoading, setSubmitLoading] = useState(false);
+
+    // ── Reference photo attachments ─────────────────────────────
+    // Optional — up to 3 images. Lets the buyer show exactly what
+    // they're looking for instead of describing it in words alone.
+    const [attachments, setAttachments]                 = useState([]);
+    const [attachmentUploading, setAttachmentUploading] = useState(false);
+    const [attachmentError, setAttachmentError]         = useState('');
 
     // ── Particle data — generated once ───────────────────────
     const [particles] = useState(() =>
@@ -239,9 +248,45 @@ const BulkOrdersPage = () => {
     };
 
     // ── Form handlers ─────────────────────────────────────────
-    const handleChange = (e) => {
+const handleChange = (e) => {
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
         setFormError('');
+    };
+
+    // ── Screenshot upload handler ──────────────────────────────
+    const handleAttachmentUpload = async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        if (attachments.length + files.length > 3) {
+            setAttachmentError('You can attach up to 3 reference images.');
+            return;
+        }
+        setAttachmentUploading(true);
+        setAttachmentError('');
+        try {
+            const uploaded = [];
+            for (const file of files) {
+                const fd = new FormData();
+                fd.append('image', file);
+                const { data } = await axios.post('/api/upload', fd, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${userInfo.token}`,
+                    },
+                });
+                uploaded.push(data);
+            }
+            setAttachments(prev => [...prev, ...uploaded]);
+        } catch (err) {
+            setAttachmentError('Failed to upload one or more images. Please try again.');
+        } finally {
+            setAttachmentUploading(false);
+            e.target.value = '';
+        }
+    };
+
+    const removeAttachment = (index) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
     };
 
    // ── Form submission — posts to /api/enquiries ─────────────
@@ -261,14 +306,15 @@ const BulkOrdersPage = () => {
         setSubmitLoading(true);
         setFormError('');
         try {
-            await axios.post(
+          await axios.post(
                 '/api/enquiries',
                 {
-                    type:     'bulk_order',
-                    name:     form.name,
-                    email:    form.email,
-                    business: form.business || '',
-                    message:  form.notes || '',
+                    type:        'bulk_order',
+                    name:        form.name,
+                    email:       form.email,
+                    business:    form.business || '',
+                    message:     form.notes || '',
+                    attachments,
                     data: {
                         item:     form.item,
                         quantity: form.quantity,
@@ -471,9 +517,9 @@ const BulkOrdersPage = () => {
                                 Thank you. Our sourcing team will review your request and get back to
                                 you within 24 hours. Check your email for a confirmation.
                             </p>
-                            <button
+                           <button
                                 className='bulk-success-reset'
-                                onClick={() => { setSubmitted(false); setForm({ name:'',email:'',business:'',item:'',quantity:'',unitType:'',county:'',budget:'',notes:'' }); }}
+                                onClick={() => { setSubmitted(false); setForm({ name:'',email:'',business:'',item:'',quantity:'',unitType:'',county:'',budget:'',notes:'' }); setAttachments([]); setAttachmentError(''); }}
                             >
                                 Submit Another Request
                             </button>
@@ -623,7 +669,7 @@ const BulkOrdersPage = () => {
                                 </div>
                             </div>
 
-                            {/* Row 5 — notes */}
+                        {/* Row 5 — notes */}
                             <div className='bulk-form-group'>
                                 <label className='bulk-label' htmlFor='bulk-notes'>
                                     Additional Notes
@@ -637,6 +683,49 @@ const BulkOrdersPage = () => {
                                     rows={4}
                                     placeholder='Brands you prefer, delivery urgency, special packaging requirements, etc.'
                                 />
+                            </div>
+
+                            {/* Reference photo — optional, up to 3 */}
+                            <div className='bulk-form-group'>
+                                <label className='bulk-label' htmlFor='bulk-attachments'>
+                                    Reference Photo <span className='bulk-optional'>(optional, up to 3)</span>
+                                </label>
+                                <div className='bulk-upload-row'>
+                                    <label className='bulk-upload-btn' htmlFor='bulk-attachments'>
+                                        <FaPaperclip aria-hidden='true' />
+                                        {attachmentUploading ? 'Uploading…' : 'Choose Images'}
+                                        <input
+                                            id='bulk-attachments'
+                                            type='file'
+                                            accept='image/jpeg,image/png'
+                                            multiple
+                                            onChange={handleAttachmentUpload}
+                                            disabled={attachmentUploading || attachments.length >= 3}
+                                            className='bulk-upload-input'
+                                        />
+                                    </label>
+                                    <span className='bulk-upload-hint'>JPG or PNG, max 3 images</span>
+                                </div>
+                                {attachmentError && (
+                                    <p className='bulk-form-error' role='alert'>{attachmentError}</p>
+                                )}
+                                {attachments.length > 0 && (
+                                    <div className='bulk-upload-previews'>
+                                        {attachments.map((url, idx) => (
+                                            <div key={idx} className='bulk-upload-preview'>
+                                                <img src={url} alt={`Attachment ${idx + 1}`} />
+                                                <button
+                                                    type='button'
+                                                    className='bulk-upload-preview-remove'
+                                                    onClick={() => removeAttachment(idx)}
+                                                    aria-label='Remove attachment'
+                                                >
+                                                    <FaTimes aria-hidden='true' />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Inline error */}

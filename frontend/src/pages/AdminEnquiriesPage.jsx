@@ -35,7 +35,8 @@ import {
     FaCheckCircle, FaClock, FaTimesCircle,
     FaChevronRight, FaUser, FaPhone, FaBriefcase,
     FaCalendar, FaStickyNote, FaTimes,
-    FaExclamationTriangle,
+    FaExclamationTriangle, FaLifeRing, FaPaperclip,
+    FaExternalLinkAlt, FaShoppingBag,
 } from 'react-icons/fa';
 import './AdminEnquiriesPage.css';
 
@@ -178,6 +179,70 @@ const EnquiryDetailPanel = ({ enquiry, onClose, onUpdated, config }) => {
                     <div className='enq-panel__section'>
                         <h4 className='enq-panel__section-title'>Message</h4>
                         <p className='enq-panel__message'>{enquiry.message}</p>
+                    </div>
+                )}
+
+              {/* Related order — shown when this enquiry is linked to an order.
+                    enquiry.orderId may come back populated (an object with
+                    _id, totalPrice, status, createdAt) or as a raw ObjectId
+                    string if population is missing — both are handled. */}
+                {enquiry.orderId && (
+                    <div className='enq-panel__section'>
+                        <h4 className='enq-panel__section-title'>
+                            <FaShoppingBag aria-hidden='true' /> Related Order
+                        </h4>
+                        <div className='enq-panel__order-card'>
+                            <div className='enq-panel__order-info'>
+                                <span className='enq-panel__order-ref'>
+                                    #{(enquiry.orderId._id || enquiry.orderId).toString().slice(-8).toUpperCase()}
+                                </span>
+                                {enquiry.orderId.totalPrice !== undefined && (
+                                    <span className='enq-panel__order-total'>
+                                        {fmtKES(enquiry.orderId.totalPrice)}
+                                    </span>
+                                )}
+                                {enquiry.orderId.status && (
+                                    <span className='enq-panel__order-status'>
+                                        {enquiry.orderId.status}
+                                    </span>
+                                )}
+                            </div>
+                            <Link
+                                to={`/order/${enquiry.orderId._id || enquiry.orderId}`}
+                                className='enq-panel__order-link'
+                            >
+                                View Order <FaExternalLinkAlt aria-hidden='true' />
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
+                {/* Attachments — screenshots the submitter attached when they
+                    could not describe the issue in words. Opens full size
+                    in a new tab. Populated once the screenshot upload field
+                    is wired into the submission forms. */}
+                {enquiry.attachments && enquiry.attachments.length > 0 && (
+                    <div className='enq-panel__section'>
+                        <h4 className='enq-panel__section-title'>
+                            <FaPaperclip aria-hidden='true' /> Attachments ({enquiry.attachments.length})
+                        </h4>
+                        <div className='enq-panel__attachments'>
+                            {enquiry.attachments.map((url, idx) => (
+                                <a
+                                    key={idx}
+                                    href={url}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    className='enq-panel__attachment'
+                                >
+                                    <img
+                                        src={url}
+                                        alt={`Attachment ${idx + 1}`}
+                                        className='enq-panel__attachment-img'
+                                    />
+                                </a>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -332,9 +397,10 @@ const AdminEnquiriesPage = () => {
     const closedCount      = allEnquiries.filter(e => e.status === 'closed').length;
 
   // ── Type filter tabs ──────────────────────────────────────
-    const TYPE_TABS = [
+const TYPE_TABS = [
         { key: 'all',                label: 'All',                 icon: FaEnvelope,       countMod: '' },
         { key: 'unread',             label: 'Unread',              icon: FaExclamationTriangle, countMod: 'red' },
+        { key: 'support',            label: 'Support',             icon: FaLifeRing,       countMod: 'typed' },
         { key: 'bulk_order',         label: 'Bulk Orders',         icon: FaBoxOpen,        countMod: 'typed' },
         { key: 'seller_application', label: 'Seller Applications', icon: FaStore,          countMod: 'typed' },
         { key: 'contact',            label: 'Contact',             icon: FaHeadset,        countMod: 'typed' },
@@ -572,7 +638,7 @@ const AdminEnquiriesPage = () => {
                                                         {enq.message.length > 100 ? '…' : ''}
                                                     </p>
                                                 )}
-                                                <div className='enq-item__bottom-row'>
+                                               <div className='enq-item__bottom-row'>
                                                     {/* Type badge */}
                                                     <span
                                                         className='enq-item__type-badge'
@@ -590,6 +656,19 @@ const AdminEnquiriesPage = () => {
                                                     >
                                                         {statusCfg.label}
                                                     </span>
+                                                    {/* Order link indicator — shown when this enquiry
+                                                        is tied to a specific order, mainly support type */}
+                                                    {enq.orderId && (
+                                                        <span className='enq-item__order-indicator'>
+                                                            <FaShoppingBag aria-hidden='true' /> Order linked
+                                                        </span>
+                                                    )}
+                                                    {/* Attachment indicator */}
+                                                    {enq.attachments && enq.attachments.length > 0 && (
+                                                        <span className='enq-item__attachment-indicator'>
+                                                            <FaPaperclip aria-hidden='true' /> {enq.attachments.length}
+                                                        </span>
+                                                    )}
                                                     {/* Resolved indicator */}
                                                     {enq.resolvedAt && (
                                                         <span className='enq-item__resolved'>

@@ -965,3 +965,89 @@ a.contact-info-card__value:hover {
     padding: 0.5rem 0.8rem;
     margin-bottom: 0.8rem;
 }
+
+/* ── Screenshot attachment upload ────────────────────────────── */
+.contact-form__optional {
+    font-weight: 400;
+    color: #999;
+    font-size: 0.75rem;
+}
+
+.contact-form__upload-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.contact-form__upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    background: var(--oxford-blue);
+    color: var(--tan) !important;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.contact-form__upload-btn:hover {
+    opacity: 0.88;
+}
+
+.contact-form__upload-input {
+    display: none;
+}
+
+.contact-form__upload-hint {
+    font-size: 0.72rem;
+    color: #999;
+}
+
+.contact-form__previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.contact-form__preview {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1.5px solid rgba(0, 33, 71, 0.12);
+}
+
+.contact-form__preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.contact-form__preview-remove {
+    all: unset;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.7rem;
+}
+
+.contact-form__preview-remove:hover {
+    background: rgba(192, 57, 43, 0.85);
+}

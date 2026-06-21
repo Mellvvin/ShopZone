@@ -13,6 +13,7 @@ import {
     FaEnvelope, FaWhatsapp, FaPhone, FaClock,
     FaPaperPlane, FaBolt, FaCheckCircle,
     FaMapMarkerAlt, FaChevronRight, FaUsers, FaTruck,
+    FaPaperclip, FaTimes,
 } from 'react-icons/fa';
 import './ContactPage.css';
 
@@ -171,10 +172,19 @@ const ContactPage = () => {
 
     const [selectedTopic, setSelectedTopic] = useState('');
     const [formData, setFormData] = useState({ name: '', email: '', topic: '', message: '' });
-    const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
     // Loading and error state for the form submission
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitError, setSubmitError] = useState('');
+
+    // ── Screenshot attachments ─────────────────────────────────
+    // Up to 3 screenshots for when a written description isn't
+    // enough. Each upload hits the existing /api/upload endpoint
+    // (already requires login) and the returned path is stored
+    // here, then sent in the enquiry payload's attachments array.
+    const [attachments, setAttachments] = useState([]);
+    const [attachmentUploading, setAttachmentUploading] = useState(false);
+    const [attachmentError, setAttachmentError] = useState('');
 
     // Typewriter
     const fullText = 'Talk to Us.';
@@ -207,7 +217,45 @@ const ContactPage = () => {
         document.getElementById('contact-form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+    // ── Screenshot upload handler ──────────────────────────────
+    // Caps total attachments at 3. Uploads each selected file to
+    // /api/upload and collects the returned paths.
+    const handleAttachmentUpload = async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        if (attachments.length + files.length > 3) {
+            setAttachmentError('You can attach up to 3 screenshots.');
+            return;
+        }
+        setAttachmentUploading(true);
+        setAttachmentError('');
+        try {
+            const uploaded = [];
+            for (const file of files) {
+                const fd = new FormData();
+                fd.append('image', file);
+                const { data } = await axios.post('/api/upload', fd, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${userInfo.token}`,
+                    },
+                });
+                uploaded.push(data);
+            }
+            setAttachments(prev => [...prev, ...uploaded]);
+        } catch (err) {
+            setAttachmentError('Failed to upload one or more images. Please try again.');
+        } finally {
+            setAttachmentUploading(false);
+            e.target.value = '';
+        }
+    };
+
+    const removeAttachment = (index) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
+    };
 
   // ── Form submission — posts to /api/enquiries ─────────────
     // Requires login. If not logged in, redirects to /login with
@@ -225,13 +273,14 @@ const ContactPage = () => {
         setSubmitLoading(true);
         setSubmitError('');
         try {
-            await axios.post(
+         await axios.post(
                 '/api/enquiries',
                 {
-                    type:    'contact',
-                    name:    formData.name,
-                    email:   formData.email,
-                    message: formData.message,
+                    type:        'contact',
+                    name:        formData.name,
+                    email:       formData.email,
+                    message:     formData.message,
+                    attachments,
                     data: {
                         topic:      formData.topic,
                         topicLabel: TOPICS.find(t => t.id === formData.topic)?.label || formData.topic,
@@ -389,7 +438,7 @@ const ContactPage = () => {
                                     Thank you for reaching out. Our support team will get back to you
                                     within 4 business hours. Check your email for a confirmation.
                                 </p>
-                                <button className='contact-success__reset' onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', topic: '', message: '' }); setSelectedTopic(''); setSubmitError(''); }}>
+                              <button className='contact-success__reset' onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', topic: '', message: '' }); setSelectedTopic(''); setSubmitError(''); setAttachments([]); setAttachmentError(''); }}>
                                     Send another message
                                 </button>
                             </div>
@@ -417,10 +466,54 @@ const ContactPage = () => {
                                             {TOPICS.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                                         </select>
                                     </div>
-                                    <div className='contact-form__group'>
+                                 <div className='contact-form__group'>
                                         <label htmlFor='contact-message'>Message</label>
                                         <textarea id='contact-message' name='message' placeholder='Tell us as much detail as possible...' rows={6} value={formData.message} onChange={handleChange} required />
                                     </div>
+
+                                    {/* Screenshot attachments — optional, up to 3 */}
+                                    <div className='contact-form__group'>
+                                        <label htmlFor='contact-attachments'>
+                                            Attach a screenshot <span className='contact-form__optional'>(optional, up to 3)</span>
+                                        </label>
+                                        <div className='contact-form__upload-row'>
+                                            <label className='contact-form__upload-btn' htmlFor='contact-attachments'>
+                                                <FaPaperclip aria-hidden='true' />
+                                                {attachmentUploading ? 'Uploading…' : 'Choose Images'}
+                                                <input
+                                                    id='contact-attachments'
+                                                    type='file'
+                                                    accept='image/jpeg,image/png'
+                                                    multiple
+                                                    onChange={handleAttachmentUpload}
+                                                    disabled={attachmentUploading || attachments.length >= 3}
+                                                    className='contact-form__upload-input'
+                                                />
+                                            </label>
+                                            <span className='contact-form__upload-hint'>JPG or PNG, max 3 images</span>
+                                        </div>
+                                        {attachmentError && (
+                                            <p className='contact-form__error' role='alert'>{attachmentError}</p>
+                                        )}
+                                        {attachments.length > 0 && (
+                                            <div className='contact-form__previews'>
+                                                {attachments.map((url, idx) => (
+                                                    <div key={idx} className='contact-form__preview'>
+                                                        <img src={url} alt={`Attachment ${idx + 1}`} />
+                                                        <button
+                                                            type='button'
+                                                            className='contact-form__preview-remove'
+                                                            onClick={() => removeAttachment(idx)}
+                                                            aria-label='Remove attachment'
+                                                        >
+                                                            <FaTimes aria-hidden='true' />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
                                     {/* Inline error message if submission fails */}
                                     {submitError && (
                                         <p className='contact-form__error' role='alert'>{submitError}</p>

@@ -27,7 +27,7 @@ leoProfanity.loadDictionary('en');
 // @access  Public
 const createEnquiry = async (req, res) => {
   try {
-  const {
+ const {
       type,
       name,
       email,
@@ -36,6 +36,7 @@ const createEnquiry = async (req, res) => {
       message,
       data,
       orderId,
+      attachments,
     } = req.body;
 
  // ── Basic validation ────────────────────────────────────
@@ -56,7 +57,7 @@ const createEnquiry = async (req, res) => {
     }
 
     // ── Build the enquiry document ──────────────────────────
-   const enquiry = new Enquiry({
+ const enquiry = new Enquiry({
       type,
       name:     name.trim(),
       email:    email.trim().toLowerCase(),
@@ -69,6 +70,10 @@ const createEnquiry = async (req, res) => {
       // Link to the specific order if this is a support enquiry.
       // Stored as ObjectId — validates that it is a real MongoDB ID.
       orderId:  orderId  || null,
+      // Screenshot URLs uploaded via the existing /api/upload route
+      // before submit. Plain path strings, not ObjectIds. Defaults
+      // to an empty array if the form did not attach anything.
+      attachments: Array.isArray(attachments) ? attachments : [],
     });
 const saved = await enquiry.save();
 

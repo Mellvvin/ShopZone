@@ -25,6 +25,7 @@ import {
     FaMobileAlt, FaTshirt, FaShoppingBasket,
     FaSpa, FaTools, FaSeedling, FaMapMarkerAlt,
     FaStar, FaRocket, FaClock, FaEye, FaEyeSlash,
+    FaPaperclip, FaTimes,
 } from 'react-icons/fa';
 import './BecomeSellerPage.css';
 
@@ -330,11 +331,20 @@ const [formData, setFormData] = useState({
         county:        '',
         message:       '',
     });
-
-const [submitted, setSubmitted]         = useState(false);
+    
+    // ── Form submission state ─────────────────────────────────────
+    const [submitted, setSubmitted]         = useState(false);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [submitError, setSubmitError]     = useState('');
     const heroRef = useRef(null);
+
+    // ── Supporting document attachments ────────────────────────
+    // Optional — up to 3 images. Business registration proof,
+    // storefront photos, or stock photos that help admin verify
+    // the application faster.
+    const [attachments, setAttachments]                 = useState([]);
+    const [attachmentUploading, setAttachmentUploading] = useState(false);
+    const [attachmentError, setAttachmentError]         = useState('');
 
     useEffect(() => { document.title = 'Become a Seller — ShopZone'; }, []);
 
@@ -351,8 +361,44 @@ const [submitted, setSubmitted]         = useState(false);
         return () => clearInterval(interval);
     }, []);
 
-    const handleChange = (e) => {
+   const handleChange = (e) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    // ── Screenshot / document upload handler ───────────────────
+    const handleAttachmentUpload = async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        if (attachments.length + files.length > 3) {
+            setAttachmentError('You can attach up to 3 supporting images.');
+            return;
+        }
+        setAttachmentUploading(true);
+        setAttachmentError('');
+        try {
+            const uploaded = [];
+            for (const file of files) {
+                const fd = new FormData();
+                fd.append('image', file);
+                const { data } = await axios.post('/api/upload', fd, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${userInfo.token}`,
+                    },
+                });
+                uploaded.push(data);
+            }
+            setAttachments(prev => [...prev, ...uploaded]);
+        } catch (err) {
+            setAttachmentError('Failed to upload one or more images. Please try again.');
+        } finally {
+            setAttachmentUploading(false);
+            e.target.value = '';
+        }
+    };
+
+    const removeAttachment = (index) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
     };
 
  // ── Form submission — posts to /api/enquiries ─────────────
@@ -374,15 +420,16 @@ const [submitted, setSubmitted]         = useState(false);
         setSubmitLoading(true);
         setSubmitError('');
         try {
-            await axios.post(
+           await axios.post(
                 '/api/enquiries',
                 {
-                    type:     'seller_application',
-                    name:     formData.contactName,
-                    email:    formData.email,
-                    phone:    formData.phone,
-                    business: formData.businessName,
-                    message:  formData.message,
+                    type:        'seller_application',
+                    name:        formData.contactName,
+                    email:       formData.email,
+                    phone:       formData.phone,
+                    business:    formData.businessName,
+                    message:     formData.message,
+                    attachments,
                     // Full payload stored in data field for migration
                     // to the seller application model in Step 6
                     data: {
@@ -748,7 +795,7 @@ const [submitted, setSubmitted]         = useState(false);
                                         48 hours. Keep an eye on your email at{' '}
                                         <strong>{formData.email}</strong>.
                                     </p>
-                                    <button
+                                   <button
                                         className='bs-apply__reset'
                                         onClick={() => {
                                             setSubmitted(false);
@@ -758,6 +805,8 @@ const [submitted, setSubmitted]         = useState(false);
                                                 phone: '', kraPin: '', mpesaNumber: '',
                                                 description: '', products: '', county: '', message: '',
                                             });
+                                            setAttachments([]);
+                                            setAttachmentError('');
                                         }}
                                     >
                                         Submit another application
@@ -898,7 +947,7 @@ const [submitted, setSubmitted]         = useState(false);
                                         </div>
                                     </div>
 
-                                    <div className='bs-apply__form-group'>
+                                   <div className='bs-apply__form-group'>
                                         <label htmlFor='bs-message'>Anything else we should know?</label>
                                         <textarea
                                             id='bs-message'
@@ -908,6 +957,49 @@ const [submitted, setSubmitted]         = useState(false);
                                             value={formData.message}
                                             onChange={handleChange}
                                         />
+                                    </div>
+
+                                    {/* Supporting documents — optional, up to 3 */}
+                                    <div className='bs-apply__form-group'>
+                                        <label htmlFor='bs-attachments'>
+                                            Supporting Photos <span className='bs-apply__hint'>(optional — business registration, storefront, stock)</span>
+                                        </label>
+                                        <div className='bs-apply__upload-row'>
+                                            <label className='bs-apply__upload-btn' htmlFor='bs-attachments'>
+                                                <FaPaperclip aria-hidden='true' />
+                                                {attachmentUploading ? 'Uploading…' : 'Choose Images'}
+                                                <input
+                                                    id='bs-attachments'
+                                                    type='file'
+                                                    accept='image/jpeg,image/png'
+                                                    multiple
+                                                    onChange={handleAttachmentUpload}
+                                                    disabled={attachmentUploading || attachments.length >= 3}
+                                                    className='bs-apply__upload-input'
+                                                />
+                                            </label>
+                                            <span className='bs-apply__upload-hint'>JPG or PNG, max 3 images</span>
+                                        </div>
+                                        {attachmentError && (
+                                            <p className='bs-apply__error' role='alert'>{attachmentError}</p>
+                                        )}
+                                        {attachments.length > 0 && (
+                                            <div className='bs-apply__upload-previews'>
+                                                {attachments.map((url, idx) => (
+                                                    <div key={idx} className='bs-apply__upload-preview'>
+                                                        <img src={url} alt={`Attachment ${idx + 1}`} />
+                                                        <button
+                                                            type='button'
+                                                            className='bs-apply__upload-preview-remove'
+                                                            onClick={() => removeAttachment(idx)}
+                                                            aria-label='Remove attachment'
+                                                        >
+                                                            <FaTimes aria-hidden='true' />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Inline error if submission fails */}
