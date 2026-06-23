@@ -1458,3 +1458,89 @@
   border-radius: 5px;
   border-left: 3px solid var(--tan);
 }
+
+/* ── Report Issue screenshot upload ──────────────────────────── */
+.order-report__optional {
+  font-weight: 400;
+  color: #999;
+  font-size: 0.72rem;
+}
+
+.order-report__upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.order-report__upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  background: var(--oxford-blue);
+  color: var(--tan) !important;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.order-report__upload-btn:hover {
+  opacity: 0.88;
+}
+
+.order-report__upload-input {
+  display: none;
+}
+
+.order-report__upload-hint {
+  font-size: 0.7rem;
+  color: #999;
+}
+
+.order-report__previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.order-report__preview {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid rgba(0, 33, 71, 0.12);
+}
+
+.order-report__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.order-report__preview-remove {
+  all: unset;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.62rem;
+}
+
+.order-report__preview-remove:hover {
+  background: rgba(192, 57, 43, 0.85);
+}

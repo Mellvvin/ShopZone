@@ -39,6 +39,8 @@ import {
   FaExclamationTriangle,
   FaMoneyBillWave,
   FaChevronRight,
+  FaPaperclip,
+  FaTimes,
 } from 'react-icons/fa';
 import ReceiptModal from '../components/ReceiptModal/ReceiptModal';
 import './OrderPage.css';
@@ -302,12 +304,21 @@ const [showReceipt, setShowReceipt]               = useState(false);
     }
   }, [orderId]);
 
-    // ── Report Issue form state ───────────────────────────────
+// ── Report Issue form state ───────────────────────────────
   const [showIssueForm, setShowIssueForm]           = useState(false);
   const [issueMessage, setIssueMessage]             = useState('');
   const [issueLoading, setIssueLoading]             = useState(false);
   const [issueError, setIssueError]                 = useState('');
   const [issueSuccess, setIssueSuccess]             = useState(false);
+
+  // ── Report Issue screenshot attachments ─────────────────────
+  // Up to 3 images so the buyer can show exactly what's wrong —
+  // a damaged item, the wrong item received, a short quantity, etc.
+  // Uploads go through the existing /api/upload endpoint, same as
+  // every other attachment field on the platform.
+  const [issueAttachments, setIssueAttachments]         = useState([]);
+  const [issueAttachUploading, setIssueAttachUploading] = useState(false);
+  const [issueAttachError, setIssueAttachError]         = useState('');
 
   // Fetch the payment record for this order
   const fetchPayment = async () => {
@@ -438,6 +449,42 @@ const [showReceipt, setShowReceipt]               = useState(false);
     }
   };
 
+// ── Screenshot upload handler for the Report Issue form ───────────────────
+  const handleIssueAttachmentUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    if (issueAttachments.length + files.length > 3) {
+      setIssueAttachError('You can attach up to 3 screenshots.');
+      return;
+    }
+    setIssueAttachUploading(true);
+    setIssueAttachError('');
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append('image', file);
+        const { data } = await axios.post('/api/upload', fd, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${userInfo.token}`,
+          },
+        });
+        uploaded.push(data);
+      }
+      setIssueAttachments(prev => [...prev, ...uploaded]);
+    } catch (err) {
+      setIssueAttachError('Failed to upload one or more images. Please try again.');
+    } finally {
+      setIssueAttachUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeIssueAttachment = (index) => {
+    setIssueAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
  // ── Report Issue — submits a support enquiry linked to this order ─────────
   // Pre-fills orderId so admin immediately knows which order is affected.
   // Buyer only needs to describe the problem — everything else is automatic.
@@ -453,11 +500,12 @@ const [showReceipt, setShowReceipt]               = useState(false);
       await axios.post(
         '/api/enquiries',
         {
-          type:     'support',
-          name:     userInfo.name,
-          email:    userInfo.email,
-          message:  issueMessage.trim(),
-          orderId:  order._id,
+          type:        'support',
+          name:        userInfo.name,
+          email:       userInfo.email,
+          message:     issueMessage.trim(),
+          orderId:     order._id,
+          attachments: issueAttachments,
           // Store structured order context in data field for admin
           data: {
             orderId:      order._id,
@@ -472,6 +520,7 @@ const [showReceipt, setShowReceipt]               = useState(false);
       );
       setIssueSuccess(true);
       setIssueMessage('');
+      setIssueAttachments([]);
     } catch (err) {
       setIssueError(err.response?.data?.message || 'Failed to submit. Please try again.');
     } finally {
@@ -1318,7 +1367,7 @@ const [showReceipt, setShowReceipt]               = useState(false);
                         <span className='order-report__ref-full'>{order._id}</span>
                       </div>
 
-                      <div className='order-report__field'>
+                    <div className='order-report__field'>
                         <label htmlFor='issue-message' className='order-report__label'>
                           Describe the issue <span className='order-report__required'>*</span>
                         </label>
@@ -1331,6 +1380,49 @@ const [showReceipt, setShowReceipt]               = useState(false);
                           onChange={e => setIssueMessage(e.target.value)}
                           required
                         />
+                      </div>
+
+                      {/* Screenshot attachments — optional, up to 3 */}
+                      <div className='order-report__field'>
+                        <label htmlFor='issue-attachments' className='order-report__label'>
+                          Attach a photo <span className='order-report__optional'>(optional, up to 3)</span>
+                        </label>
+                        <div className='order-report__upload-row'>
+                          <label className='order-report__upload-btn' htmlFor='issue-attachments'>
+                            <FaPaperclip aria-hidden='true' />
+                            {issueAttachUploading ? 'Uploading…' : 'Choose Images'}
+                            <input
+                              id='issue-attachments'
+                              type='file'
+                              accept='image/jpeg,image/png'
+                              multiple
+                              onChange={handleIssueAttachmentUpload}
+                              disabled={issueAttachUploading || issueAttachments.length >= 3}
+                              className='order-report__upload-input'
+                            />
+                          </label>
+                          <span className='order-report__upload-hint'>JPG or PNG, max 3 images</span>
+                        </div>
+                        {issueAttachError && (
+                          <p className='order-report__error' role='alert'>{issueAttachError}</p>
+                        )}
+                        {issueAttachments.length > 0 && (
+                          <div className='order-report__previews'>
+                            {issueAttachments.map((url, idx) => (
+                              <div key={idx} className='order-report__preview'>
+                                <img src={url} alt={`Attachment ${idx + 1}`} />
+                                <button
+                                  type='button'
+                                  className='order-report__preview-remove'
+                                  onClick={() => removeIssueAttachment(idx)}
+                                  aria-label='Remove attachment'
+                                >
+                                  <FaTimes aria-hidden='true' />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {issueError && (

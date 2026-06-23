@@ -21,6 +21,7 @@ import {
     FaUsers, FaSearch, FaTimes, FaUserShield,
     FaUser, FaExclamationTriangle, FaTrash, FaUserEdit,
 } from 'react-icons/fa';
+import ScrollableTabBar from '../components/ScrollableTabBar/ScrollableTabBar';
 import './AdminUserListPage.css';
 
 // ─────────────────────────────────────────────────────────────
@@ -262,7 +263,7 @@ const AdminUserListPage = () => {
             </div>
 
             {/* ── Tab bar ────────────────────────────────── */}
-            <div className='aul-tabs' role='tablist'>
+            <ScrollableTabBar className='aul-tabs' role='tablist'>
                 {TABS.map(tab => (
                     <button
                         key={tab.key}
@@ -280,7 +281,7 @@ const AdminUserListPage = () => {
                         </span>
                     </button>
                 ))}
-            </div>
+            </ScrollableTabBar>
 
             {/* ── Search bar ─────────────────────────────── */}
             <div className='aul-search-bar'>

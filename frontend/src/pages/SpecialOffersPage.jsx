@@ -16,6 +16,7 @@ import {
     FaBolt,
 } from 'react-icons/fa';
 import OfferCard from '../components/OfferCard/OfferCard';
+import ScrollableTabBar from '../components/ScrollableTabBar/ScrollableTabBar';
 import './SpecialOffersPage.css';
 
 // ── Helper: calculate % saved ─────────────────────────────────────────────
@@ -93,7 +94,7 @@ const SpecialOffersPage = () => {
             </div>
 
             {/* ── Tab bar ───────────────────────────────────────────────── */}
-            <div className='offers-tabs' role='tablist'>
+            <ScrollableTabBar className='offers-tabs' role='tablist'>
                 <button
                     className={`offers-tab ${activeTab === 'all' ? 'offers-tab--active' : ''}`}
                     onClick={() => setActiveTab('all')}
@@ -123,7 +124,7 @@ const SpecialOffersPage = () => {
                     <FaFire aria-hidden='true' /> Clearance
                     <span className='offers-tab__count offers-tab__count--clearance'>{clearanceCount}</span>
                 </button>
-            </div>
+            </ScrollableTabBar>
 
             {/* ── Results heading ───────────────────────────────────────── */}
             <div className='offers-page__inner'>

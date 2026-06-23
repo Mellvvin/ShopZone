@@ -44,6 +44,7 @@ import {
   FaSearch,
   FaTimes,
 } from 'react-icons/fa';
+import ScrollableTabBar from '../components/ScrollableTabBar/ScrollableTabBar';
 import './AdminOrderListPage.css';
 
 
@@ -249,8 +250,8 @@ const AdminOrderListPage = () => {
         </div>
       </div>
 
-      {/* ── Tab bar ─────────────────────────────────────────────────── */}
-      <div className='admin-orders-tabs' role='tablist'>
+{/* ── Tab bar ─────────────────────────────────────────────────── */}
+      <ScrollableTabBar className='admin-orders-tabs' role='tablist'>
     <button
           className={`admin-orders-tab ${activeTab === 'all' ? 'admin-orders-tab--active' : ''}`}
           onClick={() => { setActiveTab('all'); setSearch(''); }}
@@ -319,7 +320,7 @@ const AdminOrderListPage = () => {
             </span>
           )}
         </button>
-      </div>
+</ScrollableTabBar>
 
       {/* ── Search bar ──────────────────────────────────────────────── */}
       <div className='admin-orders-search'>

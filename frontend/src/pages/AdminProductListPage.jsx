@@ -21,7 +21,11 @@ import {
     FaStar, FaTag, FaEraser, FaExclamationCircle, FaPlus,
     FaEdit, FaTrash,
 } from 'react-icons/fa';
-import './AdminProductListPage.css';// ─────────────────────────────────────────────────────────────
+import ScrollableTabBar from '../components/ScrollableTabBar/ScrollableTabBar';
+import './AdminProductListPage.css';
+
+
+// ─────────────────────────────────────────────────────────────
 // AdminProductListPage component
 // ─────────────────────────────────────────────────────────────
 const AdminProductListPage = () => {
@@ -238,6 +242,7 @@ const AdminProductListPage = () => {
                                 <span className='apl-count-pill__label'>On Sale</span>
                             </div>
                         )}
+
                     </div>
 
                     <button
@@ -251,7 +256,7 @@ const AdminProductListPage = () => {
             </div>
 
             {/* ── Tab bar ────────────────────────────────── */}
-            <div className='apl-tabs' role='tablist'>
+            <ScrollableTabBar  className='apl-tabs' role='tablist'>
                 {TABS.map(tab => {
                     const Icon = tab.icon;
                     return (
@@ -270,7 +275,7 @@ const AdminProductListPage = () => {
                         </button>
                     );
                 })}
-            </div>
+            </ScrollableTabBar>
 
             {/* ── Search bar ─────────────────────────────── */}
             <div className='apl-search-bar'>

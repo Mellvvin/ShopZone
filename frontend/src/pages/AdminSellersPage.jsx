@@ -23,6 +23,7 @@ import {
     FaCheckCircle, FaClock, FaBan, FaTimesCircle,
     FaUserEdit,
 } from 'react-icons/fa';
+import ScrollableTabBar from '../components/ScrollableTabBar/ScrollableTabBar';
 import './AdminSellersPage.css';
 
 // ── Status badge helper ───────────────────────────────────────
@@ -219,8 +220,8 @@ const AdminSellersPage = () => {
                 </div>
             </div>
 
-            {/* ── Tab bar ────────────────────────────────── */}
-            <div className='asl-tabs' role='tablist'>
+           {/* ── Tab bar ────────────────────────────────── */}
+            <ScrollableTabBar className='asl-tabs' role='tablist'>
                 {TABS.map(tab => {
                     const Icon = tab.icon;
                     return (
@@ -239,7 +240,7 @@ const AdminSellersPage = () => {
                         </button>
                     );
                 })}
-            </div>
+            </ScrollableTabBar>
 
             {/* ── Search bar ─────────────────────────────── */}
             <div className='asl-search-bar'>

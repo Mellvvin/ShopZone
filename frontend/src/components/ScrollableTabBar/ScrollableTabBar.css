@@ -1,0 +1,65 @@
+/* frontend/src/components/ScrollableTabBar/ScrollableTabBar.css
+   ─────────────────────────────────────────────────────────────
+   Generic scroll-arrow wrapper for horizontal tab/filter strips.
+   The .stb-track element keeps whatever className the caller
+   passes in, so each page's existing tab styling is untouched —
+   this file only adds the wrapper, arrows, and scroll mechanics.
+   ───────────────────────────────────────────────────────────── */
+
+.stb-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.stb-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    flex: 1;
+}
+
+.stb-track::-webkit-scrollbar {
+    display: none;
+}
+
+.stb-arrow {
+    all: unset;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    font-size: 0.8rem;
+    box-shadow: 0 2px 6px rgba(0, 33, 71, 0.25);
+    z-index: 2;
+    transition: opacity 0.15s;
+}
+
+.stb-arrow:hover {
+    opacity: 0.85;
+}
+
+.stb-arrow--left {
+    margin-right: 6px;
+}
+
+.stb-arrow--right {
+    margin-left: 6px;
+}
+
+@media (max-width: 600px) {
+    .stb-arrow {
+        width: 26px;
+        height: 26px;
+        font-size: 0.72rem;
+    }
+}

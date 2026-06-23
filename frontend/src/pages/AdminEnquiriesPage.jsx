@@ -38,6 +38,7 @@ import {
     FaExclamationTriangle, FaLifeRing, FaPaperclip,
     FaExternalLinkAlt, FaShoppingBag,
 } from 'react-icons/fa';
+import ScrollableTabBar from '../components/ScrollableTabBar/ScrollableTabBar';
 import './AdminEnquiriesPage.css';
 
 // ── Type config — label, icon, colour for each enquiry type ──
@@ -449,8 +450,8 @@ const TYPE_TABS = [
                 </div>
             </div>
 
-           {/* ── Type filter tabs ────────────────────────── */}
-            <div className='enq-tabs' role='tablist'>
+         {/* ── Type filter tabs ────────────────────────── */}
+            <ScrollableTabBar className='enq-tabs' role='tablist'>
                 {TYPE_TABS.map(tab => {
                     const Icon = tab.icon;
                     // Unread tab count comes from newCount — a separate
@@ -490,7 +491,7 @@ const TYPE_TABS = [
                         </button>
                     );
                 })}
-            </div>
+            </ScrollableTabBar>
             {/* ── Filters and search bar ───────────────────── */}
             <div className='enq-filters'>
 
