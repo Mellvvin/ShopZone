@@ -1,6 +1,6 @@
 # ShopZone — Project Brain
 > **Paste this entire document at the start of every Claude session.**
-> Last updated: June 13, 2026 | Current baseline: SESSION-010
+> Last updated: June 23, 2026 | Current baseline: SESSION-012 + documentation sync
 
 ---
 
@@ -76,6 +76,13 @@ These rules exist because past violations caused real bugs. Every rule is perman
 25. **Legacy unit field** — The legacy `unit` field on Product only accepts 7 values: Per Unit, Bale, Carton, Dozen, Kg, Box, Sack. Use `Per Unit` as fallback for anything outside these 7.
 26. **Seeder** — Never run `seeder.js` on a database with real data. It wipes everything.
 27. **isAdmin** — Must be set manually in MongoDB after admin registration. The register endpoint never sets it.
+28. **businessType enum** — Valid values are `Retailer`, `Wholesaler`, `Distributor`, `Other`, and `''`. Never write `'business'` to `businessType`. The MongoSH correction `db.users.updateMany({ businessType: 'business' }, { $set: { businessType: '' } })` is a standing, idempotent remedy for old corrupted records.
+29. **Tier 2 detection source** — Tier 2 delivery detection must run against `verifiedOrderItems` after database products have been fetched. Never run Tier 2 checks against raw `req.body.orderItems`, because cart items do not carry reliable category data.
+30. **Seller earnings** — Seller earnings must be calculated from order line items filtered to that seller's product IDs. Never calculate seller revenue or payout from the whole `order.totalPrice`.
+31. **Refunds** — Buyer refunds return to the original payment method. Never create platform credit or a stored buyer wallet balance for real refunded money.
+32. **Disputes** — Multi-item order disputes are resolved at line-item level. One defective, wrong, or damaged item never triggers a refund or return of the entire order.
+33. **Product price unit** — Product price represents one full sellable unit as defined by `unitType`. Do not store a separate per-piece price field; compute per-piece value at render time only.
+34. **Order item unit snapshots** — `unitType`, `itemsPerUnit`, and `weightPerUnit` must be snapshotted onto every order item at the same time as `priceAtPurchase`. Historical order and receipt displays must not live-lookup these values from the Product document.
 
 ---
 
@@ -141,6 +148,7 @@ frontend/src/
     OfferCard/                OfferCard.jsx + OfferCard.css
     NotificationBell/         NotificationBell.jsx + NotificationBell.css
     ReceiptModal/             ReceiptModal.jsx + ReceiptModal.css
+    ScrollableTabBar/         ScrollableTabBar.jsx + ScrollableTabBar.css
   pages/                      ALL FLAT — no subfolders ever
     HomePage + .css
     ProductPage + .css
@@ -236,13 +244,13 @@ backend/
 | `/shipping` | ShippingPage — pre-fills from saved profile | ✅ Live |
 | `/payment` | PaymentPage | ✅ Live |
 | `/placeorder` | PlaceOrderPage | ✅ Live |
-| `/order/:id` | OrderPage — receipt modal, report issue form, #report hash auto-expand | ✅ Live |
+| `/order/:id` | OrderPage — receipt modal, report issue form with screenshot upload, #report hash auto-expand | ✅ Live |
 | `/profile` | ProfilePage — Report Issue link in My Orders tab | ✅ Live |
 | `/admin/products` | AdminProductListPage — status tabs ADDED | ✅ Live |
 | `/admin/product/:id/edit` | AdminProductEditPage — seller assignment + status dropdown | ✅ Live |
 | `/admin/orders` | AdminOrderListPage | ✅ Live |
 | `/admin/users` | AdminUserListPage | ✅ Live |
-| `/admin/enquiries` | AdminEnquiriesPage — Support tab needed | ⚠️ Partial |
+| `/admin/enquiries` | AdminEnquiriesPage — Support tab, related order card, attachment previews | ✅ Live |
 | `/admin/sellers` | AdminSellersPage | ✅ Live |
 | `/admin/users/:id` | AdminUserDetailPage — full aggregated profile | ✅ Live |
 | `/seller/dashboard` | SellerDashboardPage — image upload now working | ✅ Live |
@@ -279,9 +287,10 @@ backend/
 - Five order event notifications wired in `orderController`: placed, quote sent, quote rejected/cancelled, delivered, payout released
 - Payment notification in `paymentController`: payment confirmed to buyer
 - Product status change notifications in `productController`: fires to `product.seller` whenever admin changes status
-- Enquiry model with: `type`, `name`, `email`, `phone`, `business`, `message`, `data`, `status`, `userId`, `orderId`, `resolvedAt`, `resolvedBy`
+- Enquiry model with: `type`, `name`, `email`, `phone`, `business`, `message`, `data`, `status`, `userId`, `orderId`, `attachments`, `resolvedAt`, `resolvedBy`
 - `POST /api/enquiries` requires `protect` — no anonymous submissions; profanity filtered via `leo-profanity`
 - `seller_application` enquiries immediately upsert the User document with all seller profile fields
+- Enquiry attachments are stored as uploaded URL/path strings. ContactPage, BulkOrdersPage, BecomeSellerPage, and OrderPage support up to three optional uploaded images for evidence/reference.
 - Payment model with: `orderId`, `userId`, `method` (mpesa_stk/mpesa_manual/bank_transfer/cash/other), `status` (pending/confirmed/failed/disputed/refunded), `amount`, `mpesaReceiptNumber`, `rawMessage`, `reference`, `confirmedBy`, `confirmedAt`, `stkCheckoutRequestId`, `stkResultCode`, `stkResultDesc`, `notes`
 - `confirmPayment` five-step sequence: update Payment → mark Order.isPaid → set Order.paidAt → link Order.paymentId → advance Order.status → create buyer Notification
 - `Order.paymentId` field links every order back to its Payment document
@@ -298,7 +307,7 @@ backend/
 ### Frontend — Customer-Facing
 - Full cart with quantity controls, MOQ enforcement pending (Step 11)
 - Checkout: Shipping (pre-fills from saved profile) → Payment → Place Order → Order confirmation
-- OrderPage: receipt modal (ReceiptModal component, printable, shows items/VAT/delivery/payment details), Report Issue form (pre-fills order ID, posts to `/api/enquiries` with `type: 'support'` and `orderId`), `#report` hash auto-expands the form
+- OrderPage: receipt modal (ReceiptModal component, printable, shows items/VAT/delivery/payment details), Report Issue form (pre-fills order ID, supports screenshot upload, posts to `/api/enquiries` with `type: 'support'`, `orderId`, and optional `attachments`), `#report` hash auto-expands the form
 - ProfilePage: avatar zone with initials, account type badge, member since, order stats row, collapsible Delivery Info, Security section with `/forgot-password` placeholder, Report Issue link beside every non-cancelled order in My Orders tab
 - ProductPage: verified purchase gate (frontend shows "Verified purchases only" message if no qualifying delivered order; backend independently enforces), review list visible, profanity error message on rejection
 - NotificationBell: polls every 60 seconds, uses `notif.link` for navigation with `relatedOrderId` fallback, mark one/all read, renders null when logged out
@@ -307,7 +316,7 @@ backend/
 - BrandsPage: real A-Z brand directory, sticky letter navigation, live search, product counts from `/api/products/brands`, clicking brand navigates to `/?brand=BrandName`
 - NewArrivalsPage at `/new-arrivals` — working page, dispatches `listProducts({ sort: 'newest' })` with no limit
 - FeaturedPage at `/featured` — working page, dispatches `listProducts({ featured: true })` with no limit
-- All cinematic content pages: FAQ, Contact, Become a Seller, Shipping Policy, Returns Policy, Bulk Orders, About
+- All cinematic content pages: FAQ, Contact, Become a Seller, Shipping Policy, Returns Policy, Bulk Orders, About. ContactPage, BulkOrdersPage, and BecomeSellerPage now support optional screenshot/reference uploads on their enquiry forms.
 - `formatKES` utility at `frontend/src/utils/formatKES.js`
 - Branded splash screen in `index.html` (documented exception to no-inline-styles rule)
 
@@ -315,8 +324,8 @@ backend/
 - All admin pages use gold standard design system
 - AdminProductListPage: tabs (All / Awaiting Review / Needs Changes / Rejected / Archived / Featured / On Sale / Clearance / Out of Stock), amber Awaiting Review count pill in header, Status column with coloured badges
 - AdminProductEditPage: seller assignment dropdown (fetches approved sellers from `/api/users?isSeller=true`), product status dropdown, admin feedback textarea (appears when status is needs_changes or rejected)
-- AdminOrderListPage: 5 tabs, summary count pills (keep always), search bar, send delivery quote modal, mark delivered modal, release payout
-- AdminEnquiriesPage: All/Unread/Bulk Orders/Seller Applications/Contact/General type tabs (Unread powered by backend `?status=new`), status filter, resolved filter, search bar, side detail panel, admin notes. **Support tab not yet added.**
+- AdminOrderListPage: 5 tabs, summary count pills (keep always), search bar, send delivery quote modal, mark delivered modal, release payout, tab row wrapped with ScrollableTabBar
+- AdminEnquiriesPage: All/Unread/Support/Bulk Orders/Seller Applications/Contact/General type tabs (Unread powered by backend `?status=new`), status filter, resolved filter, search bar, side detail panel, admin notes, related order card for support enquiries, attachment thumbnails, tab row wrapped with ScrollableTabBar
 - AdminUserListPage: tabs (All/Customers/Admins), count pills, search, clicking row goes to `/admin/users/:id`
 - AdminSellersPage: tabs (Pending/Approved/Suspended/Rejected), count pills, search, approve/reject/suspend/reinstate with ConfirmModal, clicking row goes to `/admin/users/:id`
 - AdminUserDetailPage: account info card, seller profile card with action buttons, orders as buyer table with View links, products as seller table with Edit links, expandable enquiry rows with full message/admin notes, notifications with View Order links
@@ -334,30 +343,32 @@ backend/
 
 | ID | Priority | Title |
 |----|----------|-------|
-| ISS-004 | HIGH | Screenshot upload missing from ContactPage, BulkOrdersPage, BecomeSellerPage enquiry forms |
-| ISS-005 | HIGH | AdminEnquiriesPage needs Support tab with orderId display and link to related order |
 | ISS-006 | MEDIUM | Low stock notifications not wired in createOrder after stock decrement |
-| ISS-007 | MEDIUM | Payment amount validation — no check preventing small amount from confirming large order |
 | ISS-008 | MEDIUM | Corrupted characters in multiple files (Step 1) |
 | ISS-009 | MEDIUM | No dedicated admin order detail page — View goes to customer-facing OrderPage |
-| ISS-010 | LOW | MobileDrawer mounts when closed (accessibility, Step 2) |
-| ISS-011 | LOW | ShopZoneLogo uses inline styles (Step 2) |
+| ISS-010 | LOW | Accessibility/layout debt: MobileDrawer closed state, ShopZoneLogo inline styles, App container squeezing some full-width pages |
+| ISS-011 | MEDIUM | AdminProductListPage still needs ScrollableTabBar |
+| ISS-012 | LOW | AdminUserDetailPage needs inspection for possible ScrollableTabBar use |
+| ISS-013 | HIGH | Step 11 wholesale unit snapshots and sanity-check displays |
+| ISS-014 | MEDIUM | ReturnsPolicyPage needs buyer-fault vs seller-fault rewrite |
 
 ---
 
 ## Build Order Going Forward
 
-1. **ISS-004 + ISS-005 together** — Screenshot upload on enquiry forms + Support tab on AdminEnquiriesPage
-2. **ISS-006** — Low stock notifications in `createOrder`
-3. **ISS-007** — Payment amount validation in `confirmPayment`
-4. **Step 7** — Admin product approval workflow (full audit history, rejection reason history, admin overrides)
-5. **Step 11** — Bulk units and MOQ display on frontend — data already in database
-6. **Step 15** — Support tickets and returns/dispute flow from My Orders
-7. **Step 16** — Lightweight escrow and payout hold UI
-8. **Step 20** — M-Pesa STK Push (Safaricom Daraja) — slots into existing Payment model
-9. **Step 23** — Backend request validation (Joi or express-validator)
-10. **Step 24** — Forgot password — /forgot-password page, reset token on User model, email infrastructure
-11. **Step 22** — Cloudinary image storage (replacing local Multer uploads)
+1. **ISS-011** — Wire ScrollableTabBar into AdminProductListPage
+2. **ISS-012** — Inspect AdminUserDetailPage and wire ScrollableTabBar if it has a horizontal tab strip
+3. **ISS-013 / Step 11** — Add `unitType`, `itemsPerUnit`, and `weightPerUnit` to order item snapshots; then display wholesale unit sanity checks on ProductPage, CartPage, OrderPage, and ReceiptModal
+4. **ISS-014** — Rewrite ReturnsPolicyPage around buyer-fault vs seller-fault responsibility
+5. **ISS-006** — Low stock notifications in `createOrder`
+6. **Step 7** — Admin product approval workflow (full audit history, rejection reason history, admin overrides)
+7. **Step 15** — Support tickets and returns/dispute flow from My Orders
+8. **Step 16** — Lightweight escrow and payout hold UI
+9. **Step 20** — M-Pesa STK Push and B2C payouts/refunds via Safaricom Daraja, plugged into the existing Payment model
+10. **Step 23** — Backend request validation (Joi or express-validator)
+11. **Step 24** — Forgot password and email infrastructure
+12. **Step 35** — Logistics-only pickup and consolidation service, scoped before coding
+13. **Step 22** — Cloudinary image storage (replacing local Multer uploads)
 
 ---
 
@@ -375,7 +386,7 @@ backend/
 | 8 | Manual RFQ flow | High | ⏳ Planned |
 | 9 | Automated blind RFQ with supplier bidding | Medium | ⏳ Planned |
 | 10 | Tiered wholesale pricing | High | ⏳ Planned |
-| 11 | Bulk units, MOQ, product detail wholesale clarity | High | ⏳ Planned |
+| 11 | Bulk units, MOQ, product detail wholesale clarity | High | ⚠️ Immediate |
 | 12 | Wishlist and saved procurement list | Medium | ⏳ Planned |
 | 13 | Buyer profile enrichment | Medium | ⏳ Planned |
 | 14 | Order status expansion | Medium | ⏳ Planned |
@@ -399,3 +410,12 @@ backend/
 | 32 | Deployment and environment configuration | Medium | ⏳ Planned |
 | 33 | Frontend documentation | Medium | ⏳ Planned |
 | 34 | TypeScript migration | Low | ⏳ Post-deployment |
+| 35 | Logistics-only pickup and consolidation service | Medium | ⏳ Planned |
+
+---
+
+## Recently Completed Since SESSION-010
+
+- **SESSION-011:** Fixed Tier 2 delivery quote detection by moving checks to `verifiedOrderItems`; fixed/stabilised the `businessType: 'business'` validation issue as a stored-data repair; clarified seller earnings must be calculated from seller-owned line items.
+- **SESSION-012:** Closed ISS-004 and ISS-005 by adding enquiry attachments, screenshot uploads on ContactPage/BulkOrdersPage/BecomeSellerPage/OrderPage, AdminEnquiries Support tab, related order card, and attachment previews. Added shared ScrollableTabBar and wired it into AdminEnquiriesPage, AdminOrderListPage, AdminSellersPage, AdminUserListPage, and SpecialOffersPage.
+- **Documentation sync on June 23, 2026:** Added `documentation/mds/ShopZone_Scalability_Roadmap.md`, a current Markdown scalability roadmap aligned to SESSION-012 and the live project structure. The original DOCX roadmap remains untouched.
