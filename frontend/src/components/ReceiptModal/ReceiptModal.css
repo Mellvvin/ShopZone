@@ -328,3 +328,11 @@
         padding: 20px !important;
     }
 }
+
+/* ── Wholesale unit snapshot display (DEC-042) ───────────────────────── */
+.receipt-doc__item-unit {
+    font-size: 10px;
+    color: #999;
+    margin-top: 2px;
+    font-style: italic;
+}

@@ -43,6 +43,7 @@ import {
   FaTimes,
 } from 'react-icons/fa';
 import ReceiptModal from '../components/ReceiptModal/ReceiptModal';
+import { formatDateTime } from '../utils/formatDateTime';
 import './OrderPage.css';
 
 // ── Helper: format KES currency ───────────────────────────────────────────
@@ -578,10 +579,8 @@ const [showReceipt, setShowReceipt]               = useState(false);
         <h1 className='order-page__title'>
           Order <span className='order-page__id'>#{order._id.slice(-8).toUpperCase()}</span>
         </h1>
-        <p className='order-page__date'>
-          Placed on {new Date(order.createdAt).toLocaleDateString('en-KE', {
-            day: 'numeric', month: 'long', year: 'numeric'
-          })}
+       <p className='order-page__date'>
+          Placed on {formatDateTime(order.createdAt)}
         </p>
       </div>
 
@@ -615,8 +614,18 @@ const [showReceipt, setShowReceipt]               = useState(false);
                       {item.name}
                     </Link>
                     <span className='order-item__category'>{item.category}</span>
-                    {item.unit && (
-                      <span className='order-item__unit'>Unit: {item.unit}</span>
+                    {/* ── Wholesale unit, read from the order-item snapshot
+                        (unitType, itemsPerUnit) — never a live product
+                        lookup, per DEC-042. This guarantees what the buyer
+                        saw at checkout never silently changes here. ── */}
+                    <span className='order-item__unit'>
+                      {item.qty} × {item.unitType || item.unit || 'Per Unit'}
+                    </span>
+                    {item.itemsPerUnit > 1 && (
+                      <span className='order-item__per-piece'>
+                        ≈ {formatKES(item.priceAtPurchase / item.itemsPerUnit)} per piece —{' '}
+                        {item.itemsPerUnit} pieces per {(item.unitType || 'unit').toLowerCase()}
+                      </span>
                     )}
                   </div>
                   <div className='order-item__price'>
@@ -754,8 +763,8 @@ const [showReceipt, setShowReceipt]               = useState(false);
                     <div>
                       <strong>Quote Approved — {formatKES(order.deliveryQuote.amount)}</strong>
                       <p>
-                        You approved this delivery quote on{' '}
-                        {new Date(order.deliveryQuote.approvedAt).toLocaleDateString('en-KE')}.
+                      You approved this delivery quote on{' '}
+                        {formatDateTime(order.deliveryQuote.approvedAt)}.
                         Please complete payment to proceed.
                       </p>
                     </div>
@@ -786,7 +795,7 @@ const [showReceipt, setShowReceipt]               = useState(false);
               <span className='order-payment-method'>{order.paymentMethod}</span>
               {order.isPaid ? (
                 <span className='order-badge order-badge--paid'>
-                  <FaCheckCircle aria-hidden='true' /> Paid — {new Date(order.paidAt).toLocaleDateString('en-KE')}
+                  <FaCheckCircle aria-hidden='true' /> Paid — {formatDateTime(order.paidAt)}
                 </span>
               ) : paymentRecord ? (
                 // Payment record exists but not yet confirmed — buyer knows we received something
@@ -863,10 +872,7 @@ const [showReceipt, setShowReceipt]               = useState(false);
                       <div className='order-receipt__row'>
                         <span className='order-receipt__label'>Confirmed On</span>
                         <span className='order-receipt__value'>
-                          {new Date(paymentRecord.confirmedAt).toLocaleString('en-KE', {
-                            day: 'numeric', month: 'long', year: 'numeric',
-                            hour: '2-digit', minute: '2-digit',
-                          })}
+                          {formatDateTime(paymentRecord.confirmedAt)}
                         </span>
                       </div>
                     )}

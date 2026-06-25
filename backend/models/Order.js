@@ -65,6 +65,24 @@ const orderItemSchema = new mongoose.Schema({
   priceAtPurchase: { type: Number, required: true }, // snapshot — used for billing
   category: { type: String, required: true }, // needed for Tier 2 detection
   unit: { type: String },                 // e.g. 'per dozen', 'per kg'
+
+  // ── Wholesale unit snapshot (Step 11 / ISS-013) ──────────────────────
+  // Same protective principle as priceAtPurchase — these three fields
+  // are copied from the Product document at the exact moment the order
+  // is created and are never looked up live afterward. This guarantees
+  // the unit context a buyer saw and paid against can never silently
+  // change if the seller edits the product later.
+  //
+  // unitType      — full buyer-facing unit, e.g. "Carton", "Sack", "Bale"
+  // itemsPerUnit  — how many individual pieces are inside one unit
+  // weightPerUnit — weight in kg of one unit (also used by Tier 2 logic)
+  //
+  // All optional with sensible defaults so existing orders placed before
+  // this field existed are unaffected and simply show no breakdown.
+  unitType:      { type: String, default: 'Per Unit' },
+  itemsPerUnit:  { type: Number, default: null },
+  weightPerUnit: { type: Number, default: null },
+
   product: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,

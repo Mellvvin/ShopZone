@@ -202,3 +202,23 @@
     font-weight: 600;
     margin: 0 0 12px;
 }
+
+/* ── Wholesale unit sanity-check display (DEC-040 / DEC-041) ────────── */
+.pp-unit-suffix {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #767676;
+    margin-left: 4px;
+}
+
+.pp-per-piece-item {
+    padding-top: 0 !important;
+    padding-bottom: 10px !important;
+}
+
+.pp-per-piece-line {
+    font-size: 0.78rem;
+    color: #999;
+    margin: 0;
+    line-height: 1.5;
+}

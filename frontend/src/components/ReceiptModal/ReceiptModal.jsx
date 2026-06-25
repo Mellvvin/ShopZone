@@ -16,6 +16,7 @@
 import { useEffect } from 'react';
 import { FaTimes, FaPrint, FaCheckCircle } from 'react-icons/fa';
 import { formatKES } from '../../utils/formatKES';
+import { formatDateTime } from '../../utils/formatDateTime';
 import './ReceiptModal.css';
 
 const ReceiptModal = ({ order, payment, onClose }) => {
@@ -97,19 +98,14 @@ const ReceiptModal = ({ order, payment, onClose }) => {
               </span>
               <span className='receipt-doc__meta-sub'>{order._id}</span>
             </div>
-            <div className='receipt-doc__meta-block receipt-doc__meta-block--right'>
+           <div className='receipt-doc__meta-block receipt-doc__meta-block--right'>
               <span className='receipt-doc__meta-label'>Order Date</span>
               <span className='receipt-doc__meta-value'>
-                {new Date(order.createdAt).toLocaleDateString('en-KE', {
-                  day: 'numeric', month: 'long', year: 'numeric',
-                })}
+                {formatDateTime(order.createdAt)}
               </span>
               {order.paidAt && (
                 <span className='receipt-doc__meta-sub'>
-                  Paid: {new Date(order.paidAt).toLocaleString('en-KE', {
-                    day: 'numeric', month: 'short', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit',
-                  })}
+                  Paid: {formatDateTime(order.paidAt)}
                 </span>
               )}
             </div>
@@ -128,7 +124,17 @@ const ReceiptModal = ({ order, payment, onClose }) => {
             <tbody>
               {order.orderItems.map((item) => (
                 <tr key={item._id || item.product}>
-                  <td>{item.name}</td>
+                  <td>
+                    {item.name}
+                    {/* ── Wholesale unit, sourced from the order-item
+                        snapshot — never a live product lookup ── */}
+                    <div className='receipt-doc__item-unit'>
+                      {item.unitType || item.unit || 'Per Unit'}
+                      {item.itemsPerUnit > 1 && (
+                        <> — ≈ {formatKES(item.priceAtPurchase / item.itemsPerUnit)} per piece ({item.itemsPerUnit}/unit)</>
+                      )}
+                    </div>
+                  </td>
                   <td className='text-right'>{item.qty}</td>
                   <td className='text-right'>{formatKES(item.priceAtPurchase)}</td>
                   <td className='text-right'>{formatKES(item.qty * item.priceAtPurchase)}</td>
@@ -187,15 +193,10 @@ const ReceiptModal = ({ order, payment, onClose }) => {
                     {formatKES(payment.amount)}
                   </span>
                 </div>
-                {payment.confirmedAt && (
+               {payment.confirmedAt && (
                   <div className='receipt-doc__payment-row'>
                     <span>Confirmed On</span>
-                    <span>
-                      {new Date(payment.confirmedAt).toLocaleString('en-KE', {
-                        day: 'numeric', month: 'long', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit',
-                      })}
-                    </span>
+                    <span>{formatDateTime(payment.confirmedAt)}</span>
                   </div>
                 )}
               </div>

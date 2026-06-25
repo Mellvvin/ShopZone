@@ -126,6 +126,18 @@ const submitReviewHandler = (e) => {
     }
     dispatch(createProductReview({ productId: id, rating: Number(rating), comment }));
   };
+
+  // ── Wholesale unit sanity-check display (DEC-040 / DEC-041) ─────────
+  // unitLabel falls back through unitType → legacy unit → Per Unit.
+  // The per-piece value is computed fresh here only — never stored,
+  // never sent to the backend. price always represents the full unit
+  // (e.g. one carton), never a single piece.
+  const unitLabel = product?.unitType || product?.unit || 'Per Unit';
+  const hasPerPieceBreakdown = product?.itemsPerUnit && product.itemsPerUnit > 1;
+  const perPieceValue = hasPerPieceBreakdown
+    ? product.price / product.itemsPerUnit
+    : null;
+
   return (
     <>
       <Link className='btn btn-light my-3' to='/'>Go Back</Link>
@@ -181,9 +193,26 @@ const submitReviewHandler = (e) => {
                 <ListGroup.Item>
                   <Row>
                     <Col>Price:</Col>
-                    <Col><strong className='product-card-price'>{`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}</strong></Col>
+                    <Col>
+                      <strong className='product-card-price'>{`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}</strong>
+                      <span className='pp-unit-suffix'> / {unitLabel}</span>
+                    </Col>
                   </Row>
                 </ListGroup.Item>
+
+                {/* ── Per-piece sanity check — primary location (DEC-041) ──
+                    Only shown when itemsPerUnit is set and greater than 1.
+                    Computed fresh on render — never stored, never sent
+                    to the backend. */}
+                {hasPerPieceBreakdown && (
+                  <ListGroup.Item className='pp-per-piece-item'>
+                    <p className='pp-per-piece-line'>
+                      ≈ KES {perPieceValue.toLocaleString('en-KE', { minimumFractionDigits: 2 })} per piece —{' '}
+                      {product.itemsPerUnit} pieces per {unitLabel.toLowerCase()}
+                    </p>
+                  </ListGroup.Item>
+                )}
+
                 <ListGroup.Item>
                   <Row>
                     <Col>Status:</Col>

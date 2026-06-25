@@ -88,10 +88,22 @@ const checkoutHandler = () => {
                     <Col md={3}>
                       <Link to={`/product/${item.product}`} className='cart-item-name'>{item.name}</Link>
                     </Col>
-                    <Col md={2}>
+                   <Col md={2}>
                       <span className='product-card-price'>
                         KES {Number(item.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}
                       </span>
+                      {/* ── Compact wholesale unit sanity check (DEC-041) ──
+                          Last checkpoint before checkout. Falls back to
+                          'Per Unit' for cart items added before this
+                          field existed — never throws on missing data. */}
+                      <span className='cart-item-unit'>
+                        / {item.unitType || 'Per Unit'}
+                      </span>
+                      {item.itemsPerUnit > 1 && (
+                        <span className='cart-item-per-piece'>
+                          ≈ KES {(item.price / item.itemsPerUnit).toLocaleString('en-KE', { minimumFractionDigits: 2 })} / piece
+                        </span>
+                      )}
                     </Col>
                     <Col md={3}>
                       <div className='cart-stepper'>

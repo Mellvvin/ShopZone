@@ -1544,3 +1544,11 @@
 .order-report__preview-remove:hover {
   background: rgba(192, 57, 43, 0.85);
 }
+
+/* ── Wholesale unit snapshot display (DEC-042) ───────────────────────── */
+.order-item__per-piece {
+  display: block;
+  font-size: 0.72rem;
+  color: #999;
+  margin-top: 2px;
+}

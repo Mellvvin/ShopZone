@@ -124,8 +124,11 @@ const ProductCard = ({ product }) => {
                 {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
               </span>
             )}
-            {product.unit && (
-              <span className='hp-product-card__unit'>/ {product.unit}</span>
+            {/* Minimal unit badge only — no computed breakdown on grid
+                cards per the locked placement decision (DEC-041). The
+                full sanity check belongs only on ProductPage. */}
+            {(product.unitType || product.unit) && (
+              <span className='hp-product-card__unit'>/ {product.unitType || product.unit}</span>
             )}
           </div>
           {product.countInStock === 0 && (

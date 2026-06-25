@@ -137,3 +137,18 @@
     color: var(--oxford-blue);
     font-weight: 600;
 }
+
+/* ── Wholesale unit sanity check, compact per-line (DEC-041) ─────────── */
+.cart-item-unit {
+    display: block;
+    font-size: 0.74rem;
+    color: #767676;
+    margin-top: 2px;
+}
+
+.cart-item-per-piece {
+    display: block;
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 1px;
+}

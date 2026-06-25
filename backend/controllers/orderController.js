@@ -174,7 +174,7 @@ const createOrder = async (req, res) => {
 
       serverItemsPrice += unitPrice * item.qty;
 
-      verifiedOrderItems.push({
+verifiedOrderItems.push({
         name: product.name,
         qty: item.qty,
         image: product.image,
@@ -182,6 +182,13 @@ const createOrder = async (req, res) => {
         priceAtPurchase: unitPrice,            // actual price charged — snapshot
         category: product.category,     // needed for Tier 2 detection
         unit: product.unit || '',
+        // ── Wholesale unit snapshot (Step 11 / ISS-013) ────────────────
+        // Copied from the product document right now, at order creation,
+        // so this order's display never changes even if the seller edits
+        // unitType, itemsPerUnit, or weightPerUnit on the product later.
+        unitType:      product.unitType || 'Per Unit',
+        itemsPerUnit:  product.itemsPerUnit  ?? null,
+        weightPerUnit: product.weightPerUnit ?? null,
         product: product._id,
       });
     }

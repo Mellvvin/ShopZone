@@ -13,6 +13,13 @@ export const addToCart = createAsyncThunk(
         image:        data.image,
         price:        data.price,
         countInStock: data.countInStock,
+        // ── Wholesale unit display fields (DEC-040 / DEC-041) ──────
+        // Used by CartPage's compact per-line sanity check. Read-only
+        // display data — never sent to the backend on checkout. The
+        // authoritative snapshot is taken fresh from the product
+        // document inside createOrder, not from anything carried here.
+        unitType:     data.unitType || data.unit || 'Per Unit',
+        itemsPerUnit: data.itemsPerUnit || null,
         qty,
       };
       const { cart } = getState();
