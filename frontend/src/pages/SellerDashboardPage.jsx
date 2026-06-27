@@ -723,7 +723,13 @@ const handleProductFieldChange = (e) => {
                       needs_changes:{ bg: 'danger',    label: 'Changes Requested' },
                       approved:     { bg: 'success',   label: 'Live' },
                       rejected:     { bg: 'danger',    label: 'Rejected' },
-                      archived:     { bg: 'secondary', label: 'Archived' },
+                      // Distinguishes a suspension-driven archive from a routine admin
+                      // archive — both share the same status value, but userInfo
+                      // already reflects this seller's own current standing, so no
+                      // extra fetch is needed to tell the two apart.
+                      archived: userInfo.sellerStatus === 'suspended'
+                        ? { bg: 'danger', label: 'Suspended' }
+                        : { bg: 'secondary', label: 'Archived' },
                     };
                     const s = statusMap[p.status] || { bg: 'secondary', label: p.status };
                     return (
@@ -740,6 +746,14 @@ const handleProductFieldChange = (e) => {
                           <Badge bg={s.bg} text={s.text}>
                             {s.label}
                           </Badge>
+                          {/* Explains why a previously-live listing is suddenly back in
+                              review — without this the seller has no way to know it's
+                              connected to their account being reinstated. */}
+                          {p.status === 'submitted' && p.returningAfterSuspension && (
+                            <p className='seller-table__feedback'>
+                              Back in review following your account reinstatement.
+                            </p>
+                          )}
                           {/* Show admin feedback if changes are requested */}
                           {p.status === 'needs_changes' && p.adminFeedback && (
                             <p className='seller-table__feedback'>{p.adminFeedback}</p>

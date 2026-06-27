@@ -950,3 +950,97 @@
         align-items: flex-start;
     }
 }
+
+/* ── Fault-based return categories (ISS-014 / DEC-039) ──────────────────── */
+.rp-fault-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin: 4px 0 14px;
+}
+
+.rp-fault-badge--free {
+    background: rgba(39, 174, 96, 0.12);
+    color: #1a7a3f;
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.rp-fault-badge--paid {
+    background: rgba(210, 180, 140, 0.15);
+    color: #8a6b3f;
+    border: 1px solid rgba(210, 180, 140, 0.4);
+}
+
+.rp-coverage-card--buyer {
+    border-color: rgba(210, 180, 140, 0.35);
+}
+
+.rp-coverage-list__icon--buyer {
+    color: var(--tan);
+}
+
+.rp-fault-card__footnote {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: #767676;
+    line-height: 1.6;
+    margin: 14px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid rgba(0, 33, 71, 0.08);
+}
+
+.rp-fault-card__footnote svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--tan);
+}
+
+.rp-fault-card__footnote--bulk svg {
+    color: #8a6b3f;
+}
+
+/* ── Multi-item line-item dispute note (DEC-038) ─────────────────────────── */
+.rp-line-item-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: rgba(0, 33, 71, 0.03);
+    border: 1px solid rgba(0, 33, 71, 0.1);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-top: 28px;
+}
+
+.rp-line-item-note__icon {
+    flex-shrink: 0;
+    font-size: 1.4rem;
+    color: var(--oxford-blue);
+    margin-top: 2px;
+}
+
+.rp-line-item-note__title {
+    font-weight: 800;
+    color: var(--oxford-blue);
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+}
+
+.rp-line-item-note__text {
+    margin: 0;
+    color: #555;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .rp-line-item-note {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

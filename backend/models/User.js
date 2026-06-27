@@ -52,8 +52,32 @@ const userSchema = mongoose.Schema(
     },
 
     // Timestamps for key seller lifecycle events — admin-only visibility
-    sellerApprovedAt:  { type: Date, default: null },
-    sellerSuspendedAt: { type: Date, default: null },
+    sellerApprovedAt:  {
+       type: Date,
+        default: null },
+        
+    sellerSuspendedAt: {
+      type: Date,
+      default: null,
+    },
+    // ── Suspension duration tracking (ISS-016 follow-up) ────────────
+    // sellerSuspensionDuration stores admin's chosen review window as
+    // a label, purely for display — e.g. "3 days", "7 days", "14 days",
+    // "Indefinite — manual review". It does not drive any automatic
+    // unattended unsuspension; reinstatement always remains a deliberate
+    // admin action via updateSellerStatus. This pair exists so admin is
+    // never able to "suspend and forget" — the expiry date is always
+    // visible on AdminSellersPage and AdminUserDetailPage as a reminder
+    // that the case needs revisiting, and the seller is told exactly
+    // when they'll be reconsidered.
+    sellerSuspensionDuration: {
+      type: String,
+      default: '',
+    },
+    sellerSuspensionExpiresAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

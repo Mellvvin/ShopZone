@@ -214,6 +214,12 @@ const productSchema = mongoose.Schema(
     // approved     — publicly visible on the storefront
     // rejected     — permanently declined
     // archived     — removed from public view, kept for records
+        // Set true by the seller-reinstatement cascade in userController.js,
+    // cleared by productController.js the next time admin saves this
+    // product. Drives the "Returning" badge on AdminProductListPage and
+    // the reinstatement note on SellerDashboardPage.
+      returningAfterSuspension: { type: Boolean, default: false },
+      
     status: {
       type: String,
       enum: ['draft', 'submitted', 'needs_changes', 'approved', 'rejected', 'archived'],

@@ -1059,22 +1059,34 @@ const AdminProductEditPage = () => {
                       </Form.Text>
                     </Form.Group>
 
-                    {/* Admin feedback — shown to seller when needs_changes or rejected */}
-                    {(status === 'needs_changes' || status === 'rejected') && (
+                  {/* Admin feedback — shown when needs_changes, rejected, or
+                        archived. 'archived' was added so the automatic
+                        suspension note (set by the seller-suspension cascade
+                        in userController.js) is actually visible to admin
+                        instead of silently sitting in a field nobody opens.
+                        Placeholder and label text adapt per status so the
+                        box reads correctly in every case. */}
+                    {(status === 'needs_changes' || status === 'rejected' || status === 'archived') && (
                       <Form.Group className='mb-3'>
                         <Form.Label className='ape-field-label'>
-                          Feedback to Seller
+                          {status === 'archived' ? 'Reason for Removal' : 'Feedback to Seller'}
                           {status === 'needs_changes' && <span className='ape-required'>*</span>}
                         </Form.Label>
                         <Form.Control
                           as='textarea'
                           rows={3}
-                          placeholder='Explain what needs to change or why this product was rejected. This is shown to the seller on their dashboard.'
+                          placeholder={
+                            status === 'archived'
+                              ? 'Why was this product archived? e.g. "Removed from storefront — seller account suspended." This is set automatically when a seller is suspended, but can be edited or cleared by admin.'
+                              : 'Explain what needs to change or why this product was rejected. This is shown to the seller on their dashboard.'
+                          }
                           value={adminFeedback}
                           onChange={(e) => setAdminFeedback(e.target.value)}
                         />
                         <Form.Text className='ape-hint'>
-                          Keep this professional. The seller will see this message on their dashboard.
+                          {status === 'archived'
+                            ? 'If this product was archived automatically due to seller suspension, this note explains why. Clear it once you re-approve.'
+                            : 'Keep this professional. The seller will see this message on their dashboard.'}
                         </Form.Text>
                       </Form.Group>
                     )}

@@ -22,6 +22,7 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
 import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
+import { formatDateTime as formatNairobiDateTime, formatDateShort } from '../utils/formatDateTime';
 import {
     FaArrowLeft, FaUser, FaStore, FaBoxOpen,
     FaClipboardList, FaEnvelope, FaBell,
@@ -36,16 +37,12 @@ import './AdminUserDetailPage.css';
 const formatKES = (n) =>
     `KES ${Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
 
-const formatDate = (d) =>
-    d ? new Date(d).toLocaleDateString('en-KE', {
-        day: 'numeric', month: 'short', year: 'numeric',
-    }) : '—';
-
-const formatDateTime = (d) =>
-    d ? new Date(d).toLocaleDateString('en-KE', {
-        day: 'numeric', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-    }) : '—';
+// formatDate and formatDateTime are now thin aliases over the shared
+// Africa/Nairobi formatter (ISS-015). Every existing call site below
+// this line stays unchanged — both names just no longer depend on
+// the viewing device's system timezone.
+const formatDate = formatDateShort;
+const formatDateTime = formatNairobiDateTime;
 
 // ── Status badge configs ──────────────────────────────────────
 const ORDER_STATUS = {
@@ -101,10 +98,12 @@ const AdminUserDetailPage = () => {
     const [expandedNotif, setExpandedNotif] = useState(null);
 
     // ── Seller action modal ───────────────────────────────────
-    const [showModal, setShowModal]         = useState(false);
+   const [showModal, setShowModal]         = useState(false);
     const [modalAction, setModalAction]     = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
+    // ── Suspension duration — only relevant when modalAction is 'suspend' ──
+    const [suspensionDuration, setSuspensionDuration] = useState('7_days');
     const config = { headers: { Authorization: `Bearer ${userInfo?.token}` } };
 
     useEffect(() => {
@@ -144,13 +143,19 @@ const AdminUserDetailPage = () => {
         setShowModal(true);
     };
 
-    const confirmAction = async () => {
+   const confirmAction = async () => {
         try {
             setActionLoading(true);
             const newStatus = actionToStatus[modalAction];
+            // Suspension requires a duration so admin is never able to
+            // "suspend and forget" — see DEC notes in userController.js.
+            // Reinstatement is unaffected and stays a one-click action.
+            const payload = modalAction === 'suspend'
+                ? { sellerStatus: newStatus, suspensionDuration }
+                : { sellerStatus: newStatus };
             await axios.put(
                 `/api/users/${id}/seller-status`,
-                { sellerStatus: newStatus },
+                payload,
                 config
             );
             setShowModal(false);
@@ -213,13 +218,37 @@ const AdminUserDetailPage = () => {
         <div className='aud-page'>
 
             {/* ── Seller action confirmation modal ──────── */}
-            {modalAction && (
+          {modalAction && (
                 <ConfirmModal
                     show={showModal}
                     onConfirm={confirmAction}
                     onCancel={() => setShowModal(false)}
                     title={modalCopy[modalAction]?.title || ''}
-                    message={modalCopy[modalAction]?.message || ''}
+                    message={
+                        modalAction === 'suspend' ? (
+                            <div>
+                                <p>{modalCopy.suspend.message}</p>
+                                <label className='aud-suspend-duration-label' htmlFor='suspend-duration-select'>
+                                    Suspension length
+                                </label>
+                                <select
+                                    id='suspend-duration-select'
+                                    className='aud-suspend-duration-select'
+                                    value={suspensionDuration}
+                                    onChange={(e) => setSuspensionDuration(e.target.value)}
+                                >
+                                    <option value='3_days'>3 days</option>
+                                    <option value='7_days'>7 days</option>
+                                    <option value='14_days'>14 days</option>
+                                    <option value='indefinite'>Indefinite — manual review</option>
+                                </select>
+                                <p className='aud-suspend-duration-note'>
+                                    This sets a reminder date — reinstatement still requires a deliberate
+                                    admin action, it will never lift automatically.
+                                </p>
+                            </div>
+                        ) : (modalCopy[modalAction]?.message || '')
+                    }
                     confirmLabel={actionLoading ? 'Please wait...' : modalCopy[modalAction]?.label}
                     confirmVariant={modalCopy[modalAction]?.variant || 'primary-branded'}
                 />
@@ -325,6 +354,15 @@ const AdminUserDetailPage = () => {
                                 <SellerStatusIcon aria-hidden='true' />
                                 {sellerStatusCfg.label}
                             </span>
+                            {/* Suspension reminder — shown only while suspended. Indefinite
+                                suspensions show no date, prompting a manual check instead. */}
+                            {user.sellerStatus === 'suspended' && (
+                                <span className='aud-suspension-reminder'>
+                                    {user.sellerSuspensionExpiresAt
+                                        ? `Reconsider on ${formatDate(user.sellerSuspensionExpiresAt)}`
+                                        : 'Indefinite — review manually'}
+                                </span>
+                            )}
                         </div>
 
                         {/* Seller profile fields */}

@@ -63,10 +63,15 @@ const AdminSellersPage = () => {
     const [search, setSearch]       = useState('');
 
     // ── Action modal ──────────────────────────────────────────
-    const [showModal, setShowModal]       = useState(false);
+  const [showModal, setShowModal]       = useState(false);
     const [modalUser, setModalUser]       = useState(null);
     const [modalAction, setModalAction]   = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+
+    // ── Suspension duration — only relevant when modalAction is 'suspend' ──
+    // Backend now requires this on every suspend request (it 400s without
+    // it) so admin can never "suspend and forget" — see userController.js.
+    const [suspensionDuration, setSuspensionDuration] = useState('7_days');
 
     const config = { headers: { Authorization: `Bearer ${userInfo?.token}` } };
 
@@ -131,15 +136,20 @@ const AdminSellersPage = () => {
         reinstate: 'approved',
     };
 
-    const confirmAction = async () => {
+  const confirmAction = async () => {
         try {
             setActionLoading(true);
             const newStatus = actionToStatus[modalAction];
+            // Suspension requires a duration; reinstate/approve/reject don't.
+            const payload = modalAction === 'suspend'
+                ? { sellerStatus: newStatus, suspensionDuration }
+                : { sellerStatus: newStatus };
             await axios.put(
                 `/api/users/${modalUser._id}/seller-status`,
-                { sellerStatus: newStatus },
+                payload,
                 config
             );
+
             setShowModal(false);
             showToast(
                 `${modalUser.name} has been ${newStatus}.`,
@@ -175,13 +185,37 @@ const AdminSellersPage = () => {
         <div className='asl-page'>
 
             {/* ── Confirmation modal ─────────────────────── */}
-            {modalUser && (
+           {modalUser && (
                 <ConfirmModal
                     show={showModal}
                     onConfirm={confirmAction}
                     onCancel={() => setShowModal(false)}
                     title={modalCopy[modalAction]?.title || ''}
-                    message={modalCopy[modalAction]?.message || ''}
+                    message={
+                        modalAction === 'suspend' ? (
+                            <div>
+                                <p>{modalCopy.suspend.message}</p>
+                                <label className='asl-suspend-duration-label' htmlFor='asl-suspend-duration-select'>
+                                    Suspension length
+                                </label>
+                                <select
+                                    id='asl-suspend-duration-select'
+                                    className='asl-suspend-duration-select'
+                                    value={suspensionDuration}
+                                    onChange={(e) => setSuspensionDuration(e.target.value)}
+                                >
+                                    <option value='3_days'>3 days</option>
+                                    <option value='7_days'>7 days</option>
+                                    <option value='14_days'>14 days</option>
+                                    <option value='indefinite'>Indefinite — manual review</option>
+                                </select>
+                                <p className='asl-suspend-duration-note'>
+                                    This sets a reminder date — reinstatement still requires a
+                                    deliberate admin action, it will never lift automatically.
+                                </p>
+                            </div>
+                        ) : (modalCopy[modalAction]?.message || '')
+                    }
                     confirmLabel={actionLoading ? 'Please wait...' : modalCopy[modalAction]?.label}
                     confirmVariant={modalCopy[modalAction]?.variant || 'primary-branded'}
                 />

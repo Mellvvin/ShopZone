@@ -400,7 +400,7 @@ const AdminProductListPage = () => {
                                         </span>
                                     </td>
 
-                                 {/* Approval status */}
+                                {/* Approval status */}
                                     <td>
                                         {(() => {
                                             const statusMap = {
@@ -412,7 +412,26 @@ const AdminProductListPage = () => {
                                                 draft:        { cls: 'apl-status--draft',      label: 'Draft' },
                                             };
                                             const s = statusMap[product.status] || { cls: 'apl-status--draft', label: product.status || 'Unknown' };
-                                            return <span className={`apl-status ${s.cls}`}>{s.label}</span>;
+                                            // A 'submitted' product carrying leftover adminFeedback text
+                                            // was previously touched by admin — a brand-new seller
+                                            // submission's adminFeedback is empty by default. This
+                                            // distinguishes "returning after suspension/review" from
+                                            // a genuinely first-time submission, without a second tab.
+                                            // Dedicated flag, not a heuristic on adminFeedback — the
+                                            // reinstatement cascade clears adminFeedback to '' at the
+                                            // exact same moment it sets this flag to true, so checking
+                                            // feedback text would never have caught this case.
+                                            const isReturning = product.status === 'submitted' && product.returningAfterSuspension === true;
+                                            return (
+                                                <>
+                                                    <span className={`apl-status ${s.cls}`}>{s.label}</span>
+                                                    {isReturning && (
+                                                      <span className='apl-status-returning' title='Archived when its seller was suspended — back in the review queue following reinstatement.'>
+                                                        Returning
+                                                     </span>
+                                                    )}
+                                                </>
+                                            );
                                         })()}
                                     </td>
 

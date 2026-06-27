@@ -16,6 +16,8 @@ import {
     FaClock, FaBoxOpen, FaCamera, FaPhoneAlt,
     FaChevronDown, FaEnvelope, FaWhatsapp,
     FaUndoAlt, FaExclamationTriangle, FaHandshake,
+    // Added for the fault-based returns split (ISS-014 / DEC-039)
+    FaInfoCircle, FaMoneyBillWave, FaBoxes, FaLayerGroup,
 } from 'react-icons/fa';
 import './ReturnsPolicyPage.css';
 
@@ -268,26 +270,34 @@ const RETURN_STEPS = [
     {
         icon: FaHandshake,
         title: 'Refund or replacement issued',
-        desc: 'Once the returned item is received and verified, we process a replacement or a full refund within 3 to 7 business days. You choose which you prefer.',
+        desc: 'Once the returned item is received and verified, we process a replacement or a full refund within 3 to 7 business days. Refunds are always sent back to the exact M-Pesa number or bank account you paid from — never as platform credit or a stored balance.',
     },
 ];
 
-const COVERED = [
+// ── Fault-based return categories (DEC-039) ─────────────────────────────
+// ShopZone splits every return request into exactly two categories, locked
+// in SESSION-012 and made visible here rather than only discoverable
+// through a support conversation afterward. Seller or platform fault is
+// always free. The buyer's own selection error or change of mind is
+// buyer-paid where a return is offered at all, or simply non-returnable —
+// the bulk/wholesale case is called out separately below since restocking
+// a full carton or bale doesn't work like restocking a single retail unit.
+const SELLER_FAULT = [
     'Wrong item received',
-    'Item arrived damaged or broken',
-    'Significant quality defect not described in listing',
-    'Item does not match product description',
-    'Missing items from a multi-unit order',
+    'Item arrived damaged or broken in transit',
+    'Significant quality defect not described in the listing',
+    'Item does not match the product description',
+    'Missing items from a multi-item order',
     'Counterfeit or misrepresented goods',
 ];
 
-const NOT_COVERED = [
-    'Change of mind after delivery',
+const BUYER_FAULT = [
+    'Ordered the wrong size, colour, or variant by mistake',
+    'Simply no longer need the item',
     'Perishable food items once received',
     'Opened personal care or cosmetic products',
     'Custom-sourced or specially ordered goods',
-    'Items damaged after delivery by the buyer',
-    'Returns reported after the 7-day window',
+    'Item damaged by the buyer after delivery',
 ];
 
 const FAQS = [
@@ -305,7 +315,11 @@ const FAQS = [
     },
     {
         q: 'Can I return part of a bulk order?',
-        a: 'Partial returns are assessed case by case. If specific items in a bulk order are defective or incorrect, contact us with details and we will assess what is eligible for return.',
+        a: 'If a specific item in a multi-item order is defective, wrong, or damaged, only that item is resolved — by replacement or refund — never the whole order. Bulk and wholesale-quantity listings such as full cartons, bales, or sacks are non-returnable for change-of-mind reasons, since restocking a full unit does not work the way restocking a single retail item does.',
+    },
+    {
+        q: 'Will my refund come back as ShopZone credit?',
+        a: 'No. Every refund ShopZone owes you is sent back to the exact M-Pesa number or bank account you originally paid from. ShopZone does not hold your refund as a platform balance or store credit for later withdrawal.',
     },
     {
         q: 'What happens if I miss the 7-day window?',
@@ -472,46 +486,78 @@ const ReturnsPolicyPage = () => {
                         </div>
                     </Reveal>
 
-                    <div className='rp-coverage__grid'>
-                        {/* Covered */}
+                <div className='rp-coverage__grid'>
+                        {/* Seller or platform fault — free resolution (DEC-039) */}
                         <Reveal delay={0}>
                             <div className='rp-coverage-card rp-coverage-card--yes'>
                                 <div className='rp-coverage-card__header'>
                                     <FaCheckCircle aria-hidden='true' />
-                                    <h3>Covered</h3>
+                                    <h3>Seller or Platform Fault</h3>
                                 </div>
+                                <span className='rp-fault-badge rp-fault-badge--free'>
+                                    Free resolution — ShopZone covers the cost
+                                </span>
                                 <ul className='rp-coverage-list'>
-                                    {COVERED.map(item => (
+                                    {SELLER_FAULT.map(item => (
                                         <li key={item} className='rp-coverage-list__item'>
                                             <FaCheckCircle className='rp-coverage-list__icon rp-coverage-list__icon--yes' aria-hidden='true' />
                                             {item}
                                         </li>
                                     ))}
                                 </ul>
+                                <p className='rp-fault-card__footnote'>
+                                    <FaMoneyBillWave aria-hidden='true' /> Refunds are always sent back to the
+                                    original M-Pesa number or bank account you paid from.
+                                </p>
                             </div>
                         </Reveal>
 
-                        {/* Not covered */}
+                        {/* Buyer's own selection or change of mind (DEC-039) */}
                         <Reveal delay={120}>
-                            <div className='rp-coverage-card rp-coverage-card--no'>
+                            <div className='rp-coverage-card rp-coverage-card--buyer'>
                                 <div className='rp-coverage-card__header'>
-                                    <FaTimesCircle aria-hidden='true' />
-                                    <h3>Not Covered</h3>
+                                    <FaInfoCircle aria-hidden='true' />
+                                    <h3>Your Own Selection or Change of Mind</h3>
                                 </div>
+                                <span className='rp-fault-badge rp-fault-badge--paid'>
+                                    Buyer-paid where offered, or non-returnable
+                                </span>
                                 <ul className='rp-coverage-list'>
-                                    {NOT_COVERED.map(item => (
+                                    {BUYER_FAULT.map(item => (
                                         <li key={item} className='rp-coverage-list__item'>
-                                            <FaTimesCircle className='rp-coverage-list__icon rp-coverage-list__icon--no' aria-hidden='true' />
+                                            <FaInfoCircle className='rp-coverage-list__icon rp-coverage-list__icon--buyer' aria-hidden='true' />
                                             {item}
                                         </li>
                                     ))}
                                 </ul>
+                                <p className='rp-fault-card__footnote rp-fault-card__footnote--bulk'>
+                                    <FaBoxes aria-hidden='true' /> Bulk and wholesale orders — full cartons, bales,
+                                    sacks — are non-returnable for change-of-mind reasons. The order was recorded
+                                    and fulfilled exactly as placed.
+                                </p>
                             </div>
                         </Reveal>
                     </div>
 
+                    {/* Multi-item order disputes — line-item resolution (DEC-038) */}
+                    <Reveal delay={160}>
+                        <div className='rp-line-item-note'>
+                            <FaLayerGroup className='rp-line-item-note__icon' aria-hidden='true' />
+                            <div>
+                                <p className='rp-line-item-note__title'>
+                                    One faulty item never affects your whole order
+                                </p>
+                                <p className='rp-line-item-note__text'>
+                                    If your order has several items and only one is wrong, damaged, or defective,
+                                    only that item is resolved — by replacement or refund. The rest of your order
+                                    is never returned, cancelled, or refunded because of a single item's problem.
+                                </p>
+                            </div>
+                        </div>
+                    </Reveal>
+
                     {/* Important note */}
-                    <Reveal delay={200}>
+                    <Reveal delay={220}>
                         <div className='rp-note'>
                             <FaExclamationTriangle className='rp-note__icon' aria-hidden='true' />
                             <p className='rp-note__text'>
@@ -538,21 +584,24 @@ const ReturnsPolicyPage = () => {
                                     <h2 className='rp-promise-card__title'>
                                         The ShopZone Buyer Protection Promise
                                     </h2>
-                                    <p className='rp-promise-card__body'>
+                                  <p className='rp-promise-card__body'>
                                         When you buy on ShopZone, you are never alone in a dispute.
                                         Unlike direct supplier markets where you take on all the risk,
                                         ShopZone is accountable for every transaction on this platform.
                                         We investigate every claim, we mediate every dispute, and we
                                         ensure every legitimate issue reaches a fair resolution.
                                         Your money is protected from the moment you pay to the moment
-                                        your order is confirmed delivered and accepted.
+                                        your order is confirmed delivered and accepted. Any money owed
+                                        back to you is always sent to the exact M-Pesa number or bank
+                                        account you paid from — ShopZone never holds your refund as
+                                        platform credit or a stored balance.
                                     </p>
                                     <div className='rp-promise-card__tags'>
                                         {[
                                             'ShopZone is accountable',
                                             'No direct seller contact needed',
                                             'Fair investigation every time',
-                                            'Refund or replace — your choice',
+                                            'Refund to your original payment method',
                                         ].map(t => (
                                             <span key={t} className='rp-promise-card__tag'>
                                                 <FaCheckCircle aria-hidden='true' /> {t}

@@ -322,6 +322,40 @@ const deleteUser = async (req, res) => {
 // @desc    Update a user's seller status (admin only)
 // @route   PUT /api/users/:id/seller-status
 // @access  Private/Admin
+//
+// CASCADE LOGIC (ISS-016 — CRITICAL FIX):
+// Suspending a seller used to only touch this User document. Every one
+// of that seller's products stayed at status: 'approved' and remained
+// fully live and orderable on the public storefront — meaning ShopZone
+// could keep collecting buyer payments for goods from a seller admin
+// had just flagged as risky enough to suspend. Fixed as follows:
+//
+//   suspended  → every product owned by this seller currently at
+//                'approved' is bulk-updated to 'archived', pulling it
+//                off the public storefront immediately, in this
+//                same request.
+//
+//   reinstated (sellerStatus set back to 'approved' from a previous
+//                'suspended' state) → archived products are NOT
+//                auto-restored to 'approved'. Per the platform's
+//                standing posture — admin approval protects buyer
+//                trust, self-service is reserved for low-risk actions
+//                only — a suspension is evidence something went wrong,
+//                so reinstatement drops those products to 'submitted'
+//                instead, back into the normal admin review queue,
+//                rather than silently re-exposing whatever risk
+//                triggered the suspension. Admin re-approves each one
+//                deliberately.
+//
+//   rejected/none → no product cascade. By the time a seller reaches
+//                these states they either never had approved products
+//                (rejected before approval) or the existing branch
+//                already strips isSeller — no separate product action
+//                is implied by this transition.
+//
+// Product and Notification are required locally here rather than
+// imported at the top of the file, matching the existing pattern
+// already used in getUserFullProfile below.
 const updateSellerStatus = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -330,13 +364,37 @@ const updateSellerStatus = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const { sellerStatus } = req.body;
+    const { sellerStatus, suspensionDuration } = req.body;
 
     // Validate the incoming status value
     const validStatuses = ['none', 'pending', 'approved', 'suspended', 'rejected'];
     if (!validStatuses.includes(sellerStatus)) {
       return res.status(400).json({ message: 'Invalid seller status value' });
     }
+
+    // ── Suspension duration validation ───────────────────────────────
+    // Only relevant when suspending. Maps a chosen label to a number of
+    // days for computing the expiry date. 'indefinite' stores no expiry
+    // at all — admin must check back manually with no reminder date.
+    const DURATION_DAYS = {
+      '3_days':    3,
+      '7_days':    7,
+      '14_days':   14,
+      'indefinite': null,
+    };
+    if (sellerStatus === 'suspended') {
+      if (!suspensionDuration || !(suspensionDuration in DURATION_DAYS)) {
+        return res.status(400).json({
+          message: 'A suspension duration is required (3_days, 7_days, 14_days, or indefinite).',
+        });
+      }
+    }
+
+    // Captured before mutation — needed below to detect a reinstatement
+    // (previousStatus === 'suspended' && new sellerStatus === 'approved')
+    // versus a first-time approval, which must NOT trigger the
+    // reinstatement cascade.
+    const previousStatus = user.sellerStatus;
 
     // Update seller fields based on the new status
     user.sellerStatus = sellerStatus;
@@ -346,28 +404,110 @@ const updateSellerStatus = async (req, res) => {
       user.isSeller = true;
       user.sellerApprovedAt = Date.now();
       user.sellerSuspendedAt = null;
+      user.sellerSuspensionDuration = '';
+      user.sellerSuspensionExpiresAt = null;
     } else if (sellerStatus === 'suspended') {
       // Suspended — keep isSeller true so history is preserved but
       // the seller middleware blocks access
       user.isSeller = true;
       user.sellerSuspendedAt = Date.now();
+      user.sellerSuspensionDuration = suspensionDuration;
+      const days = DURATION_DAYS[suspensionDuration];
+      user.sellerSuspensionExpiresAt = days
+        ? new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+        : null; // indefinite — no expiry reminder date
     } else if (sellerStatus === 'rejected' || sellerStatus === 'none') {
       // Rejected or revoked — remove seller access entirely
       user.isSeller = false;
       user.sellerApprovedAt = null;
       user.sellerSuspendedAt = null;
+      user.sellerSuspensionDuration = '';
+      user.sellerSuspensionExpiresAt = null;
     }
 
     const updatedUser = await user.save();
 
-    res.json({
-      _id:              updatedUser._id,
-      name:             updatedUser.name,
-      email:            updatedUser.email,
-      isSeller:         updatedUser.isSeller,
-      sellerStatus:     updatedUser.sellerStatus,
-      sellerApprovedAt: updatedUser.sellerApprovedAt,
-      sellerSuspendedAt: updatedUser.sellerSuspendedAt,
+    // ── Product cascade (ISS-016) ──────────────────────────────────
+    const Product = require('../models/Product');
+    const Notification = require('../models/Notification');
+    let productsAffected = 0;
+
+    if (sellerStatus === 'suspended') {
+      // Pull every currently-live product off the public storefront.
+      // Only touches 'approved' products — anything already submitted,
+      // needs_changes, rejected, or archived was never publicly
+      // visible to begin with and is left exactly as is.
+     // returningAfterSuspension: true is the dedicated signal AdminProductListPage
+      // uses to show a "Returning" badge. adminFeedback alone can't do this job —
+      // it's cleared to '' in this exact same update, so checking for leftover
+      // feedback text would never catch the case it's meant to flag.
+      const cascadeResult = await Product.updateMany(
+        { seller: user._id, status: 'archived' },
+        { $set: { status: 'submitted', adminFeedback: '', returningAfterSuspension: true } }
+      );
+      productsAffected = cascadeResult.modifiedCount;
+
+     try {
+        const durationLabel = {
+          '3_days':    '3 days',
+          '7_days':    '7 days',
+          '14_days':   '14 days',
+          'indefinite': 'an indefinite period — ShopZone will review your case manually',
+        }[suspensionDuration] || suspensionDuration;
+
+        const expiryLine = user.sellerSuspensionExpiresAt
+          ? ` You will be reconsidered on or after ${new Date(user.sellerSuspensionExpiresAt).toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+          : '';
+
+        await new Notification({
+          userId:  user._id,
+          type:    'transactional',
+          title:   'Seller Account Suspended',
+          message: `Your seller account has been suspended for ${durationLabel}. ${productsAffected} product(s) have been removed from the storefront and are no longer visible to buyers.${expiryLine} Contact ShopZone support for more information.`,
+          link:    '/seller/dashboard',
+          isRead:  false,
+        }).save();
+      } catch (notifErr) {
+        console.error('Seller suspension notification failed:', notifErr.message);
+      }
+    }
+
+    if (sellerStatus === 'approved' && previousStatus === 'suspended') {
+      // Reinstatement after suspension — conservative path. Archived
+      // products go back into the review queue rather than straight
+      // back to public. adminFeedback is cleared so the old suspension
+      // note doesn't linger and confuse a fresh review.
+      const cascadeResult = await Product.updateMany(
+        { seller: user._id, status: 'archived' },
+        { $set: { status: 'submitted', adminFeedback: '' } }
+      );
+      productsAffected = cascadeResult.modifiedCount;
+
+      try {
+        await new Notification({
+          userId:  user._id,
+          type:    'transactional',
+          title:   'Seller Account Reinstated',
+          message: `Your seller account has been reinstated. ${productsAffected} product(s) have been moved back into the review queue and will go live again once approved. Check your dashboard for status.`,
+          link:    '/seller/dashboard',
+          isRead:  false,
+        }).save();
+      } catch (notifErr) {
+        console.error('Seller reinstatement notification failed:', notifErr.message);
+      }
+    }
+
+   res.json({
+      _id:                       updatedUser._id,
+      name:                      updatedUser.name,
+      email:                     updatedUser.email,
+      isSeller:                  updatedUser.isSeller,
+      sellerStatus:              updatedUser.sellerStatus,
+      sellerApprovedAt:          updatedUser.sellerApprovedAt,
+      sellerSuspendedAt:         updatedUser.sellerSuspendedAt,
+      sellerSuspensionDuration:  updatedUser.sellerSuspensionDuration,
+      sellerSuspensionExpiresAt: updatedUser.sellerSuspensionExpiresAt,
+      productsAffected,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -595,3 +595,15 @@
     background: rgba(0, 0, 0, 0.06);
     color: #888;
 }
+
+.apl-status-returning {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #8a5a00;
+    background: rgba(255, 193, 7, 0.15);
+    padding: 1px 6px;
+    border-radius: 4px;
+    vertical-align: middle;
+}

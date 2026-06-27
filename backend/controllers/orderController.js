@@ -61,11 +61,34 @@ const {
 // ─────────────────────────────────────────────────────────────────────────
 const _restoreStock = async (orderItems) => {
   for (const item of orderItems) {
-    await Product.findByIdAndUpdate(
+    const updatedProduct = await Product.findByIdAndUpdate(
       item.product,
       { $inc: { countInStock: item.qty } }, // add back the quantity
       { new: true }
     );
+
+    // ── Stock restored notification ────────────────────────────────
+    // Lower urgency than the low/out-of-stock warnings — this is good
+    // news (an order was cancelled or a delivery quote was rejected,
+    // so stock went back up), but it keeps the seller's dashboard
+    // figures from silently drifting out of sync with reality.
+    // Skipped for admin-managed products with no seller. Wrapped in
+    // try/catch — must never block the calling cancel/reject flow.
+    if (updatedProduct?.seller) {
+      try {
+        const restoredNotification = new Notification({
+          userId:  updatedProduct.seller,
+          type:    'transactional',
+          title:   'Stock Restored',
+          message: `An order for "${updatedProduct.name}" was cancelled or its delivery quote was rejected. ${item.qty} unit(s) were added back to your stock — you now have ${updatedProduct.countInStock} available.`,
+          link:    '/seller/dashboard',
+          isRead:  false,
+        });
+        await restoredNotification.save();
+      } catch (notifErr) {
+        console.error('Stock restored notification failed:', notifErr.message);
+      }
+    }
   }
 };
 
@@ -102,6 +125,28 @@ const createOrder = async (req, res) => {
     const decrementedItems = []; // track what we've already decremented
 
     for (const item of orderItems) {
+      // ── Suspended-seller guard (ISS-016 follow-up) ──────────────────
+      // The product cascade in userController.js's updateSellerStatus
+      // already archives a suspended seller's approved products, which
+      // pulls them off the public listing — but a buyer who already had
+      // the product page or an old cart open before the suspension
+      // happened could still reach checkout with stale client state, or
+      // hit this endpoint directly. This closes that race the same way
+      // price is re-verified server-side rather than trusted from the
+      // frontend. Runs before the atomic stock decrement so a blocked
+      // item never touches stock at all — nothing to restore if it fails.
+      const sellerCheck = await Product.findById(item.product)
+        .select('seller name')
+        .populate('seller', 'sellerStatus');
+
+      if (sellerCheck?.seller?.sellerStatus === 'suspended') {
+        await _restoreStock(decrementedItems);
+        return res.status(400).json({
+          message: `"${sellerCheck.name}" is currently unavailable — this seller's account is temporarily suspended. Please remove this item from your cart and try again.`,
+          productId: item.product,
+        });
+      }
+
       // Atomic operation:
       // "Find this product where countInStock >= qty requested, then decrement"
       // If countInStock < qty, the query returns null — no update happens.
@@ -143,6 +188,35 @@ const createOrder = async (req, res) => {
 
       // This item decremented successfully — track it in case a later item fails
       decrementedItems.push({ product: item.product, qty: item.qty });
+
+      // ── Low stock notification (ISS-006) ───────────────────────────
+      // Fires once stock has been decremented for this item. Only
+      // notifies if the product has an assigned seller — admin-managed
+      // products with no seller have nobody to notify.
+      // Threshold is <= 5: covers both "running low" and "just hit zero",
+      // using two different message tones so a seller can tell which
+      // situation they're in without opening the dashboard.
+      // Wrapped in try/catch — a notification failure must never roll
+      // back or interrupt order creation, exactly like the other five
+      // order-event notifications in this file.
+      if (updatedProduct.seller && updatedProduct.countInStock <= 5) {
+        try {
+          const isOutOfStock = updatedProduct.countInStock === 0;
+          const lowStockNotification = new Notification({
+            userId:  updatedProduct.seller,
+            type:    'transactional',
+            title:   isOutOfStock ? 'Out of Stock Warning' : 'Low Stock Warning',
+            message: isOutOfStock
+              ? `Your product "${updatedProduct.name}" is now out of stock. Update your stock count on your dashboard so buyers know when it will be available again.`
+              : `Your product "${updatedProduct.name}" is running low — only ${updatedProduct.countInStock} left. Update your stock count soon to avoid going out of stock.`,
+            link:    '/seller/dashboard',
+            isRead:  false,
+          });
+          await lowStockNotification.save();
+        } catch (notifErr) {
+          console.error('Low stock notification failed:', notifErr.message);
+        }
+      }
     }
 
     // ── Step 2: Get the county shipping data ────────────────────────────
@@ -157,11 +231,19 @@ const createOrder = async (req, res) => {
     let shippingTier  = 'standard';
     let shippingPrice = shippingData.rate;
 
-    // ── Step 3: Server-side price verification ──────────────────────────
+   // ── Step 3: Server-side price verification ──────────────────────────
     // Re-calculate items price from actual product data to prevent
     // frontend price manipulation. We use the DB price at the time of order.
     let serverItemsPrice = 0;
     const verifiedOrderItems = [];
+
+    // ── Seller fulfilment notification map ────────────────────────────
+    // Groups this order's items by seller so each seller can be notified
+    // once order creation succeeds, listing only their own products and
+    // quantities — never the buyer's identity, per the golden rule. This
+    // is an in-memory map only; it is not persisted and not added to the
+    // order schema, since it exists purely to fan out notifications.
+    const sellerItemsMap = {};
 
     for (const item of orderItems) {
       const product = await Product.findById(item.product);
@@ -174,7 +256,16 @@ const createOrder = async (req, res) => {
 
       serverItemsPrice += unitPrice * item.qty;
 
-verifiedOrderItems.push({
+      // Track this item under its seller for the fulfilment notification
+      // fan-out below. Admin-managed products with no seller are skipped —
+      // there is no seller account to notify.
+      if (product.seller) {
+        const sellerId = product.seller.toString();
+        if (!sellerItemsMap[sellerId]) sellerItemsMap[sellerId] = [];
+        sellerItemsMap[sellerId].push({ name: product.name, qty: item.qty });
+      }
+
+      verifiedOrderItems.push({
         name: product.name,
         qty: item.qty,
         image: product.image,
@@ -267,11 +358,33 @@ const createdOrder = await order.save();
         link:           `/order/${createdOrder._id}`,
         isRead:         false,
       });
-      await orderNotification.save();
+await orderNotification.save();
     } catch (notifErr) {
       // Notification failure must never crash the order creation.
       // Log it and continue — the order is already saved.
       console.error('Order placed notification failed:', notifErr.message);
+    }
+
+    // ── Step 7b: Notify each seller that their product(s) were ordered ───
+    // One notification per seller represented in this order, listing only
+    // that seller's own product names and quantities. Never the buyer's
+    // name, county, address, or any other identifying detail — the same
+    // privacy boundary already enforced in getSellerOrders.
+    for (const [sellerId, items] of Object.entries(sellerItemsMap)) {
+      try {
+        const itemSummary = items.map((i) => `${i.qty} × ${i.name}`).join(', ');
+        const sellerOrderNotification = new Notification({
+          userId:  sellerId,
+          type:    'transactional',
+          title:   'New Order Received',
+          message: `You have a new order to fulfil: ${itemSummary}. Check your dashboard for stock and quote requirements.`,
+          link:    '/seller/dashboard',
+          isRead:  false,
+        });
+        await sellerOrderNotification.save();
+      } catch (notifErr) {
+        console.error('Seller order notification failed:', notifErr.message);
+      }
     }
 
     // ── Step 8: Build response with delivery context ─────────────────────

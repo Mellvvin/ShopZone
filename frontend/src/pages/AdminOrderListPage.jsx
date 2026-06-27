@@ -32,6 +32,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
 import { formatKES } from '../utils/formatKES';
+import { formatDateShort } from '../utils/formatDateTime';
 import {
   FaClipboardList,
   FaTruck,
@@ -428,11 +429,9 @@ const AdminOrderListPage = () => {
                       </div>
                     </td>
 
-                    {/* Date */}
+                  {/* Date — always Africa/Nairobi time, never the admin's device clock (ISS-015) */}
                     <td className='admin-orders-table__date'>
-                      {new Date(order.createdAt).toLocaleDateString('en-KE', {
-                        day: 'numeric', month: 'short', year: 'numeric'
-                      })}
+                      {formatDateShort(order.createdAt)}
                     </td>
 
                     {/* Total */}
@@ -454,12 +453,10 @@ const AdminOrderListPage = () => {
 
                     {/* Paid */}
                     <td>
-                      {order.isPaid ? (
+                   {order.isPaid ? (
                         <span className='admin-bool-badge admin-bool-badge--yes'>
                           <FaCheckCircle aria-hidden='true' />
-                          {new Date(order.paidAt).toLocaleDateString('en-KE', {
-                            day: 'numeric', month: 'short'
-                          })}
+                          {formatDateShort(order.paidAt, false)}
                         </span>
                       ) : (
                         <span className='admin-bool-badge admin-bool-badge--no'>
@@ -468,14 +465,12 @@ const AdminOrderListPage = () => {
                       )}
                     </td>
 
-                    {/* Delivered */}
+                    {/* Delivered — Africa/Nairobi time, never the admin's device clock (ISS-015) */}
                     <td>
                       {order.isDelivered ? (
                         <span className='admin-bool-badge admin-bool-badge--yes'>
                           <FaCheckCircle aria-hidden='true' />
-                          {new Date(order.deliveredAt).toLocaleDateString('en-KE', {
-                            day: 'numeric', month: 'short'
-                          })}
+                          {formatDateShort(order.deliveredAt, false)}
                         </span>
                       ) : (
                         <span className='admin-bool-badge admin-bool-badge--no'>

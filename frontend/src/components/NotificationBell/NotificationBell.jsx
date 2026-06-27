@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { FaBell, FaCheckDouble, FaBoxOpen, FaShoppingBag, FaBolt, FaBullhorn } from 'react-icons/fa';
+import { formatDateShort } from '../../utils/formatDateTime';
 import './NotificationBell.css';
 
 // ── Icon picker based on notification type ────────────────────
@@ -35,8 +36,10 @@ const timeAgo = (dateStr) => {
   if (mins < 1)   return 'just now';
   if (mins < 60)  return `${mins}m ago`;
   if (hours < 24) return `${hours}h ago`;
-  if (days < 7)   return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' });
+if (days < 7)   return `${days}d ago`;
+  // Older than a week — show the actual date in Africa/Nairobi time,
+  // never the viewer's device timezone (ISS-015).
+  return formatDateShort(dateStr);
 };
 
 const NotificationBell = () => {

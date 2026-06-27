@@ -55,13 +55,19 @@ export const formatDateTime = (value) => {
   });
 };
 
-// Compact date — used in table rows and list views
-export const formatDateShort = (value) => {
+// Compact date — used in table rows and list views.
+// includeYear defaults to true so every existing call site (the Date
+// column in AdminOrderListPage, AdminUserDetailPage, NotificationBell's
+// week-plus fallback) keeps behaving exactly as it did after the ISS-015
+// fix. Pass false only where the year was genuinely redundant before —
+// e.g. the Paid/Delivered badges, which already sit beside a Date column
+// that shows the year.
+export const formatDateShort = (value, includeYear = true) => {
   if (!value) return '—';
   return new Date(value).toLocaleDateString('en-KE', {
     day: 'numeric',
     month: 'short',
-    year: 'numeric',
+    ...(includeYear ? { year: 'numeric' } : {}),
     timeZone: NAIROBI_TZ,
   });
 };

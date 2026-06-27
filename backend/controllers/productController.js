@@ -224,10 +224,29 @@ const {
       adminFeedback,
     } = req.body;
 
-    const product = await Product.findById(req.params.id);
+const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // ── Block approving a product whose seller is currently suspended ──
+    // Without this, admin could re-publish a listing while the seller
+    // behind it has no dashboard access — the product goes live and
+    // buyers can pay into exactly the situation the suspension exists to
+    // prevent. Checks the seller value that will actually end up on the
+    // saved document, not just the one currently stored, so reassigning
+    // to a different (suspended) seller in the same request is caught too.
+    if (status === 'approved') {
+      const effectiveSellerId = seller !== undefined ? seller : product.seller;
+      if (effectiveSellerId) {
+        const sellerUser = await User.findById(effectiveSellerId).select('sellerStatus name');
+        if (sellerUser?.sellerStatus === 'suspended') {
+          return res.status(400).json({
+            message: `Cannot approve this product — the seller "${sellerUser.name}" is currently suspended. Lift the suspension before approving any of their products.`,
+          });
+        }
+      }
     }
 
     // ── Update all fields ──────────────────────────────────────
@@ -271,8 +290,18 @@ const {
     // Capture old status before overwriting so we can detect a change
     const previousStatus = product.status;
 
-    if (status        !== undefined) product.status        = status;
+   if (status        !== undefined) product.status        = status;
     if (adminFeedback !== undefined) product.adminFeedback = adminFeedback || '';
+
+    // ── Clear "returning after suspension" once admin has reviewed it ──
+    // Once admin opens this product and saves any change — approve,
+    // reject, request changes, or just re-save — it's been seen. The
+    // badge that distinguishes a reinstated submission from a brand-new
+    // one (AdminProductListPage) only needs to persist until that first
+    // touch. No-op until Product.js defines this field.
+    if (product.returningAfterSuspension) {
+      product.returningAfterSuspension = false;
+    }
 
     const updatedProduct = await product.save();
 
