@@ -27,6 +27,7 @@ import PaymentPage from './pages/PaymentPage';
 import PlaceOrderPage from './pages/PlaceOrderPage';
 import OrderPage from './pages/OrderPage';
 import ProfilePage from './pages/ProfilePage';
+import NotificationsPage from './pages/NotificationsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import AdminProductListPage from './pages/AdminProductListPage';
 import AdminProductEditPage from './pages/AdminProductEditPage';
@@ -88,6 +89,7 @@ const App = () => {
           <Route path='/placeorder' element={<PlaceOrderPage />} />
           <Route path='/order/:id' element={<OrderPage />} />
           <Route path='/profile' element={<ProfilePage />} />
+          <Route path='/notifications' element={<NotificationsPage />} />
 
           {/* ── Admin Routes ── */}
           <Route path='/admin/products' element={<AdminProductListPage />} />

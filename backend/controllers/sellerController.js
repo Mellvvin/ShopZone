@@ -300,6 +300,115 @@ const createSellerProduct = async (req, res) => {
   }
 };
 
+// @desc    Update a product the seller already owns
+// @route   PUT /api/seller/products/:id
+// @access  Private/Seller (approved OR suspended — see sellerRoutes.js)
+//
+// ISS-019 — sellers previously had no way to ever touch a product again
+// once submitted; only admin could edit via AdminProductEditPage. This
+// is the missing piece, and it's specifically what makes keeping a
+// suspended seller's dashboard visible (ISS-018) actually useful — they
+// can see exactly what got flagged and fix it themselves.
+//
+// Ownership is enforced here, not just by route middleware — the
+// middleware only confirms the requester IS a seller, not that they own
+// THIS product. Admin-only fields (status, seller, user, isFeatured,
+// isOnSale, isClearance, salePrice, adminFeedback, returningAfterSuspension,
+// archivedBySellerSuspension) are never accepted from this endpoint;
+// only the seller's own catalogue fields can change here.
+//
+// Status handling: any edit from needs_changes, rejected, or archived
+// moves the product to 'submitted' for re-review. A product already
+// 'submitted' stays there. A currently 'approved' (live) product is
+// ALSO moved to 'submitted' on edit — a deliberate conservative default
+// for this first version of seller self-editing. This does mean editing
+// a live listing takes it offline pending re-review; that tradeoff is
+// worth revisiting under Step 7 if it proves too disruptive for routine
+// price/stock tweaks.
+const updateSellerProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    if (!product.seller || product.seller.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You do not have permission to edit this product' });
+    }
+
+    const {
+      name,
+      description,
+      category,
+      price,
+      countInStock,
+      brand,
+      unitType,
+      minimumOrderQuantity,
+      itemsPerUnit,
+      weightPerUnit,
+      dimensions,
+      isBulkOnly,
+      leadTimeDays,
+      tags,
+      image,
+    } = req.body;
+
+    // ── Validation — same minimums as createSellerProduct ──────
+    if (name !== undefined && name.trim().length < 3) {
+      return res.status(400).json({ message: 'Product name must be at least 3 characters.' });
+    }
+    if (description !== undefined && description.trim().length < 20) {
+      return res.status(400).json({ message: 'Description must be at least 20 characters.' });
+    }
+    if (price !== undefined && Number(price) < 0) {
+      return res.status(400).json({ message: 'Price cannot be negative.' });
+    }
+
+    // ── Apply only the seller-editable fields ──────────────────
+    if (name         !== undefined) product.name         = name.trim();
+    if (description  !== undefined) product.description  = description.trim();
+    if (category     !== undefined) product.category     = category;
+    if (price        !== undefined) product.price        = Number(price);
+    if (countInStock !== undefined) product.countInStock = Number(countInStock) || 0;
+    if (brand        !== undefined) product.brand        = brand?.trim() || '';
+    if (unitType     !== undefined) product.unitType      = unitType || 'Per Unit';
+    if (minimumOrderQuantity !== undefined) product.minimumOrderQuantity = Number(minimumOrderQuantity) || 1;
+    if (itemsPerUnit  !== undefined) product.itemsPerUnit  = itemsPerUnit ? Number(itemsPerUnit) : null;
+    if (weightPerUnit !== undefined) product.weightPerUnit = weightPerUnit ? Number(weightPerUnit) : null;
+    if (dimensions    !== undefined) product.dimensions    = dimensions?.trim() || '';
+    if (isBulkOnly    !== undefined) product.isBulkOnly    = Boolean(isBulkOnly);
+    if (leadTimeDays  !== undefined) product.leadTimeDays  = leadTimeDays ? Number(leadTimeDays) : null;
+    if (image         !== undefined && image) product.image = image;
+    if (tags          !== undefined) {
+      product.tags = Array.isArray(tags)
+        ? tags.map((t) => t.trim().toLowerCase()).filter(Boolean)
+        : (tags || '').split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
+    }
+
+    // ── Status transition on edit ───────────────────────────────
+    // Any edit sends the product back into the review queue, except
+    // when it was already sitting there ('submitted').
+    if (product.status !== 'submitted') {
+      product.status = 'submitted';
+    }
+    // Editing supersedes any pending suspension-return badge state —
+    // the seller has now deliberately acted on this product.
+    product.returningAfterSuspension = false;
+    product.archivedBySellerSuspension = false;
+
+    const updatedProduct = await product.save();
+
+    res.json({
+      message: 'Product updated and sent back to ShopZone for review.',
+      product: updatedProduct,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getSellerDashboard,
   getSellerProducts,
@@ -307,4 +416,5 @@ module.exports = {
   getSellerProfile,
   updateSellerProfile,
   createSellerProduct,
+  updateSellerProduct,
 };

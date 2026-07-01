@@ -383,71 +383,32 @@ const updateSellerStatus = async (req, res) => {
       'indefinite': null,
     };
     if (sellerStatus === 'suspended') {
-      if (!suspensionDuration || !(suspensionDuration in DURATION_DAYS)) {
-        return res.status(400).json({
-          message: 'A suspension duration is required (3_days, 7_days, 14_days, or indefinite).',
-        });
-      }
-    }
-
-    // Captured before mutation — needed below to detect a reinstatement
-    // (previousStatus === 'suspended' && new sellerStatus === 'approved')
-    // versus a first-time approval, which must NOT trigger the
-    // reinstatement cascade.
-    const previousStatus = user.sellerStatus;
-
-    // Update seller fields based on the new status
-    user.sellerStatus = sellerStatus;
-
-    if (sellerStatus === 'approved') {
-      // Upgrading to seller — set isSeller true and record when approved
-      user.isSeller = true;
-      user.sellerApprovedAt = Date.now();
-      user.sellerSuspendedAt = null;
-      user.sellerSuspensionDuration = '';
-      user.sellerSuspensionExpiresAt = null;
-    } else if (sellerStatus === 'suspended') {
-      // Suspended — keep isSeller true so history is preserved but
-      // the seller middleware blocks access
-      user.isSeller = true;
-      user.sellerSuspendedAt = Date.now();
-      user.sellerSuspensionDuration = suspensionDuration;
-      const days = DURATION_DAYS[suspensionDuration];
-      user.sellerSuspensionExpiresAt = days
-        ? new Date(Date.now() + days * 24 * 60 * 60 * 1000)
-        : null; // indefinite — no expiry reminder date
-    } else if (sellerStatus === 'rejected' || sellerStatus === 'none') {
-      // Rejected or revoked — remove seller access entirely
-      user.isSeller = false;
-      user.sellerApprovedAt = null;
-      user.sellerSuspendedAt = null;
-      user.sellerSuspensionDuration = '';
-      user.sellerSuspensionExpiresAt = null;
-    }
-
-    const updatedUser = await user.save();
-
-    // ── Product cascade (ISS-016) ──────────────────────────────────
-    const Product = require('../models/Product');
-    const Notification = require('../models/Notification');
-    let productsAffected = 0;
-
-    if (sellerStatus === 'suspended') {
-      // Pull every currently-live product off the public storefront.
-      // Only touches 'approved' products — anything already submitted,
-      // needs_changes, rejected, or archived was never publicly
-      // visible to begin with and is left exactly as is.
-     // returningAfterSuspension: true is the dedicated signal AdminProductListPage
-      // uses to show a "Returning" badge. adminFeedback alone can't do this job —
-      // it's cleared to '' in this exact same update, so checking for leftover
-      // feedback text would never catch the case it's meant to flag.
+      // ── ISS-017 FIX ─────────────────────────────────────────
+      // The previous version of this block queried { status: 'archived' }
+      // and moved matches to 'submitted' — that is the REINSTATEMENT
+      // query, present in the suspend branch by mistake. It never
+      // touched a single live or pending product. Corrected here: sweep
+      // every product this seller owns that is currently approved (live
+      // on the storefront), submitted, or needs_changes (sitting in the
+      // normal review queue) into 'archived', tagged with
+      // archivedBySellerSuspension: true so reinstatement later only
+      // ever revives exactly what THIS suspension touched.
       const cascadeResult = await Product.updateMany(
-        { seller: user._id, status: 'archived' },
-        { $set: { status: 'submitted', adminFeedback: '', returningAfterSuspension: true } }
+        {
+          seller: user._id,
+          status: { $in: ['approved', 'submitted', 'needs_changes'] },
+        },
+        {
+          $set: {
+            status: 'archived',
+            archivedBySellerSuspension: true,
+            adminFeedback: 'Removed from storefront — seller account suspended.',
+          },
+        }
       );
       productsAffected = cascadeResult.modifiedCount;
 
-     try {
+      try {
         const durationLabel = {
           '3_days':    '3 days',
           '7_days':    '7 days',
@@ -463,7 +424,7 @@ const updateSellerStatus = async (req, res) => {
           userId:  user._id,
           type:    'transactional',
           title:   'Seller Account Suspended',
-          message: `Your seller account has been suspended for ${durationLabel}. ${productsAffected} product(s) have been removed from the storefront and are no longer visible to buyers.${expiryLine} Contact ShopZone support for more information.`,
+          message: `Your seller account has been suspended for ${durationLabel}. ${productsAffected} product(s) have been removed from the storefront and are no longer visible to buyers.${expiryLine} You can still view and edit your products from your dashboard while suspended. Contact ShopZone support for more information.`,
           link:    '/seller/dashboard',
           isRead:  false,
         }).save();
@@ -473,13 +434,25 @@ const updateSellerStatus = async (req, res) => {
     }
 
     if (sellerStatus === 'approved' && previousStatus === 'suspended') {
-      // Reinstatement after suspension — conservative path. Archived
-      // products go back into the review queue rather than straight
-      // back to public. adminFeedback is cleared so the old suspension
-      // note doesn't linger and confuse a fresh review.
+      // ── ISS-017 FIX — reinstatement scoped correctly ─────────
+      // Only revives products carrying archivedBySellerSuspension: true,
+      // set by THIS suspension's cascade above. A product archived for
+      // an unrelated reason before the suspension ever happened does
+      // not carry that flag and is left completely untouched. Revived
+      // products go to 'submitted', not straight back to 'approved' —
+      // a suspension is evidence something needed review, so admin
+      // looks again deliberately rather than the listing silently
+      // reappearing on its own.
       const cascadeResult = await Product.updateMany(
-        { seller: user._id, status: 'archived' },
-        { $set: { status: 'submitted', adminFeedback: '' } }
+        { seller: user._id, archivedBySellerSuspension: true },
+        {
+          $set: {
+            status: 'submitted',
+            returningAfterSuspension: true,
+            archivedBySellerSuspension: false,
+            adminFeedback: '',
+          },
+        }
       );
       productsAffected = cascadeResult.modifiedCount;
 

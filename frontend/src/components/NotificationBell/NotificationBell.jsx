@@ -204,14 +204,15 @@ const NotificationBell = () => {
             )}
           </div>
 
-          {/* Panel footer */}
+        {/* Panel footer — leads to the real full-history page now,
+              not /profile, which never actually showed notifications */}
           {notifications.length > 0 && (
             <div className='notif-panel__footer'>
               <button
                 className='notif-panel__footer-btn'
-                onClick={() => { setOpen(false); navigate('/profile'); }}
+                onClick={() => { setOpen(false); navigate('/notifications'); }}
               >
-                View all in profile
+                View all notifications
               </button>
             </div>
           )}

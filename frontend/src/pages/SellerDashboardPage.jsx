@@ -23,13 +23,18 @@ const SellerDashboardPage = () => {
 
   // ── Access control ────────────────────────────────────────
   // Backend is the real guard — this is supplementary UX only.
-  useEffect(() => {
+ useEffect(() => {
     document.title = 'Seller Dashboard — ShopZone';
     if (!userInfo) {
       navigate('/login');
       return;
     }
-    if (!userInfo.isSeller || userInfo.sellerStatus !== 'approved') {
+    // ISS-018 fix — suspended sellers must keep full dashboard access.
+    // Suspension blocks publishing new listings and fulfilment (both
+    // enforced server-side elsewhere), never login or visibility into
+    // their own products and orders. Only isSeller plus a status that
+    // is neither approved nor suspended sends someone away.
+    if (!userInfo.isSeller || !['approved', 'suspended'].includes(userInfo.sellerStatus)) {
       navigate('/');
     }
   }, [userInfo, navigate]);
@@ -127,6 +132,24 @@ const [activeTab,       setActiveTab]       = useState('overview');
     image:                '',
   });
 
+  // ── Edit-existing-product state (ISS-019) ──────────────────
+  // editingProduct holds the _id of whichever product is currently
+  // being edited, or null when no edit panel is open. Sellers can
+  // always edit a product they own regardless of its status —
+  // including while suspended, which is the whole point of keeping
+  // the dashboard visible during a suspension.
+  const [editingProduct,   setEditingProduct]   = useState(null);
+  const [editFormData,     setEditFormData]     = useState({
+    name: '', description: '', category: '', price: '',
+    countInStock: '', brand: '', unitType: 'Per Unit',
+    minimumOrderQuantity: '1', itemsPerUnit: '', weightPerUnit: '',
+    dimensions: '', isBulkOnly: false, leadTimeDays: '', tags: '', image: '',
+  });
+  const [editImageUploading, setEditImageUploading] = useState(false);
+  const [editSubmitLoading,  setEditSubmitLoading]  = useState(false);
+  const [editSubmitError,    setEditSubmitError]    = useState('');
+  const [editSubmitSuccess,  setEditSubmitSuccess]  = useState(false);
+
   const PRODUCT_CATEGORIES = [
     'Electronics','Fashion & Apparel','Home & Kitchen','Food & Grocery',
     'Beauty & Personal Care','Hardware & Tools','Office & Stationery',
@@ -206,14 +229,97 @@ const handleProductFieldChange = (e) => {
       setImagePreview('');
       setStockConfirmed(false);
       setTimeout(() => setSubmitSuccess(false), 5000);
-    } catch (err) {
+   } catch (err) {
       setSubmitError(err.response?.data?.message || 'Submission failed. Please try again.');
     } finally {
       setSubmitLoading(false);
     }
   };
 
-// ── Fetch seller profile when tab is active ───────────────
+  // ── Edit existing product handlers (ISS-019) ──────────────
+  const handleEditFieldChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  // Same upload pattern as handleImageUpload, writing to editFormData.
+  // No separate preview state needed — editFormData.image IS the path.
+  const handleEditImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      setEditImageUploading(true);
+      setEditSubmitError('');
+      const { data } = await axios.post('/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization:  `Bearer ${userInfo.token}`,
+        },
+      });
+      setEditFormData((prev) => ({ ...prev, image: data }));
+    } catch {
+      setEditSubmitError('Image upload failed. Please try again with a JPG or PNG under 5MB.');
+    } finally {
+      setEditImageUploading(false);
+    }
+  };
+
+  // Opens the edit panel pre-filled with this product's current values.
+  // Closes the "submit new product" form if open, so only one form is
+  // ever visible at a time.
+  const startEdit = (product) => {
+    setEditingProduct(product._id);
+    setEditFormData({
+      name:                 product.name || '',
+      description:          product.description || '',
+      category:             product.category || '',
+      price:                product.price ?? '',
+      countInStock:         product.countInStock ?? '',
+      brand:                product.brand || '',
+      unitType:             product.unitType || 'Per Unit',
+      minimumOrderQuantity: product.minimumOrderQuantity ?? '1',
+      itemsPerUnit:         product.itemsPerUnit ?? '',
+      weightPerUnit:        product.weightPerUnit ?? '',
+      dimensions:           product.dimensions || '',
+      isBulkOnly:           !!product.isBulkOnly,
+      leadTimeDays:         product.leadTimeDays ?? '',
+      tags:                 Array.isArray(product.tags) ? product.tags.join(', ') : '',
+      image:                product.image || '',
+    });
+    setEditSubmitError('');
+    setEditSubmitSuccess(false);
+    setShowSubmitForm(false);
+  };
+
+  const cancelEdit = () => {
+    setEditingProduct(null);
+    setEditSubmitError('');
+  };
+
+  const submitEditProduct = async (e) => {
+    e.preventDefault();
+    setEditSubmitLoading(true);
+    setEditSubmitError('');
+    try {
+      await axios.put(`/api/seller/products/${editingProduct}`, editFormData, config);
+      setEditSubmitSuccess(true);
+      setEditingProduct(null);
+      const { data } = await axios.get('/api/seller/products', config);
+      setProducts(data);
+      setTimeout(() => setEditSubmitSuccess(false), 5000);
+    } catch (err) {
+      setEditSubmitError(err.response?.data?.message || 'Update failed. Please try again.');
+    } finally {
+      setEditSubmitLoading(false);
+    }
+  };
+
+  // ── Fetch seller profile when tab is active ───────────────
   useEffect(() => {
     if (activeTab !== 'profile' || !userInfo?.isSeller) return;
     const fetchProfile = async () => {
@@ -409,24 +515,45 @@ const handleProductFieldChange = (e) => {
         {activeTab === 'products' && (
           <div className='mt-3'>
 
-            {/* Success banner */}
+           {/* Suspension banner — explains the reduced state without
+                hiding anything. Sellers always see their products and
+                orders while suspended; only new submissions are blocked
+                (enforced server-side by approvedSellerOnly). */}
+            {userInfo.sellerStatus === 'suspended' && (
+              <Alert variant='warning' className='mb-3'>
+                Your seller account is currently suspended. You can still view and edit your
+                existing products below, but you cannot submit new products until your account
+                is reinstated. Check your notifications for the reason and expected review date.
+              </Alert>
+            )}
+
+            {/* Success banners */}
             {submitSuccess && (
               <Alert variant='success' className='mb-3'>
                 Product submitted successfully. ShopZone admin will review it before it goes live.
               </Alert>
             )}
+            {editSubmitSuccess && (
+              <Alert variant='success' className='mb-3'>
+                Product updated and sent back to ShopZone for review.
+              </Alert>
+            )}
 
-            {/* Submit product toggle button */}
+            {/* Submit product toggle button — hidden entirely while
+                suspended, since "no new submissions" is a clean rule
+                with no in-between disabled state needed. */}
             <div className='seller-products-header'>
               <p className='seller-products-count'>
                 {products.length} product{products.length !== 1 ? 's' : ''} on your account
               </p>
-              <button
-                className='seller-submit-btn'
-                onClick={() => { setShowSubmitForm(v => !v); setSubmitError(''); }}
-              >
-                {showSubmitForm ? 'Cancel' : '+ Submit New Product'}
-              </button>
+              {userInfo.sellerStatus !== 'suspended' && (
+                <button
+                  className='seller-submit-btn'
+                  onClick={() => { setShowSubmitForm(v => !v); setSubmitError(''); setEditingProduct(null); }}
+                >
+                  {showSubmitForm ? 'Cancel' : '+ Submit New Product'}
+                </button>
+              )}
             </div>
 
             {/* ── Product submission form ───────────────── */}
@@ -695,6 +822,157 @@ const handleProductFieldChange = (e) => {
               </div>
             )}
 
+            {/* ── Edit existing product panel (ISS-019) ───────────
+                Always available regardless of seller status — this is
+                exactly what makes "always see your products" useful
+                during a suspension: the seller can open whatever was
+                flagged and fix it directly. */}
+            {editingProduct && (
+              <div className='seller-submit-form'>
+                <h5 className='seller-submit-form__title'>Edit Product</h5>
+                <p className='seller-submit-form__note'>
+                  Saving will send this product back to ShopZone for review before it is
+                  live again, even if it was already approved.
+                </p>
+
+                {editSubmitError && (
+                  <Alert variant='danger' className='mb-3'>{editSubmitError}</Alert>
+                )}
+
+                <form onSubmit={submitEditProduct} noValidate>
+                  <div className='seller-submit-form__grid'>
+
+                    <div className='seller-submit-form__field seller-submit-form__field--full'>
+                      <label>Product Name <span className='seller-submit-form__req'>*</span></label>
+                      <input type='text' name='name' value={editFormData.name} onChange={handleEditFieldChange} required />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Category <span className='seller-submit-form__req'>*</span></label>
+                      <select name='category' value={editFormData.category} onChange={handleEditFieldChange} required>
+                        <option value=''>Select category</option>
+                        {PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Brand</label>
+                      <input type='text' name='brand' value={editFormData.brand} onChange={handleEditFieldChange} />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Price (KES) <span className='seller-submit-form__req'>*</span></label>
+                      <input type='number' name='price' value={editFormData.price} onChange={handleEditFieldChange} min='0' required />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Current Stock (units)</label>
+                      <input type='number' name='countInStock' value={editFormData.countInStock} onChange={handleEditFieldChange} min='0' />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Unit Type</label>
+                      <select name='unitType' value={editFormData.unitType} onChange={handleEditFieldChange}>
+                        {UNIT_TYPES.map(u => <option key={u} value={u}>{u}</option>)}
+                      </select>
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Minimum Order Quantity</label>
+                      <input type='number' name='minimumOrderQuantity' value={editFormData.minimumOrderQuantity} onChange={handleEditFieldChange} min='1' />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Items Per Unit</label>
+                      <input type='number' name='itemsPerUnit' value={editFormData.itemsPerUnit} onChange={handleEditFieldChange} min='1' />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Weight Per Unit (kg)</label>
+                      <input type='number' name='weightPerUnit' value={editFormData.weightPerUnit} onChange={handleEditFieldChange} min='0' step='0.1' />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Lead Time (days)</label>
+                      <input type='number' name='leadTimeDays' value={editFormData.leadTimeDays} onChange={handleEditFieldChange} min='0' />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Dimensions</label>
+                      <input type='text' name='dimensions' value={editFormData.dimensions} onChange={handleEditFieldChange} />
+                    </div>
+
+                    <div className='seller-submit-form__field'>
+                      <label>Tags <span className='seller-submit-form__hint'>(comma separated)</span></label>
+                      <input type='text' name='tags' value={editFormData.tags} onChange={handleEditFieldChange} />
+                    </div>
+
+                    <div className='seller-submit-form__field seller-submit-form__field--full'>
+                      <label>Description <span className='seller-submit-form__req'>*</span></label>
+                      <textarea
+                        name='description'
+                        value={editFormData.description}
+                        onChange={handleEditFieldChange}
+                        rows={4}
+                        required
+                        minLength={20}
+                      />
+                    </div>
+
+                    <div className='seller-submit-form__field seller-submit-form__field--full'>
+                      <label>Product Image</label>
+                      <div className='seller-img-upload-row'>
+                        <label className='seller-img-upload-btn' htmlFor='edit-img-input'>
+                          {editImageUploading ? 'Uploading…' : 'Change Image'}
+                          <input
+                            id='edit-img-input'
+                            type='file'
+                            accept='image/jpeg,image/png'
+                            onChange={handleEditImageUpload}
+                            disabled={editImageUploading}
+                            className='seller-img-upload-btn__input'
+                          />
+                        </label>
+                        <span className='seller-img-upload-hint'>JPG or PNG, max 5MB</span>
+                      </div>
+                      {editFormData.image && (
+                        <div className='seller-img-preview'>
+                          <img src={editFormData.image} alt='Product' className='seller-img-preview__img' />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className='seller-submit-form__field seller-submit-form__field--check'>
+                      <label className='seller-submit-form__check-label'>
+                        <input type='checkbox' name='isBulkOnly' checked={editFormData.isBulkOnly} onChange={handleEditFieldChange} />
+                        Wholesale / Bulk only — cannot be bought as single pieces
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className='seller-edit-form__actions'>
+                    <button type='button' className='seller-quote-btn seller-quote-btn--cancel' onClick={cancelEdit}>
+                      Cancel
+                    </button>
+                    <button
+                      type='submit'
+                      className='seller-submit-form__submit'
+                      disabled={
+                        editSubmitLoading ||
+                        editImageUploading ||
+                        !editFormData.name ||
+                        !editFormData.description ||
+                        !editFormData.category ||
+                        editFormData.price === ''
+                      }
+                    >
+                      {editSubmitLoading ? 'Saving…' : 'Save Changes'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             {/* ── Products table ────────────────────────── */}
             {loading ? (
               <div className='text-center py-5'>
@@ -713,6 +991,7 @@ const handleProductFieldChange = (e) => {
                     <th>Price (KES)</th>
                     <th>Stock</th>
                     <th>Review Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -754,10 +1033,18 @@ const handleProductFieldChange = (e) => {
                               Back in review following your account reinstatement.
                             </p>
                           )}
-                          {/* Show admin feedback if changes are requested */}
+                         {/* Show admin feedback if changes are requested */}
                           {p.status === 'needs_changes' && p.adminFeedback && (
                             <p className='seller-table__feedback'>{p.adminFeedback}</p>
                           )}
+                        </td>
+                        <td>
+                          {/* Always available — sellers can edit any of
+                              their own products in any status, including
+                              while suspended (ISS-019 / ISS-018). */}
+                          <button className='seller-edit-btn' onClick={() => startEdit(p)}>
+                            Edit
+                          </button>
                         </td>
                       </tr>
                     );

@@ -32,13 +32,18 @@ const ChatWidget = () => {
     }
   ]);
 
-  const scrollRef = useRef(null);
+ const scrollRef = useRef(null);
+  // Sentinel placed after the last message (and after the typing
+  // indicator) — scrollIntoView on this always targets the true
+  // bottom of the current content, regardless of how tall the latest
+  // message is, which is more reliable than manually setting scrollTop.
+  const messagesEndRef = useRef(null);
 
   // ── Auto scroll to latest message ─────────────────────────────────────────
+  // Fires on every new message and on every typing-indicator change,
+  // so the view always settles on whatever the user should see next.
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [chatLog, isTyping]);
 
   const quickReplies = [
@@ -168,7 +173,7 @@ const ChatWidget = () => {
               </div>
             )}
 
-            {/* Quick replies — only on first message */}
+          {/* Quick replies — only on first message */}
             {chatLog.length === 1 && !isTyping && (
               <div className='cw-quick-replies'>
                 {quickReplies.map((q, i) => (
@@ -182,6 +187,10 @@ const ChatWidget = () => {
                 ))}
               </div>
             )}
+
+            {/* Scroll anchor — always the last node in the list so
+                scrollIntoView lands on the true bottom of the chat */}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input area */}

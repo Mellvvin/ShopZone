@@ -19,9 +19,18 @@ const Notification = require('../models/Notification');
 // Returns newest first, limited to 50 so the dropdown stays fast.
 const getNotifications = async (req, res) => {
   try {
+    // Default limit stays 50 for the bell dropdown. The full
+    // /notifications page passes ?limit= for a larger one-shot fetch.
+    // Capped at 200 regardless of what is requested so a malformed or
+    // malicious query can't force an unbounded fetch.
+    const requestedLimit = parseInt(req.query.limit, 10);
+    const limit = Number.isFinite(requestedLimit) && requestedLimit > 0
+      ? Math.min(requestedLimit, 200)
+      : 50;
+
     const notifications = await Notification.find({ userId: req.user._id })
       .sort({ createdAt: -1 })
-      .limit(50);
+      .limit(limit);
 
     // Also return the unread count so the badge can update without
     // counting client-side

@@ -214,11 +214,22 @@ const productSchema = mongoose.Schema(
     // approved     — publicly visible on the storefront
     // rejected     — permanently declined
     // archived     — removed from public view, kept for records
-        // Set true by the seller-reinstatement cascade in userController.js,
+    // Set true by the seller-reinstatement cascade in userController.js,
     // cleared by productController.js the next time admin saves this
     // product. Drives the "Returning" badge on AdminProductListPage and
     // the reinstatement note on SellerDashboardPage.
       returningAfterSuspension: { type: Boolean, default: false },
+
+      // ── ISS-017 fix ──────────────────────────────────────────
+      // Set true ONLY by the suspend-time cascade in userController.js,
+      // on every product it sweeps into 'archived' because the owning
+      // seller was suspended. The reinstate-time cascade checks this
+      // exact flag (not just status: 'archived') so it only ever revives
+      // products THIS suspension archived — never something archived
+      // for an unrelated reason before the suspension ever happened.
+      // Cleared back to false the moment reinstatement runs, or the
+      // moment the seller edits the product themselves.
+      archivedBySellerSuspension: { type: Boolean, default: false },
       
     status: {
       type: String,

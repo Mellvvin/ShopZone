@@ -805,3 +805,32 @@
     margin: 8px 0 0;
     line-height: 1.5;
 }
+
+/* ── Seller product edit (ISS-019) ───────────────────────────── */
+.seller-edit-btn {
+    all: unset;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    padding: 5px 12px;
+    border: 1.5px solid rgba(0, 33, 71, 0.2);
+    border-radius: 6px;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.seller-edit-btn:hover {
+    background: rgba(0, 33, 71, 0.06);
+}
+
+.seller-edit-form__actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.seller-edit-form__actions .seller-submit-form__submit {
+    flex: 1;
+}
