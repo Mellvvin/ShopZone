@@ -50,6 +50,20 @@ const ALL_KENYA_COUNTIES = [
 // Tier 2 categories — must match backend exactly
 const TIER_2_CATEGORIES = ['Hardware & Tools', 'Agriculture & Garden', 'Fabric & Textiles'];
 
+
+// ── Handling tags — structured, checkbox-only (no free text) ──────────────
+// Mirrors the enum on backend/models/Order.js exactly. No free-text field
+// exists by design — this is the leak-vector fix agreed on for buyer-seller
+// contact-info separation.
+const HANDLING_TAGS = [
+  { key: 'fragile',        label: 'Fragile — handle with care' },
+  { key: 'keep_upright',   label: 'Keep upright' },
+  { key: 'stack_limit',    label: 'Do not stack heavy items on top' },
+  { key: 'perishable',     label: 'Perishable goods' },
+  { key: 'no_compression', label: 'No compression' },
+];
+
+
 // ─────────────────────────────────────────────────────────────────────────
 // Helper: look up zone data for a given county string
 // ─────────────────────────────────────────────────────────────────────────
@@ -90,7 +104,18 @@ const ShippingPage = () => {
   const [apartment,setApartment]= useState(shippingAddress?.apartment|| savedAddr.apartment  || '');
   const [city,     setCity]     = useState(shippingAddress?.city     || savedAddr.city       || '');
   const [county,   setCounty]   = useState(shippingAddress?.county   || savedAddr.county     || userInfo?.county || '');
-  const [country,  setCountry]  = useState(shippingAddress?.country  || savedAddr.country    || 'Kenya');
+ const [country,  setCountry]  = useState(shippingAddress?.country  || savedAddr.country    || 'Kenya');
+
+  // ── Handling tags state — persisted in Redux alongside shippingAddress
+  // so PlaceOrderPage/PaymentPage can read it when assembling the real
+  // createOrder payload, without threading it through as page state.
+  const [handlingTags, setHandlingTags] = useState(shippingAddress?.handlingTags || []);
+
+  const toggleHandlingTag = (key) => {
+    setHandlingTags((prev) =>
+      prev.includes(key) ? prev.filter((t) => t !== key) : [...prev, key]
+    );
+  };
 
   // ── Derived delivery info — recalculates when county changes ────────────
   const [deliveryZone, setDeliveryZone] = useState(null);
@@ -117,8 +142,8 @@ const ShippingPage = () => {
       return; // county is required for delivery pricing
     }
 
-   dispatch(saveShippingAddress({ address, apartment, city, county, country }));
-    navigate('/payment');
+        dispatch(saveShippingAddress({ address, apartment, city, county, country, handlingTags }));
+          navigate('/payment');
   };
 
   return (
@@ -214,6 +239,29 @@ const ShippingPage = () => {
                 value={country}
                 readOnly
               />
+            </div>
+
+           {/* Handling instructions — structured tags only ──────────── */}
+            <div className='shipping-field'>
+              <label className='shipping-label'>
+                Handling Instructions <span className='shipping-label--optional'>(optional)</span>
+              </label>
+              <p className='shipping-field__hint'>
+                Let the seller know how to pack your order. For privacy, only
+                these preset options are available — no free text is sent to sellers.
+              </p>
+              <div className='shipping-handling-tags'>
+                {HANDLING_TAGS.map((tag) => (
+                  <label key={tag.key} className='shipping-handling-tag'>
+                    <input
+                      type='checkbox'
+                      checked={handlingTags.includes(tag.key)}
+                      onChange={() => toggleHandlingTag(tag.key)}
+                    />
+                    {tag.label}
+                  </label>
+                ))}
+              </div>
             </div>
 
             <button type='submit' className='shipping-submit-btn'>

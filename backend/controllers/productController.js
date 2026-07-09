@@ -290,7 +290,51 @@ const product = await Product.findById(req.params.id);
     // Capture old status before overwriting so we can detect a change
     const previousStatus = product.status;
 
+    // ── Re-review triggers (agreed scope) ───────────────────────
+    // Only image and category changes send an approved product back
+    // to 'submitted' for re-review. Price, stock, description,
+    // dimensions, MOQ, tags etc. are the seller's own call and save
+    // silently without affecting live status. Image changes are the
+    // real fraud/policy surface (watermarks, contact info, AI renders).
+    // Category changes affect real business logic — Tier 2 delivery
+    // detection and category-based commission — not just presentation.
+    // This block only fires for a seller-initiated edit path where the
+    // caller does NOT also pass an explicit `status` — admin's own
+    // approve/reject/needs_changes actions above always take priority
+    // and are never overridden by this check.
+    let autoRevertToReview = false;
+    if (status === undefined && product.status === 'approved') {
+      const imageChanged    = image    !== undefined && image    !== product.image;
+      const categoryChanged = category !== undefined && category !== product.category;
+      if (imageChanged || categoryChanged) {
+        autoRevertToReview = true;
+      }
+    }
+
+    // ── Price-drop admin flag (soft, non-blocking) ───────────────
+    // A drop of more than 50% off the current live price doesn't stop
+    // the save or force re-review — sellers keep full autonomy over
+    // their own pricing — but it's logged on the product so admin can
+    // glance at it (e.g. surfaced as a badge on AdminProductListPage).
+    // Cleared automatically the next time price is edited without
+    // triggering the threshold again, so it never becomes stale noise.
+    if (
+      price !== undefined &&
+      product.price > 0 &&
+      Number(price) <= product.price * 0.5
+    ) {
+      product.priceDropFlag = {
+        flagged:     true,
+        previousPrice: product.price,
+        newPrice:      Number(price),
+        flaggedAt:     new Date(),
+      };
+    } else if (price !== undefined) {
+      product.priceDropFlag = undefined;
+    }
+
    if (status        !== undefined) product.status        = status;
+    else if (autoRevertToReview) product.status = 'submitted';
     if (adminFeedback !== undefined) product.adminFeedback = adminFeedback || '';
 
     // ── Clear "returning after suspension" once admin has reviewed it ──
@@ -312,8 +356,8 @@ const product = await Product.findById(req.params.id);
     // All wrapped in try/catch — notification failure must never
     // crash the product save response.
     if (
-      status !== undefined &&
-      status !== previousStatus &&
+      (status !== undefined || autoRevertToReview) &&
+      updatedProduct.status !== previousStatus &&
       updatedProduct.seller
     ) {
       try {

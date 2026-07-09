@@ -235,7 +235,7 @@ const PlaceOrderPage = () => {
                     : item.price;
 
                   return (
-                    <li key={item._id} className='place-order-item'>
+                    <li key={item.product} className='place-order-item'>
 
                       {/* Product image */}
                       <img
@@ -247,7 +247,7 @@ const PlaceOrderPage = () => {
                       {/* Product name + category */}
                       <div className='place-order-item__info'>
                         <Link
-                          to={`/product/${item._id}`}
+                          to={`/product/${item.product}`}
                           className='place-order-item__name'
                         >
                           {item.name}

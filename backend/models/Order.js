@@ -111,6 +111,21 @@ const orderSchema = new mongoose.Schema(
       country: { type: String, required: true, default: 'Kenya' },
     },
 
+// ── Handling instructions — structured tags only, never free text ───
+    // A buyer flagging "fragile" or "keep upright" is legitimate packaging
+    // guidance the seller genuinely needs. A free-text field for this same
+    // purpose was rejected — a buyer could write a phone number or contact
+    // request into it, and that text would be shown directly to a seller,
+    // breaking the golden rule. Predefined checkbox tags close that leak
+    // vector completely rather than filtering it after the fact, exactly
+    // matching the pattern already proven on the seller delivery quote
+    // form (submitSellerQuote — structured fields only, no free text).
+    handlingTags: {
+      type: [String],
+      enum: ['fragile', 'keep_upright', 'stack_limit', 'perishable', 'no_compression'],
+      default: [],
+    },
+
     // ── Delivery tier ───────────────────────────────────────────────────
     // 'standard'       = Tier 1 — flat county rate applied at checkout
     // 'quote_required' = Tier 2 — admin must quote before order proceeds

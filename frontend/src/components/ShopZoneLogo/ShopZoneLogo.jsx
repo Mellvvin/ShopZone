@@ -27,13 +27,23 @@ const ShopZoneLogo = ({ dark = false, size = 'medium' }) => {
     };
     const { icon, font, gap } = sizes[size] || sizes.medium;
 
-    // ── Box geometry ───────────────────────────────────────────
+// ── Box geometry ───────────────────────────────────────────
+    // Previously anchored to the bottom of the viewBox (y3 = icon - h - 2),
+    // which left ~44% empty space above the stack. That made the icon's
+    // visual weight sit lower than the wordmark's line-box, so flex
+    // align-items:center centered the two BOUNDING BOXES correctly but
+    // the graphic still read as "sunk" below the text. Fixed by
+    // vertically centering the whole three-box stack within the viewBox
+    // instead of anchoring it to the bottom.
     const w = icon * 0.80;
     const h = icon * 0.20;
     const rx = 3;
-    const y3 = icon - h - 2;
-    const y2 = y3 - h * 0.90;
-    const y1 = y2 - h * 0.90;
+    const boxGap = h * 0.20;                         // space between boxes
+    const stackHeight = h * 3 + boxGap * 2;           // total height of all 3 boxes + gaps
+    const topPadding = (icon - stackHeight) / 2;      // centers the stack in the viewBox
+    const y1 = topPadding;
+    const y2 = y1 + h + boxGap;
+    const y3 = y2 + h + boxGap;
     const cx = icon / 2;
     const x = cx - w / 2;
 

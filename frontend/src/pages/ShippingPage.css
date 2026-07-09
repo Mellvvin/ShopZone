@@ -396,3 +396,33 @@
   color: #999;
   font-size: 0.8em;
 }
+
+/* ── Handling instructions — structured checkbox tags ────────────────
+   Deliberately plain checkboxes, not custom pill toggles — this is a
+   low-frequency optional field, not a primary interaction, so it
+   borrows the existing form field rhythm rather than introducing a
+   new visual pattern for one field. */
+.shipping-handling-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.shipping-handling-tag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+
+.shipping-handling-tag input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--oxford-blue);
+  cursor: pointer;
+  flex-shrink: 0;
+}

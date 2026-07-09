@@ -373,15 +373,56 @@ const updateSellerStatus = async (req, res) => {
     }
 
     // ── Suspension duration validation ───────────────────────────────
-    // Only relevant when suspending. Maps a chosen label to a number of
-    // days for computing the expiry date. 'indefinite' stores no expiry
-    // at all — admin must check back manually with no reminder date.
     const DURATION_DAYS = {
       '3_days':    3,
       '7_days':    7,
       '14_days':   14,
       'indefinite': null,
     };
+    if (sellerStatus === 'suspended' && !(suspensionDuration in DURATION_DAYS)) {
+      return res.status(400).json({
+        message: 'A suspension duration is required (3_days, 7_days, 14_days, or indefinite).',
+      });
+    }
+
+    // ── THE ACTUAL BUG ────────────────────────────────────────────
+    // previousStatus, productsAffected, Product, and Notification were
+    // all referenced further down in this function but never declared
+    // or required anywhere — that is exactly why "previousStatus is not
+    // defined" was thrown on every suspend/reinstate attempt. Declared
+    // once, here, before anything is mutated.
+    const previousStatus = user.sellerStatus;
+    let productsAffected = 0;
+    const Product      = require('../models/Product');
+    const Notification = require('../models/Notification');
+
+    // ── Apply the status change to the user document ─────────────
+    user.sellerStatus = sellerStatus;
+
+    if (sellerStatus === 'approved') {
+      user.isSeller = true;
+      user.sellerApprovedAt = Date.now();
+      user.sellerSuspendedAt = null;
+      user.sellerSuspensionDuration = '';
+      user.sellerSuspensionExpiresAt = null;
+    } else if (sellerStatus === 'suspended') {
+      user.isSeller = true;
+      user.sellerSuspendedAt = Date.now();
+      user.sellerSuspensionDuration = suspensionDuration;
+      const days = DURATION_DAYS[suspensionDuration];
+      user.sellerSuspensionExpiresAt = days
+        ? new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+        : null;
+    } else if (sellerStatus === 'rejected' || sellerStatus === 'none') {
+      user.isSeller = false;
+      user.sellerApprovedAt = null;
+      user.sellerSuspendedAt = null;
+      user.sellerSuspensionDuration = '';
+      user.sellerSuspensionExpiresAt = null;
+    }
+
+    const updatedUser = await user.save();
+
     if (sellerStatus === 'suspended') {
       // ── ISS-017 FIX ─────────────────────────────────────────
       // The previous version of this block queried { status: 'archived' }

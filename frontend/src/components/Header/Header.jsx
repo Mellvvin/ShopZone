@@ -87,16 +87,31 @@ const Header = () => {
   // the scroll handler never causes a React re-render.
   // The CSS transition handles the visual smoothness.
   useEffect(() => {
-    const SCROLL_THRESHOLD = 80;
+    // ── Hysteresis fix ────────────────────────────────────────
+    // A single threshold caused the condensed class to flap rapidly
+    // when scrollY sat near the boundary (momentum scrolling, trackpad
+    // micro-movement, subpixel rounding) — visible as a glitch/flicker
+    // on the logo, search bar, and icon labels at certain scroll
+    // positions. Two thresholds with a gap between them means any
+    // scroll position inside that gap keeps whatever state it was
+    // already in, instead of re-evaluating every frame.
+    const CONDENSE_AT   = 80; // scroll past this to condense
+    const EXPAND_BELOW  = 40; // scroll below this to expand back
 
     const handleScroll = () => {
       const header = headerRef.current;
       if (!header) return;
-      if (window.scrollY > SCROLL_THRESHOLD) {
+      const isCondensed = header.classList.contains('header--condensed');
+      const y = window.scrollY;
+
+      if (!isCondensed && y > CONDENSE_AT) {
         header.classList.add('header--condensed');
-      } else {
+      } else if (isCondensed && y < EXPAND_BELOW) {
         header.classList.remove('header--condensed');
       }
+      // Anything between EXPAND_BELOW and CONDENSE_AT: no change,
+      // whichever state it's already in stays — this is what kills
+      // the flicker.
     };
 
     // Run once on mount in case page loads mid-scroll

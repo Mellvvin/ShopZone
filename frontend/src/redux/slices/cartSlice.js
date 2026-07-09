@@ -7,12 +7,25 @@ export const addToCart = createAsyncThunk(
   async ({ id, qty }, { getState, rejectWithValue }) => {
     try {
       const { data } = await axios.get(`/api/products/${id}`);
-      const item = {
+     const item = {
         product:      data._id,
         name:         data.name,
         image:        data.image,
         price:        data.price,
         countInStock: data.countInStock,
+        // ── Category snapshot (bug fix) ──────────────────────────────
+        // Without this, ShippingPage.jsx and PlaceOrderPage.jsx's
+        // TIER_2_CATEGORIES.includes(item.category) checks always
+        // evaluated false on the frontend — the buyer never saw the
+        // "Delivery Quote Required" notice before placing the order,
+        // only found out afterward once the backend (which re-fetches
+        // category from the DB independently) flagged it. Pricing was
+        // never wrong, but the buyer had no warning. Same pattern as
+        // unitType/itemsPerUnit below — display data, re-verified
+        // server-side at order creation regardless.
+        category:     data.category,
+
+        
         // ── Wholesale unit display fields (DEC-040 / DEC-041) ──────
         // Used by CartPage's compact per-line sanity check. Read-only
         // display data — never sent to the backend on checkout. The
