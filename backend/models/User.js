@@ -22,6 +22,48 @@ const userSchema = mongoose.Schema(
       county:    { type: String, default: '' },
       country:   { type: String, default: 'Kenya' },
     },
+
+    // ── Wishlist ────────────────────────────────────────────────
+    // Products the buyer has bookmarked. Embedded array, same
+    // lightweight pattern as Product.reviews — no separate
+    // collection needed at this scale.
+    wishlist: [
+      {
+        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+        addedAt: { type: Date, default: Date.now },
+      },
+    ],
+
+    // ── Recently viewed ─────────────────────────────────────────
+    // Tied to the account now (previously localStorage-only, device-
+    // bound, in SearchBar.jsx). Capped at 50 entries by the controller
+    // — newest first, oldest trimmed off on push. The profile tab and
+    // the homepage/cart carousels all read from this, showing the
+    // most recent 15.
+    recentlyViewed: [
+      {
+        product:  { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+        viewedAt: { type: Date, default: Date.now },
+      },
+    ],
+
+    // ── Saved M-Pesa number for checkout ────────────────────────
+    // Buyer's own convenience default at checkout — distinct from
+    // sellerProfile.mpesaNumber below, which is where a seller's
+    // payouts are sent. Optional, buyer opts in.
+    savedMpesaNumber: { type: String, default: '' },
+
+    // ── Notification preferences ────────────────────────────────
+    // orderUpdates is not exposed as a toggle in the UI (operational,
+    // not marketing) but stored here for consistency. The rest are
+    // opt-out toggles the buyer controls from the profile tab.
+    notificationPreferences: {
+      orderUpdates:   { type: Boolean, default: true },
+      promotions:     { type: Boolean, default: true },
+      newsletter:     { type: Boolean, default: true },
+      wishlistAlerts: { type: Boolean, default: true },
+    },
+
    isAdmin: { type: Boolean, default: false },
 
     // ── Seller role fields ────────────────────────────────────

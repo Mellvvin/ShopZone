@@ -37,6 +37,23 @@
 //
 //   updateOrderToDelivered:
 //     • Now also updates order status to 'delivered'.
+//     • Also sets deliveryConfirmedBy: 'admin' and opens the 72-hour
+//       dispute window, same as the buyer and auto-confirm paths below.
+//
+//   confirmDelivery (NEW):
+//     • Buyer confirms receipt. Only valid once the seller has confirmed
+//       handoff (status: 'dispatched'). Sets isDelivered, deliveredAt,
+//       deliveryConfirmedBy: 'buyer', and opens the 72-hour dispute window.
+//
+//   _autoConfirmIfDue (NEW — internal helper, not a route):
+//     • Lazy sweep, no cron job. Called whenever an order is fetched.
+//       If 5 days have passed since seller handoff with no buyer action,
+//       flips the order to delivered right there, deliveryConfirmedBy: 'auto'.
+//
+//   getPayoutQueue:
+//     • Now also requires disputeWindowExpiresAt to have passed (or be
+//       absent, for orders that predate this feature) before an order
+//       is considered payout-ready.
 //
 //   cancelOrder:
 //     • Now RESTORES stock when an order is cancelled (was missing before).
@@ -90,6 +107,50 @@ const _restoreStock = async (orderItems) => {
       }
     }
   }
+};
+
+// ── Delivery confirmation constants ────────────────────────────────────────
+const AUTO_CONFIRM_DAYS    = 5;  // days after seller handoff before auto-delivered
+const DISPUTE_WINDOW_HOURS = 72; // hours after delivery before payout-eligible
+
+// ─────────────────────────────────────────────────────────────────────────
+// HELPER: auto-confirm delivery if the 5-day window has passed
+// Lazy sweep — no cron job needed. Called whenever a single order is
+// fetched (getOrderById) or a buyer's order list is fetched (getMyOrders).
+// If the seller confirmed handoff more than AUTO_CONFIRM_DAYS ago and the
+// buyer has not confirmed receipt, the order is flipped to delivered right
+// here, before the response goes out, so whoever is looking at it always
+// sees an up-to-date status without waiting on a background job.
+// ─────────────────────────────────────────────────────────────────────────
+const _autoConfirmIfDue = async (order) => {
+  if (order.status === 'dispatched' && !order.isDelivered && order.handoff?.confirmedAt) {
+    const dueAt = new Date(order.handoff.confirmedAt).getTime() + AUTO_CONFIRM_DAYS * 24 * 60 * 60 * 1000;
+    if (Date.now() >= dueAt) {
+      order.isDelivered            = true;
+      order.deliveredAt            = Date.now();
+      order.status                 = 'delivered';
+      order.deliveryConfirmedBy    = 'auto';
+      order.disputeWindowExpiresAt = new Date(Date.now() + DISPUTE_WINDOW_HOURS * 60 * 60 * 1000);
+      await order.save();
+
+      try {
+        const autoNotification = new Notification({
+          userId:         order.user,
+          type:           'transactional',
+          title:          'Order Automatically Marked Delivered',
+          message:        `Your order #${order._id.toString().slice(-8).toUpperCase()} was automatically marked as delivered ` +
+                          `${AUTO_CONFIRM_DAYS} days after it was dispatched. If you did not receive it, please report a problem right away from your order page.`,
+          relatedOrderId: order._id,
+          link:           `/order/${order._id}`,
+          isRead:         false,
+        });
+        await autoNotification.save();
+      } catch (notifErr) {
+        console.error('Auto-confirm notification failed:', notifErr.message);
+      }
+    }
+  }
+  return order;
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -418,7 +479,7 @@ await orderNotification.save();
 // ─────────────────────────────────────────────────────────────────────────
 const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate(
+    let order = await Order.findById(req.params.id).populate(
       'user',
       'name email phone'
     );
@@ -426,6 +487,9 @@ const getOrderById = async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
+
+    // Lazy auto-confirm sweep — see _autoConfirmIfDue above
+    order = await _autoConfirmIfDue(order);
 
     // Only the order owner or an admin can view it
     if (
@@ -502,10 +566,11 @@ const updateOrderToDelivered = async (req, res) => {
     order.isDelivered = true;
     order.deliveredAt = Date.now();
     order.status = 'delivered'; // advance the status enum
+    order.deliveryConfirmedBy = 'admin';
+    order.disputeWindowExpiresAt = new Date(Date.now() + DISPUTE_WINDOW_HOURS * 60 * 60 * 1000);
 
-    // Phase 1: admin manually releases payout after this.
-    // Phase 3: a scheduled job will auto-release after T+2 from deliveredAt.
-    // We do NOT auto-release here — admin must explicitly confirm.
+    // Admin manually releases payout after this, and only once
+    // disputeWindowExpiresAt has passed — see getPayoutQueue.
 
 const updatedOrder = await order.save();
 
@@ -533,9 +598,54 @@ const updatedOrder = await order.save();
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// confirmDelivery
+// PUT /api/orders/:id/confirm-delivery
+// Protected — buyer (order owner) only
+//
+// Buyer confirms they've received their order. Only valid once the
+// seller has confirmed handoff (status must be 'dispatched'). Sets
+// isDelivered, deliveredAt, deliveryConfirmedBy: 'buyer', and opens the
+// 72-hour dispute window that gates seller payout eligibility.
+// ─────────────────────────────────────────────────────────────────────────
+const confirmDelivery = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorised to confirm this order' });
+    }
+
+    if (order.status !== 'dispatched') {
+      return res.status(400).json({
+        message: 'This order cannot be confirmed as delivered yet — it must be dispatched by the seller first.',
+      });
+    }
+
+    if (order.isDelivered) {
+      return res.status(400).json({ message: 'This order has already been marked as delivered.' });
+    }
+
+    order.isDelivered = true;
+    order.deliveredAt = Date.now();
+    order.status = 'delivered';
+    order.deliveryConfirmedBy = 'buyer';
+    order.disputeWindowExpiresAt = new Date(Date.now() + DISPUTE_WINDOW_HOURS * 60 * 60 * 1000);
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // cancelOrder
 // PUT /api/orders/:id/cancel
-// Protected — owner (if not paid) or admin (any time)
+// Protected — buyer (unpaid only) or admin (any time)
 // ─────────────────────────────────────────────────────────────────────────
 const cancelOrder = async (req, res) => {
   try {
@@ -815,7 +925,12 @@ const updatedOrder = await order.save();
 const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
-    res.json(orders);
+
+    // Lazy auto-confirm sweep across the buyer's own orders — see
+    // _autoConfirmIfDue above. Cheap at this scale (one buyer's orders).
+    const swept = await Promise.all(orders.map((order) => _autoConfirmIfDue(order)));
+
+    res.json(swept);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -866,11 +981,19 @@ const getPendingQuoteOrders = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────
 const getPayoutQueue = async (req, res) => {
   try {
+    // Only orders past the 72-hour dispute window are payout-ready.
+    // Orders that predate this feature (no disputeWindowExpiresAt set)
+    // are treated as already eligible so nothing gets stuck in limbo.
     const orders = await Order.find({
       isDelivered: true,
       isPaid: true,
       sellerPayoutReleased: false,
       status: 'delivered',
+      $or: [
+        { disputeWindowExpiresAt: { $lte: new Date() } },
+        { disputeWindowExpiresAt: null },
+        { disputeWindowExpiresAt: { $exists: false } },
+      ],
     })
       .populate('user', 'name email')
       .sort({ deliveredAt: 1 }); // oldest delivered first
@@ -1019,6 +1142,7 @@ module.exports = {
   getOrderById,
   updateOrderToPaid,
   updateOrderToDelivered,
+  confirmDelivery,
   cancelOrder,
   getMyOrders,
   getAllOrders,

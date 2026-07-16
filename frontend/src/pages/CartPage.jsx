@@ -83,7 +83,9 @@ const checkoutHandler = () => {
                 <ListGroup.Item key={item.product} className='cart-item'>
                   <Row className='align-items-center'>
                     <Col md={2}>
-                      <Image src={item.image} alt={item.name} fluid rounded className='cart-item-img' />
+                      <Link to={`/product/${item.product}`}>
+                        <Image src={item.image} alt={item.name} fluid rounded className='cart-item-img' />
+                      </Link>
                     </Col>
                     <Col md={3}>
                       <Link to={`/product/${item.product}`} className='cart-item-name'>{item.name}</Link>

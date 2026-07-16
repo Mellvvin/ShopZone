@@ -11,6 +11,7 @@
 const Product = require('../models/Product');
 const Order   = require('../models/Order');
 const User    = require('../models/User');
+const Notification = require('../models/Notification');
 
 // @desc    Get seller dashboard overview stats
 // @route   GET /api/seller/dashboard
@@ -154,6 +155,88 @@ const getSellerOrders = async (req, res) => {
     }));
 
     res.json(safeOrders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ── Valid courier options — mirrors Order.js handoff.courier enum ─────
+const VALID_COURIERS = [
+  'Fargo Courier', 'Sendy', 'G4S Courier', 'Wells Fargo Kenya',
+  'Matatu Network', 'Boda Boda', 'Own Delivery Vehicle', 'Other',
+];
+
+// @desc    Seller confirms goods have been handed off to a courier
+// @route   PUT /api/seller/orders/:id/confirm-handoff
+// @access  Private/Seller
+//
+// Mandatory, one-click, self-serve — no admin approval anywhere in this
+// path, by design, so sellers are never stuck waiting on admin to
+// release outgoing stock. This is the trigger that starts the delivery
+// clock: order status moves to 'dispatched' and the buyer's 5-day
+// auto-confirm window begins from this moment.
+//
+// Ownership check follows the same pattern as getSellerOrders — at
+// least one item in the order must belong to this seller.
+const confirmHandoff = async (req, res) => {
+  try {
+    const { courier, trackingRef } = req.body;
+
+    if (!courier || !VALID_COURIERS.includes(courier)) {
+      return res.status(400).json({ message: 'Please select a valid courier method.' });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    const sellerProductIds = await Product.find({ seller: req.user._id }, '_id');
+    const ids = sellerProductIds.map((p) => String(p._id));
+    const ownsItem = order.orderItems.some((item) => ids.includes(String(item.product)));
+    if (!ownsItem) {
+      return res.status(403).json({ message: 'You do not have permission to update this order.' });
+    }
+
+    if (order.status === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot confirm handoff on a cancelled order.' });
+    }
+    if (order.isDelivered) {
+      return res.status(400).json({ message: 'This order has already been marked as delivered.' });
+    }
+    if (!order.isPaid) {
+      return res.status(400).json({ message: 'Cannot confirm handoff before payment is confirmed.' });
+    }
+    if (order.handoff?.confirmedAt) {
+      return res.status(400).json({ message: 'Handoff has already been confirmed for this order.' });
+    }
+
+    order.handoff = {
+      courier,
+      trackingRef: trackingRef?.trim() || '',
+      confirmedAt: Date.now(),
+    };
+    order.status = 'dispatched';
+
+    const updatedOrder = await order.save();
+
+    try {
+      const dispatchNotification = new Notification({
+        userId:         order.user,
+        type:           'transactional',
+        title:          'Order Dispatched',
+        message:        `Your order #${order._id.toString().slice(-8).toUpperCase()} has been handed off to ${courier} and is on its way. ` +
+                        'Please confirm receipt from your order page once it arrives — if no action is taken, it will automatically be marked as delivered after 5 days.',
+        relatedOrderId: order._id,
+        link:           `/order/${order._id}`,
+        isRead:         false,
+      });
+      await dispatchNotification.save();
+    } catch (notifErr) {
+      console.error('Dispatch notification failed:', notifErr.message);
+    }
+
+    res.json(updatedOrder);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -413,6 +496,7 @@ module.exports = {
   getSellerDashboard,
   getSellerProducts,
   getSellerOrders,
+  confirmHandoff,
   getSellerProfile,
   updateSellerProfile,
   createSellerProduct,

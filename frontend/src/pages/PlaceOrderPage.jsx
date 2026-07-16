@@ -237,12 +237,15 @@ const PlaceOrderPage = () => {
                   return (
                     <li key={item.product} className='place-order-item'>
 
-                      {/* Product image */}
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className='place-order-item__img'
-                      />
+                      {/* Product image — now links to the product page too,
+                          matching the name link right below it */}
+                      <Link to={`/product/${item.product}`}>
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className='place-order-item__img'
+                        />
+                      </Link>
 
                       {/* Product name + category */}
                       <div className='place-order-item__info'>

@@ -22,6 +22,7 @@ const {
   getOrderById,
   updateOrderToPaid,
   updateOrderToDelivered,
+  confirmDelivery,
   cancelOrder,
   getMyOrders,
   getAllOrders,
@@ -58,6 +59,9 @@ router.put('/:id/pay', protect, updateOrderToPaid);
 
 // Delivery — admin marks order as delivered
 router.put('/:id/deliver', protect, admin, updateOrderToDelivered);
+
+// Delivery — buyer confirms receipt (only valid once seller has dispatched)
+router.put('/:id/confirm-delivery', protect, confirmDelivery);
 
 // Cancel — buyer (unpaid only) or admin (any time)
 router.put('/:id/cancel', protect, cancelOrder);

@@ -11,7 +11,7 @@
 //   - Create Product button in header right
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import axios from 'axios';
@@ -30,6 +30,7 @@ import './AdminProductListPage.css';
 // ─────────────────────────────────────────────────────────────
 const AdminProductListPage = () => {
     const navigate     = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { userInfo } = useSelector((state) => state.auth);
 
     useEffect(() => { document.title = 'Admin: Products — ShopZone'; }, []);
@@ -46,8 +47,18 @@ const AdminProductListPage = () => {
     const [deleteLoading, setDeleteLoading] = useState(false);
 
     // ── Filter state ──────────────────────────────────────────
-    const [activeTab, setActiveTab] = useState('all');
+    // Initial value reads ?tab= from the URL so a direct link or a
+    // "back from edit" redirect lands on the right tab immediately.
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'all');
     const [search, setSearch]       = useState('');
+
+    // Keeps activeTab in sync if the URL's tab param changes without
+    // this component unmounting — e.g. returning here via navigate()
+    // from AdminProductEditPage after save/cancel.
+    useEffect(() => {
+        const tabFromUrl = searchParams.get('tab') || 'all';
+        setActiveTab(prev => (prev === tabFromUrl ? prev : tabFromUrl));
+    }, [searchParams]);
 
     const config = { headers: { Authorization: `Bearer ${userInfo?.token}` } };
 
@@ -169,8 +180,8 @@ const AdminProductListPage = () => {
                 },
                 { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } }
             );
-            showToast('New product created. Fill in the details below.', 'info');
-            navigate(`/admin/product/${data._id}/edit`);
+           showToast('New product created. Fill in the details below.', 'info');
+            navigate(`/admin/product/${data._id}/edit`, { state: { fromTab: activeTab } });
         } catch (err) {
             const msg = err.response?.data?.message || err.message;
             setError(msg);
@@ -263,7 +274,7 @@ const AdminProductListPage = () => {
                         <button
                             key={tab.key}
                             className={`apl-tab ${activeTab === tab.key ? 'apl-tab--active' : ''}`}
-                            onClick={() => { setActiveTab(tab.key); setSearch(''); }}
+                            onClick={() => { setActiveTab(tab.key); setSearch(''); setSearchParams({ tab: tab.key }); }}
                             role='tab'
                             aria-selected={activeTab === tab.key}
                         >
@@ -352,7 +363,7 @@ const AdminProductListPage = () => {
                                 <tr
                                     key={product._id}
                                     className={`apl-row ${index % 2 !== 0 ? 'apl-row--alt' : ''}`}
-                                    onClick={() => navigate(`/admin/product/${product._id}/edit`)}
+                                    onClick={() => navigate(`/admin/product/${product._id}/edit`, { state: { fromTab: activeTab } })}
                                     style={{ cursor: 'pointer' }}
                                     title={`Edit ${product.name}`}
                                 >
@@ -449,7 +460,7 @@ const AdminProductListPage = () => {
                                         <div className='apl-actions'>
                                             <button
                                                 className='apl-action-btn apl-action-btn--edit'
-                                                onClick={() => navigate(`/admin/product/${product._id}/edit`)}
+                                                onClick={() => navigate(`/admin/product/${product._id}/edit`, { state: { fromTab: activeTab } })}
                                                 aria-label={`Edit ${product.name}`}
                                             >
                                                 <FaEdit aria-hidden='true' /> Edit

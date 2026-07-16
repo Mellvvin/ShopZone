@@ -28,6 +28,15 @@
 //   • Added hasTier2Items — boolean flag so admin can quickly filter orders
 //     that contain bulk/heavy goods and need quote attention
 //
+//   • Added handoff, deliveryConfirmedBy, disputeWindowExpiresAt — the
+//     hybrid delivery confirmation system. Seller confirms handoff to
+//     courier (mandatory, self-serve, no admin approval needed) which
+//     starts a 5-day window for the buyer to confirm receipt; if the
+//     buyer takes no action, the order auto-confirms as delivered on
+//     next fetch. A 72-hour dispute window then gates seller payout
+//     eligibility, during which the buyer can report a problem via
+//     the existing Enquiries flow.
+//
 // UNCHANGED:
 //   • orderItems, shippingAddress, paymentMethod, paymentResult
 //   • itemsPrice, shippingPrice, taxPrice, totalPrice
@@ -202,16 +211,60 @@ const orderSchema = new mongoose.Schema(
     isPaid: { type: Boolean, required: true, default: false },
     paidAt: { type: Date },
 
+   // ── Seller handoff to courier (mandatory step) ───────────────────────
+    // Recorded when the seller confirms goods have left their premises.
+    // This is the trigger that starts the delivery clock — status moves
+    // to 'dispatched' the moment this is set. No admin approval required;
+    // this is a self-serve seller action by design, so sellers are never
+    // blocked waiting on admin to release outgoing stock.
+    handoff: {
+      courier: {
+        type: String,
+        enum: [
+          'Fargo Courier',
+          'Sendy',
+          'G4S Courier',
+          'Wells Fargo Kenya',
+          'Matatu Network',
+          'Boda Boda',
+          'Own Delivery Vehicle',
+          'Other',
+        ],
+      },
+      trackingRef: { type: String, default: '' }, // optional plate number / tracking code
+      confirmedAt: { type: Date },
+    },
+
     // ── Delivery status ─────────────────────────────────────────────────
+    // isDelivered becomes true through one of three paths, recorded in
+    // deliveryConfirmedBy for the admin audit trail and the seller's
+    // My Payments timeline:
+    //   'buyer' — buyer clicked Confirm Received
+    //   'auto'  — 5 days passed after handoff with no buyer action
+    //   'admin' — admin manually marked delivered (edge cases only)
     isDelivered: { type: Boolean, required: true, default: false },
     deliveredAt: { type: Date },
+    deliveryConfirmedBy: {
+      type: String,
+      enum: ['buyer', 'auto', 'admin', null],
+      default: null,
+    },
+
+    // ── Dispute window ─────────────────────────────────────────────────
+    // Set the moment isDelivered becomes true, regardless of which path
+    // triggered it. Seller payout cannot be released by admin until this
+    // has passed. Buyer sees a "Report a Problem" option (routes into the
+    // existing Enquiries flow with this order pre-attached) any time
+    // before this expires.
+    disputeWindowExpiresAt: { type: Date },
 
     // ── Seller payout (lightweight escrow) ──────────────────────────────
     // Admin sets this to true after:
     //   1. isDelivered = true
-    //   2. No dispute raised within the window
+    //   2. disputeWindowExpiresAt has passed
     //   3. Admin manually releases payment to seller
-    // Phase 3: auto-releases T+2 after isDelivered via a scheduled job
+    // Auto-release on a schedule remains a future enhancement — for now
+    // admin always takes the explicit final action.
     // ── Seller delivery quote (Option B — structured fields only) ────────────
     // Seller submits a quote for Tier 2 orders. No free text fields —
     // all fields are structured to prevent off-platform contact.
@@ -264,6 +317,7 @@ orderSchema.index({ user: 1, createdAt: -1 });       // my orders, newest first
 orderSchema.index({ status: 1 });                     // filter by status
 orderSchema.index({ hasTier2Items: 1, 'deliveryQuote.status': 1 }); // admin quote queue
 orderSchema.index({ sellerPayoutReleased: 1, isDelivered: 1 });     // payout queue
+orderSchema.index({ status: 1, 'handoff.confirmedAt': 1 });         // auto-confirm sweep on fetch
 
 const Order = mongoose.model('Order', orderSchema);
 

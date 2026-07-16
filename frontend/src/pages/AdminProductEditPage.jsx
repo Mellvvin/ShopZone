@@ -17,7 +17,7 @@
 //   - Legacy unit dropdown labelled to avoid admin confusion
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Form, Button, Card, Alert,
@@ -151,6 +151,11 @@ const CHANGE_LABELS = {
 const AdminProductEditPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Which list-page tab we arrived from — set by AdminProductListPage
+  // when it links here. Falls back to 'all' for direct links / new
+  // products, so this never breaks even without that state present.
+  const fromTab = location.state?.fromTab || 'all';
   const { userInfo } = useSelector((state) => state.auth);
 
   useEffect(() => { document.title = 'Admin: Edit Product — ShopZone'; }, []);
@@ -376,7 +381,7 @@ const AdminProductEditPage = () => {
         console.error('Could not delete unsaved product:', err.message);
       }
     }
-    navigate('/admin/products');
+    navigate(`/admin/products?tab=${fromTab}`);
   };
 
   // ── Build current values object ───────────────────────────
@@ -552,7 +557,7 @@ const AdminProductEditPage = () => {
       setSuccessMsg('Product saved successfully!');
       setSaving(false);
       showToast('Product saved successfully!', 'success');
-      setTimeout(() => navigate('/admin/products'), 1500);
+      setTimeout(() => navigate(`/admin/products?tab=${fromTab}`), 1500);
     } catch (err) {
       const msg = err.response?.data?.message || err.message;
       setError(msg);

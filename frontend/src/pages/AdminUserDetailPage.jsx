@@ -16,20 +16,21 @@
 //
 // Backend: GET /api/users/:id/full-profile (admin only)
 // ─────────────────────────────────────────────────────────────
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
 import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import { formatDateTime as formatNairobiDateTime, formatDateShort } from '../utils/formatDateTime';
+import ScrollableTabBar from '../components/ScrollableTabBar/ScrollableTabBar';
 import {
     FaArrowLeft, FaUser, FaStore, FaBoxOpen,
     FaClipboardList, FaEnvelope, FaBell,
     FaCheckCircle, FaTimesCircle, FaClock,
     FaBan, FaExclamationTriangle, FaCalendar,
     FaPhone, FaMapMarkerAlt, FaBriefcase,
-    FaShieldAlt, FaTag,
+    FaShieldAlt, FaTag, FaSearch,
 } from 'react-icons/fa';
 import './AdminUserDetailPage.css';
 
@@ -97,6 +98,13 @@ const AdminUserDetailPage = () => {
     // ── Expanded notification row ─────────────────────────────
     const [expandedNotif, setExpandedNotif] = useState(null);
 
+    // ── Section tabs (fixes "500 products before one enquiry") ──
+    // Account info + seller card stay always visible above these —
+    // only the four data-heavy sections are gated behind tabs now.
+    const [activeTab, setActiveTab] = useState('orders');
+    const [productSearch, setProductSearch]   = useState('');
+    const [enquirySearch, setEnquirySearch]   = useState('');
+
     // ── Seller action modal ───────────────────────────────────
    const [showModal, setShowModal]         = useState(false);
     const [modalAction, setModalAction]     = useState('');
@@ -104,20 +112,29 @@ const AdminUserDetailPage = () => {
 
     // ── Suspension duration — only relevant when modalAction is 'suspend' ──
     const [suspensionDuration, setSuspensionDuration] = useState('7_days');
-    const config = { headers: { Authorization: `Bearer ${userInfo?.token}` } };
 
     useEffect(() => {
-        if (!userInfo?.isAdmin) { navigate('/'); return; }
+        if (userInfo === null) return;
+        if (!userInfo?.isAdmin) {
+            navigate('/');
+            return;
+        }
+        if (!userInfo?.token) {
+            setError('Please sign in again to view this profile.');
+            setLoading(false);
+            return;
+        }
         fetchProfile();
-    }, [id]);
+    }, [id, navigate, userInfo?.isAdmin, userInfo?.token]);
 
     // ── Fetch full profile ────────────────────────────────────
     const fetchProfile = async () => {
         try {
             setLoading(true);
+            setError(null);
             const { data: res } = await axios.get(
                 `/api/users/${id}/full-profile`,
-                config
+                { headers: { Authorization: `Bearer ${userInfo?.token}` } }
             );
             setData(res);
             // Update page title with user name once loaded
@@ -179,6 +196,46 @@ const AdminUserDetailPage = () => {
         reinstate: { title: 'Reinstate Seller',   message: `Reinstate ${data?.user?.name} as an approved seller?`, label: 'Reinstate', variant: 'primary-branded' },
     };
 
+    const { user, orders, products, enquiries, notifications } = data || {
+        user: {},
+        orders: [],
+        products: [],
+        enquiries: [],
+        notifications: [],
+    };
+    const sellerStatusCfg = SELLER_STATUS[user?.sellerStatus] || SELLER_STATUS.none;
+    const SellerStatusIcon = sellerStatusCfg.icon;
+
+    // ── Client-side search within Products and Enquiries tabs ──
+    // Only these two sections realistically grow into the hundreds
+    // for an active seller — Orders and Notifications stay as-is.
+    const filteredProducts = useMemo(() => {
+        if (!productSearch.trim()) return products;
+        const q = productSearch.toLowerCase();
+        return products.filter(p =>
+            (p.name || '').toLowerCase().includes(q) ||
+            (p.category || '').toLowerCase().includes(q) ||
+            (p.brand || '').toLowerCase().includes(q)
+        );
+    }, [products, productSearch]);
+
+    const filteredEnquiries = useMemo(() => {
+        if (!enquirySearch.trim()) return enquiries;
+        const q = enquirySearch.toLowerCase();
+        return enquiries.filter(e =>
+            (e.message || '').toLowerCase().includes(q) ||
+            (e.business || '').toLowerCase().includes(q) ||
+            (e.type || '').toLowerCase().includes(q)
+        );
+    }, [enquiries, enquirySearch]);
+
+    const SECTION_TABS = [
+        { key: 'orders',        label: 'Orders',        icon: FaClipboardList, count: orders.length },
+        { key: 'products',      label: 'Products',      icon: FaBoxOpen,       count: products.length },
+        { key: 'enquiries',     label: 'Enquiries',     icon: FaEnvelope,      count: enquiries.length },
+        { key: 'notifications', label: 'Notifications', icon: FaBell,          count: notifications.length },
+    ];
+
     // ── Loading state ─────────────────────────────────────────
     if (loading) return (
         <div className='aud-page'>
@@ -209,10 +266,6 @@ const AdminUserDetailPage = () => {
             </div>
         </div>
     );
-
-    const { user, orders, products, enquiries, notifications } = data;
-    const sellerStatusCfg = SELLER_STATUS[user.sellerStatus] || SELLER_STATUS.none;
-    const SellerStatusIcon = sellerStatusCfg.icon;
 
     return (
         <div className='aud-page'>
@@ -449,7 +502,28 @@ const AdminUserDetailPage = () => {
                     </div>
                 )}
 
+                {/* ── Section tab bar ─────────────────────── */}
+                <ScrollableTabBar className='aud-section-tabs' role='tablist'>
+                    {SECTION_TABS.map(tab => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.key}
+                                className={`aud-section-tab ${activeTab === tab.key ? 'aud-section-tab--active' : ''}`}
+                                onClick={() => setActiveTab(tab.key)}
+                                role='tab'
+                                aria-selected={activeTab === tab.key}
+                            >
+                                <Icon aria-hidden='true' />
+                                {tab.label}
+                                <span className='aud-section-tab__count'>{tab.count}</span>
+                            </button>
+                        );
+                    })}
+                </ScrollableTabBar>
+
                 {/* ── Orders as buyer ────────────────────── */}
+                {activeTab === 'orders' && (
                 <div className='aud-card'>
                     <h2 className='aud-card__title'>
                         <FaClipboardList aria-hidden='true' /> Orders as Buyer
@@ -512,22 +586,37 @@ const AdminUserDetailPage = () => {
                                         );
                                     })}
                                 </tbody>
-                            </table>
+                           </table>
                         </div>
                     )}
                 </div>
+                )}
 
                 {/* ── Products as seller ─────────────────── */}
+                {activeTab === 'products' && (
                 <div className='aud-card'>
                     <h2 className='aud-card__title'>
                         <FaBoxOpen aria-hidden='true' /> Products as Seller
                         <span className='aud-card__count'>{products.length}</span>
                     </h2>
-                    {products.length === 0 ? (
+                    {products.length > 3 && (
+                        <div className='aud-section-search'>
+                            <FaSearch aria-hidden='true' />
+                            <input
+                                type='text'
+                                placeholder="Search this seller's products by name, category or brand..."
+                                value={productSearch}
+                                onChange={(e) => setProductSearch(e.target.value)}
+                            />
+                        </div>
+                    )}
+                    {filteredProducts.length === 0 ? (
                         <p className='aud-empty'>
-                            {user.isSeller
-                                ? 'No products assigned to this seller yet.'
-                                : 'This user is not a seller.'
+                            {productSearch
+                                ? `No products matching "${productSearch}"`
+                                : user.isSeller
+                                    ? 'No products assigned to this seller yet.'
+                                    : 'This user is not a seller.'
                             }
                         </p>
                     ) : (
@@ -546,7 +635,7 @@ const AdminUserDetailPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {products.map((product, idx) => (
+                                    {filteredProducts.map((product, idx) => (
                                         <tr key={product._id} className={idx % 2 !== 0 ? 'aud-row--alt' : ''}>
                                             <td>
                                                 <img
@@ -584,19 +673,34 @@ const AdminUserDetailPage = () => {
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                           </table>
                         </div>
                     )}
                 </div>
+                )}
 
-{/* ── Enquiries submitted ────────────────── */}
+                {/* ── Enquiries submitted ────────────────── */}
+                {activeTab === 'enquiries' && (
                 <div className='aud-card'>
                     <h2 className='aud-card__title'>
                         <FaEnvelope aria-hidden='true' /> Enquiries Submitted
                         <span className='aud-card__count'>{enquiries.length}</span>
                     </h2>
-                    {enquiries.length === 0 ? (
-                        <p className='aud-empty'>No enquiries submitted.</p>
+                    {enquiries.length > 3 && (
+                        <div className='aud-section-search'>
+                            <FaSearch aria-hidden='true' />
+                            <input
+                                type='text'
+                                placeholder="Search this user's enquiries by message, business or type..."
+                                value={enquirySearch}
+                                onChange={(e) => setEnquirySearch(e.target.value)}
+                            />
+                        </div>
+                    )}
+                    {filteredEnquiries.length === 0 ? (
+                        <p className='aud-empty'>
+                            {enquirySearch ? `No enquiries matching "${enquirySearch}"` : 'No enquiries submitted.'}
+                        </p>
                     ) : (
                         <div className='aud-table-wrap'>
                             <table className='aud-table'>
@@ -611,7 +715,7 @@ const AdminUserDetailPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {enquiries.map((enq, idx) => {
+                                    {filteredEnquiries.map((enq, idx) => {
                                         const tc       = ENQUIRY_TYPE[enq.type]     || { label: enq.type,   cls: '' };
                                         const sc       = ENQUIRY_STATUS[enq.status] || { label: enq.status, cls: '' };
                                         const isOpen   = expandedEnquiry === enq._id;
@@ -642,10 +746,11 @@ const AdminUserDetailPage = () => {
                                                         {formatDate(enq.createdAt)}
                                                     </td>
                                                     <td className='aud-cell-muted'>
-                                                        {enq.resolvedAt
-                                                            ? <span className='aud-bool--yes'><FaCheckCircle aria-hidden='true' /> {formatDate(enq.resolvedAt)}</span>
-                                                            : <span className='aud-bool--no'>Open</span>
-                                                        }
+                                                        {enq.resolvedAt ? (
+                                                            <span className='aud-bool--yes'><FaCheckCircle aria-hidden='true' /> {formatDate(enq.resolvedAt)}</span>
+                                                        ) : (
+                                                            <span className='aud-bool--no'>Open</span>
+                                                        )}
                                                     </td>
                                                     <td className='aud-cell-expand'>
                                                         <span className={`aud-expand-icon ${isOpen ? 'aud-expand-icon--open' : ''}`}>
@@ -707,8 +812,10 @@ const AdminUserDetailPage = () => {
                         </div>
                     )}
                 </div>
+                )}
 
-               {/* ── Notifications ──────────────────────── */}
+                    {/* ── Notifications ──────────────────────── */}
+                {activeTab === 'notifications' && (
                 <div className='aud-card'>
                     <h2 className='aud-card__title'>
                         <FaBell aria-hidden='true' /> Notifications
@@ -764,8 +871,10 @@ const AdminUserDetailPage = () => {
                                 );
                             })}
                         </div>
-                    )}
+                   )}
+                   
                 </div>
+                )}
             </div>
         </div>
     );

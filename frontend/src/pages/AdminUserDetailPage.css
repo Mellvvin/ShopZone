@@ -902,3 +902,63 @@
     padding: 2px 8px;
     border-radius: 4px;
 }
+
+/* ── Section tab bar ─────────────────────────────────────────── */
+.aud-section-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.aud-section-tab {
+    all: unset;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+    background: #fff;
+    border: 1.5px solid rgba(0, 33, 71, 0.12);
+    white-space: nowrap;
+}
+
+.aud-section-tab--active {
+    background: var(--oxford-blue);
+    color: var(--tan);
+    border-color: var(--oxford-blue);
+}
+
+.aud-section-tab__count {
+    background: rgba(0, 0, 0, 0.08);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+}
+
+.aud-section-tab--active .aud-section-tab__count {
+    background: rgba(210, 180, 140, 0.25);
+}
+
+.aud-section-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 33, 71, 0.03);
+    border: 1px solid rgba(0, 33, 71, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 10px 0 14px;
+    color: #767676;
+}
+
+.aud-section-search input {
+    all: unset;
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--oxford-blue);
+}

@@ -13,7 +13,7 @@
 //   - Clicking a row navigates to /admin/users/:id
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import axios from 'axios';
@@ -49,6 +49,7 @@ const SellerStatusBadge = ({ status }) => {
 // ─────────────────────────────────────────────────────────────
 const AdminSellersPage = () => {
     const navigate     = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { userInfo } = useSelector((state) => state.auth);
 
     useEffect(() => { document.title = 'Admin: Sellers — ShopZone'; }, []);
@@ -59,8 +60,16 @@ const AdminSellersPage = () => {
     const [error, setError]       = useState(null);
 
     // ── Filter state ──────────────────────────────────────────
-    const [activeTab, setActiveTab] = useState('pending');
+    // Reads ?tab= from the URL so returning here (e.g. after opening a
+    // seller's profile and clicking Back) restores the tab instead of
+    // always resetting to "pending".
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'pending');
     const [search, setSearch]       = useState('');
+
+    useEffect(() => {
+        const tabFromUrl = searchParams.get('tab') || 'pending';
+        setActiveTab(prev => (prev === tabFromUrl ? prev : tabFromUrl));
+    }, [searchParams]);
 
     // ── Action modal ──────────────────────────────────────────
   const [showModal, setShowModal]       = useState(false);
@@ -262,7 +271,7 @@ const AdminSellersPage = () => {
                         <button
                             key={tab.key}
                             className={`asl-tab ${activeTab === tab.key ? 'asl-tab--active' : ''}`}
-                            onClick={() => { setActiveTab(tab.key); setSearch(''); }}
+                            onClick={() => { setSearch(''); setSearchParams({ tab: tab.key }); }}
                             role='tab'
                             aria-selected={activeTab === tab.key}
                         >

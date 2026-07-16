@@ -28,7 +28,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
 import { formatKES } from '../utils/formatKES';
@@ -64,6 +64,7 @@ const STATUS_CONFIG = {
 // ─────────────────────────────────────────────────────────────────────────
 const AdminOrderListPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { userInfo } = useSelector((state) => state.auth);
 
   // ── Page title ─────────────────────────────────────────────
@@ -71,7 +72,15 @@ const AdminOrderListPage = () => {
 
 // ── Tab state ────────────────────────────────────────────────────────────
   // 'all' | 'quotes' | 'payouts' | 'fulfilled' | 'cancelled'
-  const [activeTab, setActiveTab] = useState('all');
+  // Reads ?tab= from the URL so returning here (e.g. after viewing an
+  // order and using the browser Back button) restores the tab instead
+  // of always resetting to "all".
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'all');
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') || 'all';
+    setActiveTab(prev => (prev === tabFromUrl ? prev : tabFromUrl));
+  }, [searchParams]);
 
   // ── Orders data ──────────────────────────────────────────────────────────
   const [allOrders, setAllOrders] = useState([]);
@@ -255,7 +264,7 @@ const AdminOrderListPage = () => {
       <ScrollableTabBar className='admin-orders-tabs' role='tablist'>
     <button
           className={`admin-orders-tab ${activeTab === 'all' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => { setActiveTab('all'); setSearch(''); }}
+          onClick={() => { setSearch(''); setSearchParams({ tab: 'all' }); }}
           role='tab'
           aria-selected={activeTab === 'all'}
         >
@@ -266,7 +275,7 @@ const AdminOrderListPage = () => {
 
         <button
           className={`admin-orders-tab ${activeTab === 'quotes' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => { setActiveTab('quotes'); setSearch(''); }}
+          onClick={() => { setSearch(''); setSearchParams({ tab: 'quotes' }); }}
           role='tab'
           aria-selected={activeTab === 'quotes'}
         >
@@ -281,7 +290,7 @@ const AdminOrderListPage = () => {
 
         <button
           className={`admin-orders-tab ${activeTab === 'payouts' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => { setActiveTab('payouts'); setSearch(''); }}
+          onClick={() => { setSearch(''); setSearchParams({ tab: 'payouts' }); }}
           role='tab'
           aria-selected={activeTab === 'payouts'}
         >
@@ -296,7 +305,7 @@ const AdminOrderListPage = () => {
 
         <button
           className={`admin-orders-tab ${activeTab === 'fulfilled' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => { setActiveTab('fulfilled'); setSearch(''); }}
+          onClick={() => { setSearch(''); setSearchParams({ tab: 'fulfilled' }); }}
           role='tab'
           aria-selected={activeTab === 'fulfilled'}
         >
@@ -309,7 +318,7 @@ const AdminOrderListPage = () => {
 
         <button
           className={`admin-orders-tab ${activeTab === 'cancelled' ? 'admin-orders-tab--active' : ''}`}
-          onClick={() => { setActiveTab('cancelled'); setSearch(''); }}
+          onClick={() => { setSearch(''); setSearchParams({ tab: 'cancelled' }); }}
           role='tab'
           aria-selected={activeTab === 'cancelled'}
         >

@@ -243,6 +243,22 @@ const productSchema = mongoose.Schema(
       default: '',
     },
 
+    // ── Price-drop admin flag (soft, non-blocking) ────────────
+    // Set by productController.js's updateProduct whenever a price
+    // edit drops the price to 50% or less of what it was immediately
+    // before the change. This never blocks the save and never forces
+    // re-review — sellers keep full pricing autonomy — it exists so
+    // admin can spot unusually steep cuts at a glance, e.g. a badge on
+    // AdminProductListPage. The controller clears it back to
+    // flagged: false the next time price is edited without crossing
+    // the threshold again, so it never lingers as stale noise.
+    priceDropFlag: {
+      flagged:       { type: Boolean, default: false },
+      previousPrice: { type: Number,  default: null },
+      newPrice:      { type: Number,  default: null },
+      flaggedAt:     { type: Date,    default: null },
+    },
+
     // ── NEW: Bulk only flag ───────────────────────────────────
     // If true, this product cannot be purchased as single pieces.
     // The product detail page and cart will enforce the MOQ and

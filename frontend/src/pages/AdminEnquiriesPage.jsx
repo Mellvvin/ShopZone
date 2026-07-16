@@ -26,7 +26,7 @@
 // ─────────────────────────────────────────────────────────────
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { showToast } from '../components/Toast/Toast';
 import {
@@ -315,6 +315,7 @@ const EnquiryDetailPanel = ({ enquiry, onClose, onUpdated, config }) => {
 // ─────────────────────────────────────────────────────────────
 const AdminEnquiriesPage = () => {
     const navigate   = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { userInfo } = useSelector((state) => state.auth);
 
     // ── Page title ────────────────────────────────────────────
@@ -329,10 +330,22 @@ const AdminEnquiriesPage = () => {
     const [error, setError]               = useState(null);
 
     // ── Filter state ──────────────────────────────────────────
-    const [typeFilter, setTypeFilter]       = useState('all');
-    const [statusFilter, setStatusFilter]   = useState('all');
-    const [resolvedFilter, setResolvedFilter] = useState('all'); // all/resolved/unresolved
+    // Reads type/status/resolved from the URL so returning here (e.g.
+    // after opening a linked user profile or order and clicking Back)
+    // restores the filters instead of always resetting to "all".
+    const [typeFilter, setTypeFilter]       = useState(searchParams.get('type') || 'all');
+    const [statusFilter, setStatusFilter]   = useState(searchParams.get('status') || 'all');
+    const [resolvedFilter, setResolvedFilter] = useState(searchParams.get('resolved') || 'all'); // all/resolved/unresolved
     const [search, setSearch]               = useState('');
+
+    useEffect(() => {
+        const typeFromUrl     = searchParams.get('type') || 'all';
+        const statusFromUrl   = searchParams.get('status') || 'all';
+        const resolvedFromUrl = searchParams.get('resolved') || 'all';
+        setTypeFilter(prev => (prev === typeFromUrl ? prev : typeFromUrl));
+        setStatusFilter(prev => (prev === statusFromUrl ? prev : statusFromUrl));
+        setResolvedFilter(prev => (prev === resolvedFromUrl ? prev : resolvedFromUrl));
+    }, [searchParams]);
 
     // ── Selected enquiry for detail panel ─────────────────────
     const [selected, setSelected] = useState(null);
@@ -470,8 +483,24 @@ const TYPE_TABS = [
                     // Unread tab sets statusFilter to new and resets typeFilter.
                     // All other tabs reset statusFilter to all and set their typeFilter.
                     const handleClick = tab.key === 'unread'
-                        ? () => { setTypeFilter('all'); setStatusFilter('new'); setSelected(null); }
-                        : () => { setTypeFilter(tab.key); setStatusFilter('all'); setSelected(null); };
+                        ? () => {
+                            setSelected(null);
+                            setSearchParams(prev => {
+                                const p = new URLSearchParams(prev);
+                                p.set('type', 'all');
+                                p.set('status', 'new');
+                                return p;
+                            });
+                        }
+                        : () => {
+                            setSelected(null);
+                            setSearchParams(prev => {
+                                const p = new URLSearchParams(prev);
+                                p.set('type', tab.key);
+                                p.set('status', 'all');
+                                return p;
+                            });
+                        };
 
                     return (
                         <button
@@ -523,7 +552,11 @@ const TYPE_TABS = [
                     <select
                         className='enq-filter-select'
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
+                        onChange={(e) => setSearchParams(prev => {
+                            const p = new URLSearchParams(prev);
+                            p.set('status', e.target.value);
+                            return p;
+                        })}
                         aria-label='Filter by status'
                     >
                         <option value='all'>All Statuses</option>
@@ -539,7 +572,11 @@ const TYPE_TABS = [
                     <select
                         className='enq-filter-select'
                         value={resolvedFilter}
-                        onChange={(e) => setResolvedFilter(e.target.value)}
+                        onChange={(e) => setSearchParams(prev => {
+                            const p = new URLSearchParams(prev);
+                            p.set('resolved', e.target.value);
+                            return p;
+                        })}
                         aria-label='Filter by resolved state'
                     >
                         <option value='all'>All Enquiries</option>
@@ -577,9 +614,7 @@ const TYPE_TABS = [
                                     className='enq-retry-btn'
                                     onClick={() => {
                                         setSearch('');
-                                        setTypeFilter('all');
-                                        setStatusFilter('all');
-                                        setResolvedFilter('all');
+                                        setSearchParams({});
                                     }}
                                 >
                                     Clear filters
