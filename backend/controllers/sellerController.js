@@ -141,6 +141,7 @@ const getSellerOrders = async (req, res) => {
       shippingZone: order.shippingZone,
       isPaid:       order.isPaid,
       isDelivered:  order.isDelivered,
+      deliveredAt:  order.deliveredAt,
       createdAt:    order.createdAt,
       // Only the items belonging to this seller
       orderItems: order.orderItems.filter((item) =>
@@ -149,6 +150,10 @@ const getSellerOrders = async (req, res) => {
       // Delivery quote if this is a Tier 2 order
       deliveryQuote:       order.deliveryQuote,
       sellerQuote:         order.sellerQuote,
+      // Handoff / dispute window — needed for the My Payments timeline
+      // and the Orders tab handoff button state
+      handoff:              order.handoff,
+      disputeWindowExpiresAt: order.disputeWindowExpiresAt,
       sellerPayoutReleased: order.sellerPayoutReleased,
       // County only — never full address, never customer name or phone
       deliveryCounty: order.shippingAddress?.county || '',
@@ -268,6 +273,15 @@ const updateSellerProfile = async (req, res) => {
     // Only update sellerProfile sub-fields — never isAdmin, isSeller, sellerStatus
     const { businessName, businessAddress, description, kraPin, mpesaNumber } = req.body;
 
+    // ── Detect sensitive-field changes before overwriting ─────────
+    // KRA PIN and the M-Pesa payout number are sensitive enough that
+    // the seller gets a notification confirming exactly what changed,
+    // matching the confirmation modal shown on the frontend.
+    const oldKraPin      = user.sellerProfile?.kraPin      || '';
+    const oldMpesaNumber = user.sellerProfile?.mpesaNumber || '';
+    const kraChanged   = kraPin      !== undefined && kraPin      !== oldKraPin;
+    const mpesaChanged = mpesaNumber !== undefined && mpesaNumber !== oldMpesaNumber;
+
     user.sellerProfile = {
       businessName:    businessName    ?? user.sellerProfile?.businessName    ?? '',
       businessAddress: businessAddress ?? user.sellerProfile?.businessAddress ?? '',
@@ -277,6 +291,25 @@ const updateSellerProfile = async (req, res) => {
     };
 
     await user.save();
+
+    if (kraChanged || mpesaChanged) {
+      try {
+        const changed = [kraChanged && 'KRA PIN', mpesaChanged && 'M-Pesa payout number']
+          .filter(Boolean)
+          .join(' and ');
+        await new Notification({
+          userId:  user._id,
+          type:    'transactional',
+          title:   'Business Profile Updated',
+          message: `Your ${changed} was changed on ${new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' })}. If you didn't make this change, contact ShopZone support immediately.`,
+          link:    '/seller/dashboard',
+          isRead:  false,
+        }).save();
+      } catch (notifErr) {
+        console.error('Profile change notification failed:', notifErr.message);
+      }
+    }
+
     res.json({ message: 'Profile updated successfully', sellerProfile: user.sellerProfile });
   } catch (error) {
     res.status(500).json({ message: error.message });

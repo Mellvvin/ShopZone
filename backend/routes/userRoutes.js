@@ -12,6 +12,12 @@ const {
   deleteUser,
   updateSellerStatus,
   getUserFullProfile,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  getRecentlyViewed,
+  trackRecentlyViewed,
+  updateNotificationPreferences,
 } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -22,6 +28,18 @@ router.post('/logout', protect, logoutUser);
 router.route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
+
+// ── Wishlist ──────────────────────────────────────────────────
+router.get('/wishlist', protect, getWishlist);
+router.post('/wishlist/:productId', protect, addToWishlist);
+router.delete('/wishlist/:productId', protect, removeFromWishlist);
+
+// ── Recently viewed ───────────────────────────────────────────
+router.get('/recently-viewed', protect, getRecentlyViewed);
+router.post('/recently-viewed/:productId', protect, trackRecentlyViewed);
+
+// ── Notification preferences ─────────────────────────────────
+router.put('/notification-preferences', protect, updateNotificationPreferences);
 
 router.route('/')
   .get(protect, admin, getAllUsers);

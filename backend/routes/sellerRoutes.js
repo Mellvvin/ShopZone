@@ -10,11 +10,13 @@ const {
   getSellerDashboard,
   getSellerProducts,
   getSellerOrders,
+  confirmHandoff,
   getSellerProfile,
   updateSellerProfile,
   createSellerProduct,
   updateSellerProduct,
 } = require('../controllers/sellerController');
+
 const { protect, seller, approvedSellerOnly } = require('../middleware/authMiddleware');
 
 // GET /api/seller/dashboard — overview stats
@@ -40,6 +42,10 @@ router.route('/products/:id')
 
 // GET /api/seller/orders — orders containing seller's products (customer identity hidden)
 router.get('/orders', protect, seller, getSellerOrders);
+
+// PUT /api/seller/orders/:id/confirm-handoff — seller confirms goods
+// handed off to courier. Mandatory, self-serve, no admin approval.
+router.put('/orders/:id/confirm-handoff', protect, seller, confirmHandoff);
 
 // GET /api/seller/profile — seller's own profile data
 // PUT /api/seller/profile — update seller's own profile data

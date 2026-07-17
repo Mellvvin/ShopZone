@@ -806,6 +806,130 @@
     line-height: 1.5;
 }
 
+/* ── Left-hand sidebar layout ────────────────────────────────── */
+.seller-dashboard__layout {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+}
+
+.seller-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 220px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px;
+}
+
+.seller-sidebar-tab {
+    all: unset;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-size: 0.87rem;
+    font-weight: 600;
+    color: #666;
+    transition: background 0.15s, color 0.15s;
+}
+
+.seller-sidebar-tab:hover {
+    background: rgba(0, 33, 71, 0.05);
+    color: var(--oxford-blue);
+}
+
+.seller-sidebar-tab--active {
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.seller-dashboard__content {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .seller-dashboard__layout {
+        flex-direction: column;
+    }
+
+    .seller-sidebar {
+        flex-direction: row;
+        width: 100%;
+        overflow-x: auto;
+        position: static;
+        gap: 8px;
+        padding-bottom: 4px;
+    }
+
+    .seller-sidebar-tab {
+        white-space: nowrap;
+    }
+}
+
+/* ── Profile view/edit toggle ────────────────────────────────── */
+.seller-profile-view-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.seller-profile-view-field {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 33, 71, 0.06);
+}
+
+.seller-profile-view-field:last-of-type {
+    border-bottom: none;
+}
+
+.seller-profile-view-field__label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+}
+
+.seller-profile-view-field__value {
+    font-size: 0.92rem;
+    color: var(--oxford-blue);
+    font-weight: 500;
+}
+
+.seller-profile-view-field__value--empty {
+    color: #bbb;
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* ── Confirm handoff button ──────────────────────────────────── */
+.seller-handoff-btn {
+    all: unset;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: #27ae60;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.seller-handoff-btn:hover {
+    opacity: 0.85;
+}
+
 /* ── Seller product edit (ISS-019) ───────────────────────────── */
 .seller-edit-btn {
     all: unset;

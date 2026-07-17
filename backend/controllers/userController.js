@@ -169,6 +169,8 @@ const getUserProfile = async (req, res) => {
         businessType: user.businessType,
         county: user.county,
         shippingAddress: user.shippingAddress || {},
+        savedMpesaNumber: user.savedMpesaNumber || '',
+        notificationPreferences: user.notificationPreferences,
         createdAt: user.createdAt,
         isAdmin:      user.isAdmin,
         isSeller:     user.isSeller,
@@ -191,13 +193,14 @@ const updateUserProfile = async (req, res) => {
 
     if (user) {
       // Update each field only if a new value was provided
-      user.name         = req.body.name         || user.name;
-      user.email        = req.body.email        || user.email;
-      user.phone        = req.body.phone        ?? user.phone;
-      user.county       = req.body.county       ?? user.county;
-      user.accountType  = req.body.accountType  || user.accountType;
-      user.businessName = req.body.businessName ?? user.businessName;
-      user.businessType = req.body.businessType ?? user.businessType;
+      user.name             = req.body.name             || user.name;
+      user.email            = req.body.email            || user.email;
+      user.phone            = req.body.phone            ?? user.phone;
+      user.county           = req.body.county           ?? user.county;
+      user.accountType      = req.body.accountType      || user.accountType;
+      user.businessName     = req.body.businessName     ?? user.businessName;
+      user.businessType     = req.body.businessType     ?? user.businessType;
+      user.savedMpesaNumber = req.body.savedMpesaNumber ?? user.savedMpesaNumber;
 
       // ── Save full delivery address if provided ────────────
       // Each sub-field updated independently so partial updates
@@ -230,6 +233,8 @@ const updateUserProfile = async (req, res) => {
         businessType: updatedUser.businessType,
         county:       updatedUser.county,
         shippingAddress: updatedUser.shippingAddress || {},
+        savedMpesaNumber: updatedUser.savedMpesaNumber || '',
+        notificationPreferences: updatedUser.notificationPreferences,
         createdAt:    updatedUser.createdAt,
         isAdmin:      updatedUser.isAdmin,
         isSeller:     updatedUser.isSeller,
@@ -585,6 +590,153 @@ const getUserFullProfile = async (req, res) => {
   }
 };
 
+// @desc    Get the logged-in user's wishlist (populated with product details)
+// @route   GET /api/users/wishlist
+// @access  Private
+const getWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .select('wishlist')
+      .populate('wishlist.product', 'name price image category countInStock unitType');
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Newest-added first; silently drop any entry whose product was deleted
+    const wishlist = user.wishlist
+      .filter((entry) => entry.product)
+      .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+
+    res.json(wishlist);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Add a product to the logged-in user's wishlist
+// @route   POST /api/users/wishlist/:productId
+// @access  Private
+const addToWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const alreadyIn = user.wishlist.some(
+      (entry) => entry.product.toString() === req.params.productId
+    );
+    if (alreadyIn) {
+      return res.status(400).json({ message: 'This product is already in your wishlist.' });
+    }
+
+    user.wishlist.push({ product: req.params.productId, addedAt: Date.now() });
+    await user.save();
+
+    res.status(201).json({ message: 'Added to wishlist', wishlist: user.wishlist });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Remove a product from the logged-in user's wishlist
+// @route   DELETE /api/users/wishlist/:productId
+// @access  Private
+const removeFromWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.wishlist = user.wishlist.filter(
+      (entry) => entry.product.toString() !== req.params.productId
+    );
+    await user.save();
+
+    res.json({ message: 'Removed from wishlist', wishlist: user.wishlist });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ── Recently viewed cap ──────────────────────────────────────────
+// Stored up to this many; carousels and the profile tab display the
+// most recent 15 client-side.
+const RECENTLY_VIEWED_CAP = 50;
+
+// @desc    Get the logged-in user's recently viewed products
+// @route   GET /api/users/recently-viewed
+// @access  Private
+const getRecentlyViewed = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .select('recentlyViewed')
+      .populate('recentlyViewed.product', 'name price image category countInStock unitType');
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const recentlyViewed = user.recentlyViewed
+      .filter((entry) => entry.product)
+      .sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt));
+
+    res.json(recentlyViewed);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Record a product as recently viewed by the logged-in user
+// @route   POST /api/users/recently-viewed/:productId
+// @access  Private
+//
+// Moves the product to the front if already present (re-viewing bumps
+// it back to "most recent" instead of creating a duplicate entry),
+// then trims the list to RECENTLY_VIEWED_CAP, oldest dropped first.
+const trackRecentlyViewed = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.recentlyViewed = user.recentlyViewed.filter(
+      (entry) => entry.product.toString() !== req.params.productId
+    );
+    user.recentlyViewed.unshift({ product: req.params.productId, viewedAt: Date.now() });
+    user.recentlyViewed = user.recentlyViewed.slice(0, RECENTLY_VIEWED_CAP);
+
+    await user.save();
+    res.status(201).json({ message: 'Recorded' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update the logged-in user's notification preferences
+// @route   PUT /api/users/notification-preferences
+// @access  Private
+//
+// orderUpdates is accepted here for completeness but the frontend never
+// exposes a toggle for it — it's operational, not marketing, so it's
+// effectively always on.
+const updateNotificationPreferences = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const { orderUpdates, promotions, newsletter, wishlistAlerts } = req.body;
+
+    user.notificationPreferences = {
+      orderUpdates:   orderUpdates   ?? user.notificationPreferences?.orderUpdates   ?? true,
+      promotions:     promotions     ?? user.notificationPreferences?.promotions     ?? true,
+      newsletter:     newsletter     ?? user.notificationPreferences?.newsletter     ?? true,
+      wishlistAlerts: wishlistAlerts ?? user.notificationPreferences?.wishlistAlerts ?? true,
+    };
+
+    await user.save();
+    res.json({
+      message: 'Notification preferences updated',
+      notificationPreferences: user.notificationPreferences,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ── Exports ───────────────────────────────────────────────────
 module.exports = {
   registerUser,
@@ -598,4 +750,10 @@ module.exports = {
   deleteUser,
   updateSellerStatus,
   getUserFullProfile,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  getRecentlyViewed,
+  trackRecentlyViewed,
+  updateNotificationPreferences,
 };

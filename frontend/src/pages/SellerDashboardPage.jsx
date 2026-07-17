@@ -12,8 +12,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Container, Row, Col, Card, Spinner, Alert, Badge, Table } from 'react-bootstrap';
-import { FaStore, FaBox, FaClipboardList, FaMoneyBillWave } from 'react-icons/fa';
+import { Container, Row, Col, Card, Spinner, Alert, Badge, Table, Modal } from 'react-bootstrap';
+import { FaStore, FaBox, FaClipboardList, FaMoneyBillWave, FaTruck, FaPen } from 'react-icons/fa';
 import axios from 'axios';
 import './SellerDashboardPage.css';
 
@@ -40,7 +40,9 @@ const SellerDashboardPage = () => {
   }, [userInfo, navigate]);
 
   // ── State ─────────────────────────────────────────────────
-const [activeTab,       setActiveTab]       = useState('overview');
+  // 'profile' is now the landing tab — sellers see their business
+  // info first, matching the left-sidebar layout below.
+const [activeTab,       setActiveTab]       = useState('profile');
   const [stats,           setStats]           = useState(null);
   const [products,        setProducts]        = useState([]);
   const [orders,          setOrders]          = useState([]);
@@ -49,6 +51,19 @@ const [activeTab,       setActiveTab]       = useState('overview');
   const [profileSuccess,  setProfileSuccess]  = useState(false);
   const [loading,         setLoading]         = useState(true);
   const [error,           setError]           = useState(null);
+
+  // ── Profile view/edit toggle ───────────────────────────────
+  const [profileEditing,  setProfileEditing]  = useState(false);
+  // Holds the pending save until the sensitive-field confirmation
+  // modal is answered — null means no modal is showing.
+  const [pendingProfileSave, setPendingProfileSave] = useState(null);
+
+  // ── Seller handoff-to-courier form state ───────────────────
+  // Keyed by order ID, same pattern as the Tier 2 quote form above.
+  const [handoffFormOpen,   setHandoffFormOpen]   = useState({}); // { orderId: bool }
+  const [handoffCourier,    setHandoffCourier]    = useState({}); // { orderId: string }
+  const [handoffTracking,   setHandoffTracking]   = useState({}); // { orderId: string }
+  const [handoffSubmitting, setHandoffSubmitting] = useState({}); // { orderId: bool }
 
   // ── Tier 2 quote form state ───────────────────────────────
   // Keyed by order ID so multiple quote forms can exist independently
@@ -369,31 +384,73 @@ const handleProductFieldChange = (e) => {
     }
   };
 
+  // ── Confirm handoff to courier ─────────────────────────────
+  const submitHandoff = async (orderId) => {
+    try {
+      setHandoffSubmitting((prev) => ({ ...prev, [orderId]: true }));
+      await axios.put(
+        `/api/seller/orders/${orderId}/confirm-handoff`,
+        {
+          courier:     handoffCourier[orderId],
+          trackingRef: handoffTracking[orderId] || '',
+        },
+        config
+      );
+      setHandoffSubmitting((prev) => ({ ...prev, [orderId]: false }));
+      setHandoffFormOpen((prev) => ({ ...prev, [orderId]: false }));
+      // Refresh orders list so the new status appears immediately
+      const { data } = await axios.get('/api/seller/orders', config);
+      setOrders(data);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      setHandoffSubmitting((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
   // ── Save seller profile ───────────────────────────────────
+  // KRA PIN and M-Pesa number are sensitive enough that changing
+  // either one routes through a confirmation modal first — see
+  // pendingProfileSave and the modal near the bottom of this file.
+  // Everything else saves straight through, same as before.
   const saveSellerProfile = async () => {
+    const kraChanged   = spKraPin      !== (sellerProfile?.sellerProfile?.kraPin      || '');
+    const mpesaChanged = spMpesaNumber !== (sellerProfile?.sellerProfile?.mpesaNumber || '');
+
+    if ((kraChanged || mpesaChanged) && !pendingProfileSave) {
+      setPendingProfileSave({ kraChanged, mpesaChanged });
+      return;
+    }
+
     try {
       setProfileSaving(true);
       setProfileSuccess(false);
-      await axios.put('/api/seller/profile', {
+      const { data } = await axios.put('/api/seller/profile', {
         businessName:    spBusinessName,
         businessAddress: spBusinessAddress,
         description:     spDescription,
         kraPin:          spKraPin,
         mpesaNumber:     spMpesaNumber,
       }, config);
+      setSellerProfile((prev) => ({ ...prev, sellerProfile: data.sellerProfile }));
       setProfileSaving(false);
       setProfileSuccess(true);
+      setProfileEditing(false);
+      setPendingProfileSave(null);
       // Clear success message after 3 seconds
       setTimeout(() => setProfileSuccess(false), 3000);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
       setProfileSaving(false);
+      setPendingProfileSave(null);
     }
   };
 
   // ── Fetch orders when tab is active ───────────────────────
+  // Also fires for 'payments' — the payout timeline reads from the
+  // same order list, just rendered with a different focus.
   useEffect(() => {
-    if (activeTab !== 'orders' || !userInfo?.isSeller) return;
+    if (!['orders', 'payments'].includes(activeTab) || !userInfo?.isSeller) return;
+
     const fetchOrders = async () => {
       try {
         setLoading(true);
@@ -411,11 +468,13 @@ const handleProductFieldChange = (e) => {
   // ── Status badge helper ───────────────────────────────────
   const statusBadge = (status) => {
     const map = {
-      pending:   { bg: 'warning', text: 'dark', label: 'Pending' },
-      processing: { bg: 'info',   text: 'dark', label: 'Processing' },
-      delivered: { bg: 'success', text: undefined, label: 'Delivered' },
-      cancelled: { bg: 'danger',  text: undefined, label: 'Cancelled' },
+      pending:    { bg: 'warning', text: 'dark', label: 'Pending' },
+      processing: { bg: 'info',    text: 'dark', label: 'Processing' },
+      dispatched: { bg: 'primary', text: undefined, label: 'Dispatched' },
+      delivered:  { bg: 'success', text: undefined, label: 'Delivered' },
+      cancelled:  { bg: 'danger',  text: undefined, label: 'Cancelled' },
     };
+
     const s = map[status] || { bg: 'secondary', label: status };
     return <Badge bg={s.bg} text={s.text}>{s.label}</Badge>;
   };
@@ -445,24 +504,28 @@ const handleProductFieldChange = (e) => {
 
         {error && <Alert variant='danger' className='mt-3'>{error}</Alert>}
 
-        {/* ── Tab nav ───────────────────────────────────── */}
-        <div className='seller-tabs'>
-          {[
-            { key: 'overview', label: 'Overview'   },
-            { key: 'products', label: 'My Products' },
-            { key: 'orders',   label: 'My Orders'   },
-            { key: 'profile',  label: 'My Profile'  },
-          ].map(({ key, label }) => (
-            <button
-              key={key}
-              className={`seller-tab${activeTab === key ? ' seller-tab--active' : ''}`}
-              onClick={() => setActiveTab(key)}
-              aria-pressed={activeTab === key}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <div className='seller-dashboard__layout'>
+          {/* ── Left-hand sidebar nav ─────────────────────── */}
+          <div className='seller-sidebar'>
+            {[
+              { key: 'profile',  label: 'My Profile'  },
+              { key: 'overview', label: 'Overview'   },
+              { key: 'products', label: 'My Products' },
+              { key: 'orders',   label: 'My Orders'   },
+              { key: 'payments', label: 'My Payments' },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                className={`seller-sidebar-tab${activeTab === key ? ' seller-sidebar-tab--active' : ''}`}
+                onClick={() => setActiveTab(key)}
+                aria-pressed={activeTab === key}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className='seller-dashboard__content'>
 
         {/* ══ OVERVIEW TAB ══════════════════════════════════ */}
         {activeTab === 'overview' && (
@@ -1074,6 +1137,7 @@ const handleProductFieldChange = (e) => {
                     <th>Items</th>
                     <th>Paid</th>
                     <th>Status</th>
+                    <th>Handoff</th>
                     <th>Payout</th>
                     <th>Delivery Quote</th>
                   </tr>
@@ -1087,6 +1151,14 @@ const handleProductFieldChange = (e) => {
                     const quoteSubmitted =
                       order.sellerQuote?.status === 'submitted';
                     const isOpen = quoteFormOpen[order._id];
+
+                    // Handoff eligibility — mandatory, one-click, no admin
+                    // approval anywhere in this path. Only available once
+                    // paid, not yet dispatched, not delivered, not cancelled.
+                    const canConfirmHandoff =
+                      order.isPaid && !order.handoff?.confirmedAt &&
+                      !order.isDelivered && order.status !== 'cancelled';
+                    const isHandoffOpen = handoffFormOpen[order._id];
 
                     return (
                       <>
@@ -1102,6 +1174,27 @@ const handleProductFieldChange = (e) => {
                             </Badge>
                           </td>
                           <td>{statusBadge(order.status)}</td>
+                          <td>
+                            {order.handoff?.confirmedAt ? (
+                              <Badge bg='success'>Confirmed</Badge>
+                            ) : canConfirmHandoff && !isHandoffOpen ? (
+                              <button
+                                className='seller-handoff-btn'
+                                onClick={() => setHandoffFormOpen((prev) => ({ ...prev, [order._id]: true }))}
+                              >
+                                <FaTruck aria-hidden='true' style={{ marginRight: 5 }} /> Confirm Handoff
+                              </button>
+                            ) : canConfirmHandoff && isHandoffOpen ? (
+                              <button
+                                className='seller-quote-btn seller-quote-btn--cancel'
+                                onClick={() => setHandoffFormOpen((prev) => ({ ...prev, [order._id]: false }))}
+                              >
+                                Cancel
+                              </button>
+                            ) : (
+                              <span className='seller-table__muted'>—</span>
+                            )}
+                          </td>
                           <td>
                             <Badge bg={order.sellerPayoutReleased ? 'success' : 'secondary'}>
                               {order.sellerPayoutReleased ? 'Released' : 'Pending'}
@@ -1134,10 +1227,64 @@ const handleProductFieldChange = (e) => {
                           </td>
                         </tr>
 
+                        {/* ── Inline handoff form row — only when open ── */}
+                        {canConfirmHandoff && isHandoffOpen && (
+                          <tr key={`${order._id}-handoff`} className='seller-quote-form-row'>
+                            <td colSpan={9}>
+                              <div className='seller-quote-form'>
+                                <p className='seller-quote-form__title'>
+                                  Confirm handoff for order {String(order._id).slice(-8)}
+                                </p>
+                                <div className='seller-quote-form__fields'>
+                                  <div className='seller-quote-form__field'>
+                                    <label className='seller-quote-form__label'>Courier</label>
+                                    <select
+                                      className='seller-quote-form__input'
+                                      value={handoffCourier[order._id] || ''}
+                                      onChange={(e) => setHandoffCourier((prev) => ({ ...prev, [order._id]: e.target.value }))}
+                                    >
+                                      <option value=''>Select courier</option>
+                                      <option value='Fargo Courier'>Fargo Courier</option>
+                                      <option value='Sendy'>Sendy</option>
+                                      <option value='G4S Courier'>G4S Courier</option>
+                                      <option value='Wells Fargo Kenya'>Wells Fargo Kenya</option>
+                                      <option value='Matatu Network'>Matatu Network</option>
+                                      <option value='Boda Boda'>Boda Boda</option>
+                                      <option value='Own Delivery Vehicle'>Own Delivery Vehicle</option>
+                                      <option value='Other'>Other</option>
+                                    </select>
+                                  </div>
+                                  <div className='seller-quote-form__field'>
+                                    <label className='seller-quote-form__label'>Plate / Tracking No. (optional)</label>
+                                    <input
+                                      className='seller-quote-form__input'
+                                      type='text'
+                                      placeholder='e.g. KAB 123X'
+                                      value={handoffTracking[order._id] || ''}
+                                      onChange={(e) => setHandoffTracking((prev) => ({ ...prev, [order._id]: e.target.value }))}
+                                    />
+                                  </div>
+                                </div>
+                                <button
+                                  className='seller-quote-form__submit'
+                                  onClick={() => submitHandoff(order._id)}
+                                  disabled={handoffSubmitting[order._id] || !handoffCourier[order._id]}
+                                >
+                                  {handoffSubmitting[order._id] ? 'Confirming...' : 'Confirm Handoff'}
+                                </button>
+                                <p className='seller-quote-form__note'>
+                                  This starts the buyer's delivery window and they're notified immediately.
+                                  Double-check the courier before submitting — this cannot be undone.
+                                </p>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+
                         {/* ── Inline quote form row — only when open ── */}
                         {needsQuote && isOpen && (
                           <tr key={`${order._id}-quote`} className='seller-quote-form-row'>
-                            <td colSpan={8}>
+                            <td colSpan={9}>
                               <div className='seller-quote-form'>
                                 <p className='seller-quote-form__title'>
                                   Submit delivery quote for order {String(order._id).slice(-8)}
@@ -1214,8 +1361,8 @@ const handleProductFieldChange = (e) => {
           </div>
         )}
 
-   {/*{/* ══ PROFILE TAB ═══════════════════════════════════ */}
-        {activeTab === 'profile' && (
+   {/* ══ PAYMENTS TAB ══════════════════════════════════ */}
+        {activeTab === 'payments' && (
           <div className='mt-3'>
             {loading ? (
               <div className='text-center py-5'>
@@ -1314,99 +1461,235 @@ const handleProductFieldChange = (e) => {
                   </div>
                 )}
 
-                {/* ── Editable profile fields ───────────────── */}
-                <Card className='seller-profile-card mt-4'>
-                  <Card.Body>
-                    <h5 className='seller-info-card__title mb-3'>Business Profile</h5>
+                {/* ── Per-order payout timeline ─────────────── */}
+                <h5 className='sp-earnings__title mt-4'>Order Payout Timeline</h5>
+                {orders.length === 0 ? (
+                  <Alert variant='info'>No orders yet.</Alert>
+                ) : (
+                  <Table responsive hover className='seller-table'>
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Handed Off</th>
+                        <th>Delivered</th>
+                        <th>Dispute Window</th>
+                        <th>Payout</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.map((order) => {
+                        const disputeExpired = order.disputeWindowExpiresAt
+                          ? new Date(order.disputeWindowExpiresAt) <= new Date()
+                          : null;
 
-                    {profileSuccess && (
-                      <Alert variant='success' className='mb-3'>Profile updated successfully.</Alert>
-                    )}
-                    {error && (
-                      <Alert variant='danger' className='mb-3'>{error}</Alert>
-                    )}
-
-                    {/* Business name */}
-                    <div className='seller-profile-field'>
-                      <label className='seller-profile-label'>Business Name</label>
-                      <input
-                        className='seller-profile-input'
-                        type='text'
-                        value={spBusinessName}
-                        onChange={(e) => setSpBusinessName(e.target.value)}
-                        placeholder='Your registered business name'
-                      />
-                    </div>
-
-                    {/* Business address */}
-                    <div className='seller-profile-field'>
-                      <label className='seller-profile-label'>Business Address</label>
-                      <input
-                        className='seller-profile-input'
-                        type='text'
-                        value={spBusinessAddress}
-                        onChange={(e) => setSpBusinessAddress(e.target.value)}
-                        placeholder='e.g. Stall 14, Kamukunji Market, Nairobi'
-                      />
-                    </div>
-
-                    {/* Description */}
-                    <div className='seller-profile-field'>
-                      <label className='seller-profile-label'>Business Description</label>
-                      <textarea
-                        className='seller-profile-input seller-profile-textarea'
-                        value={spDescription}
-                        onChange={(e) => setSpDescription(e.target.value)}
-                        placeholder='Brief description of what you supply'
-                        rows={3}
-                      />
-                    </div>
-
-                    {/* KRA PIN */}
-                    <div className='seller-profile-field'>
-                      <label className='seller-profile-label'>KRA PIN</label>
-                      <input
-                        className='seller-profile-input'
-                        type='text'
-                        value={spKraPin}
-                        onChange={(e) => setSpKraPin(e.target.value)}
-                        placeholder='e.g. A123456789B'
-                      />
-                      <span className='seller-profile-hint'>
-                        Used for invoice generation and KRA tax compliance
-                      </span>
-                    </div>
-
-                    {/* M-Pesa payout number */}
-                    <div className='seller-profile-field'>
-                      <label className='seller-profile-label'>M-Pesa Payout Number</label>
-                      <input
-                        className='seller-profile-input'
-                        type='tel'
-                        value={spMpesaNumber}
-                        onChange={(e) => setSpMpesaNumber(e.target.value)}
-                        placeholder='e.g. 0712 345 678'
-                      />
-                      <span className='seller-profile-hint'>
-                        ShopZone releases payouts to this number after delivery is confirmed and
-                        the dispute window has closed. Keep this accurate — incorrect numbers
-                        will delay your payout.
-                      </span>
-                    </div>
-
-                    <button
-                      className='seller-profile-save-btn'
-                      onClick={saveSellerProfile}
-                      disabled={profileSaving}
-                    >
-                      {profileSaving ? 'Saving...' : 'Save Profile'}
-                    </button>
-                  </Card.Body>
-                </Card>
+                        return (
+                          <tr key={order._id}>
+                            <td className='seller-table__id'>{String(order._id).slice(-8)}</td>
+                            <td>
+                              {order.handoff?.confirmedAt
+                                ? <Badge bg='success'>{order.handoff.courier} — {new Date(order.handoff.confirmedAt).toLocaleDateString()}</Badge>
+                                : <Badge bg='secondary'>Not yet dispatched</Badge>
+                              }
+                            </td>
+                            <td>
+                              {order.isDelivered
+                                ? <Badge bg='success'>{new Date(order.deliveredAt).toLocaleDateString()}</Badge>
+                                : <Badge bg='secondary'>Pending</Badge>
+                              }
+                            </td>
+                            <td>
+                              {!order.disputeWindowExpiresAt
+                                ? <span className='seller-table__muted'>—</span>
+                                : disputeExpired
+                                  ? <Badge bg='success'>Closed</Badge>
+                                  : <Badge bg='warning' text='dark'>
+                                      Open until {new Date(order.disputeWindowExpiresAt).toLocaleString('en-KE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                    </Badge>
+                              }
+                            </td>
+                            <td>
+                              <Badge bg={order.sellerPayoutReleased ? 'success' : 'secondary'}>
+                                {order.sellerPayoutReleased ? 'Released' : 'Pending'}
+                              </Badge>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                )}
               </>
             )}
           </div>
         )}
+
+        {/* ══ MY PROFILE TAB ════════════════════════════════ */}
+        {activeTab === 'profile' && (
+          <div className='mt-3'>
+            {loading ? (
+              <div className='text-center py-5'>
+                <Spinner animation='border' style={{ color: 'var(--oxford-blue)' }} />
+              </div>
+            ) : (
+              <Card className='seller-profile-card'>
+                <Card.Body>
+                  <div className='seller-profile-view-row'>
+                    <h5 className='seller-info-card__title mb-0'>Business Profile</h5>
+                    {!profileEditing && (
+                      <button className='seller-edit-btn' onClick={() => setProfileEditing(true)}>
+                        <FaPen aria-hidden='true' style={{ marginRight: 6 }} /> Edit
+                      </button>
+                    )}
+                  </div>
+
+                  {profileSuccess && (
+                    <Alert variant='success' className='mt-3'>Profile updated successfully.</Alert>
+                  )}
+                  {error && (
+                    <Alert variant='danger' className='mt-3'>{error}</Alert>
+                  )}
+
+                  {!profileEditing ? (
+                    <div className='mt-3'>
+                      {[
+                        { label: 'Business Name', value: spBusinessName },
+                        { label: 'Business Address', value: spBusinessAddress },
+                        { label: 'Business Description', value: spDescription },
+                        { label: 'KRA PIN', value: spKraPin },
+                        { label: 'M-Pesa Payout Number', value: spMpesaNumber },
+                      ].map(({ label, value }) => (
+                        <div className='seller-profile-view-field' key={label}>
+                          <span className='seller-profile-view-field__label'>{label}</span>
+                          <span className={`seller-profile-view-field__value${value ? '' : ' seller-profile-view-field__value--empty'}`}>
+                            {value || 'Not set'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className='mt-3'>
+                      <div className='seller-profile-field'>
+                        <label className='seller-profile-label'>Business Name</label>
+                        <input
+                          className='seller-profile-input'
+                          type='text'
+                          value={spBusinessName}
+                          onChange={(e) => setSpBusinessName(e.target.value)}
+                          placeholder='Your registered business name'
+                        />
+                      </div>
+
+                      <div className='seller-profile-field'>
+                        <label className='seller-profile-label'>Business Address</label>
+                        <input
+                          className='seller-profile-input'
+                          type='text'
+                          value={spBusinessAddress}
+                          onChange={(e) => setSpBusinessAddress(e.target.value)}
+                          placeholder='e.g. Stall 14, Kamukunji Market, Nairobi'
+                        />
+                      </div>
+
+                      <div className='seller-profile-field'>
+                        <label className='seller-profile-label'>Business Description</label>
+                        <textarea
+                          className='seller-profile-input seller-profile-textarea'
+                          value={spDescription}
+                          onChange={(e) => setSpDescription(e.target.value)}
+                          placeholder='Brief description of what you supply'
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className='seller-profile-field'>
+                        <label className='seller-profile-label'>KRA PIN</label>
+                        <input
+                          className='seller-profile-input'
+                          type='text'
+                          value={spKraPin}
+                          onChange={(e) => setSpKraPin(e.target.value)}
+                          placeholder='e.g. A123456789B'
+                        />
+                        <span className='seller-profile-hint'>
+                          Used for invoice generation and KRA tax compliance. Changing this
+                          will ask you to confirm before saving.
+                        </span>
+                      </div>
+
+                      <div className='seller-profile-field'>
+                        <label className='seller-profile-label'>M-Pesa Payout Number</label>
+                        <input
+                          className='seller-profile-input'
+                          type='tel'
+                          value={spMpesaNumber}
+                          onChange={(e) => setSpMpesaNumber(e.target.value)}
+                          placeholder='e.g. 0712 345 678'
+                        />
+                        <span className='seller-profile-hint'>
+                          ShopZone releases payouts to this number after delivery is confirmed
+                          and the dispute window has closed. Changing this will ask you to
+                          confirm before saving.
+                        </span>
+                      </div>
+
+                      <div className='seller-edit-form__actions'>
+                        <button
+                          className='seller-profile-save-btn'
+                          onClick={saveSellerProfile}
+                          disabled={profileSaving}
+                        >
+                          {profileSaving ? 'Saving...' : 'Save Profile'}
+                        </button>
+                        <button
+                          className='seller-quote-btn seller-quote-btn--cancel'
+                          onClick={() => {
+                            setProfileEditing(false);
+                            setSpBusinessName(sellerProfile?.sellerProfile?.businessName    || '');
+                            setSpBusinessAddress(sellerProfile?.sellerProfile?.businessAddress || '');
+                            setSpDescription(sellerProfile?.sellerProfile?.description      || '');
+                            setSpKraPin(sellerProfile?.sellerProfile?.kraPin                 || '');
+                            setSpMpesaNumber(sellerProfile?.sellerProfile?.mpesaNumber       || '');
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            )}
+
+            {/* ── Confirmation modal for sensitive field changes ── */}
+            <Modal show={!!pendingProfileSave} onHide={() => setPendingProfileSave(null)} centered>
+              <Modal.Header closeButton>
+                <Modal.Title style={{ fontSize: '1.05rem' }}>Confirm Changes</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <p style={{ marginBottom: 10 }}>You're about to change:</p>
+                <ul style={{ marginBottom: 0 }}>
+                  {pendingProfileSave?.kraChanged && <li>Your KRA PIN</li>}
+                  {pendingProfileSave?.mpesaChanged && <li>Your M-Pesa payout number</li>}
+                </ul>
+                <p style={{ marginTop: 10, fontSize: '0.85rem', color: '#767676' }}>
+                  Getting this wrong can delay your payouts. You'll also receive a
+                  notification confirming this change.
+                </p>
+              </Modal.Body>
+              <Modal.Footer>
+                <button className='seller-quote-btn seller-quote-btn--cancel' onClick={() => setPendingProfileSave(null)}>
+                  Cancel
+                </button>
+                <button className='seller-quote-btn' onClick={saveSellerProfile}>
+                  Confirm &amp; Save
+                </button>
+              </Modal.Footer>
+            </Modal>
+          </div>
+        )}
+
+          </div>
+        </div>
 
       </Container>
     </div>
