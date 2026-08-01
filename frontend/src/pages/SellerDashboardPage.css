@@ -201,8 +201,15 @@
 }
 
 .seller-quote-btn--cancel {
-    background: #6c757d;
+    background: #c0392b;
     color: #fff;
+}
+
+.seller-edit-form__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
 }
 
 /* ── Inline quote form row ───────────────────────── */
@@ -283,7 +290,7 @@
 
 .seller-quote-form__note {
     font-size: 0.78rem;
-    color: #999;
+    color: #464646;
     margin-top: 0.6rem;
     margin-bottom: 0;
 }
@@ -334,7 +341,7 @@
 
 .seller-profile-hint {
     font-size: 0.78rem;
-    color: #999;
+    color: #464646;
     margin-top: 0.25rem;
 }
 
@@ -372,7 +379,7 @@
 
 .seller-products-count {
     font-size: 0.82rem;
-    color: #767676;
+    color: #464646;
     margin: 0;
     font-weight: 500;
 }
@@ -413,7 +420,7 @@
 
 .seller-submit-form__note {
     font-size: 0.78rem;
-    color: #767676;
+    color: #464646;
     line-height: 1.6;
     margin: 0 0 20px;
     padding: 10px 12px;
@@ -457,7 +464,7 @@
 
 .seller-submit-form__hint {
     font-weight: 400;
-    color: #999;
+    color: #464646;
     font-size: 0.7rem;
     margin-left: 4px;
 }
@@ -594,7 +601,7 @@
 
 .seller-img-upload-hint {
     font-size: 0.72rem;
-    color: #999;
+    color: #464646;
 }
 
 .seller-img-preview {
@@ -663,7 +670,7 @@
 .sp-earnings__label {
     font-size: 0.68rem;
     font-weight: 700;
-    color: #767676;
+    color: #464646;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-bottom: 6px;
@@ -687,7 +694,7 @@
 
 .sp-earnings__sub {
     font-size: 0.68rem;
-    color: #999;
+    color: #464646;
 }
 
 /* Payout info strip */
@@ -712,7 +719,7 @@
 
 .sp-payout-info__label {
     font-weight: 700;
-    color: #767676;
+    color: #464646;
     font-size: 0.78rem;
     flex-shrink: 0;
 }
@@ -736,7 +743,7 @@
 
 .sp-payout-info__note {
     font-size: 0.74rem;
-    color: #999;
+    color: #464646;
     line-height: 1.6;
     margin: 12px 0 0;
     padding: 10px 12px;
@@ -782,7 +789,7 @@
 
 .sp-kes-summary__label {
     font-weight: 600;
-    color: #767676;
+    color: #464646;
     font-size: 0.78rem;
 }
 
@@ -801,7 +808,7 @@
 
 .sp-kes-summary__note {
     font-size: 0.7rem;
-    color: #aaa;
+    color: #464646;
     margin: 8px 0 0;
     line-height: 1.5;
 }

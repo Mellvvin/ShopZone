@@ -1179,6 +1179,36 @@ const [showReceipt, setShowReceipt]               = useState(false);
                 )}
               </div>
             )}
+
+            {/* Handoff / delivery-confirmation detail — admin only */}
+            {userInfo?.isAdmin && (order.handoff?.confirmedAt || order.isDelivered) && (
+              <div className='order-payout-status' style={{ marginTop: 10 }}>
+                <h3 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: 6, color: 'var(--oxford-blue)' }}>
+                  Delivery Confirmation Detail
+                </h3>
+                {order.handoff?.confirmedAt ? (
+                  <p style={{ fontSize: '0.82rem', margin: '2px 0', color: '#5c5c5c' }}>
+                    Handed off to <strong>{order.handoff.courier}</strong>
+                    {order.handoff.trackingRef ? ` (ref: ${order.handoff.trackingRef})` : ''} on{' '}
+                    {new Date(order.handoff.confirmedAt).toLocaleString('en-KE')}
+                  </p>
+                ) : (
+                  <p style={{ fontSize: '0.82rem', margin: '2px 0', color: '#5c5c5c' }}>Not yet handed off to a courier.</p>
+                )}
+                {order.isDelivered && (
+                  <p style={{ fontSize: '0.82rem', margin: '2px 0', color: '#5c5c5c' }}>
+                    Delivered on {new Date(order.deliveredAt).toLocaleString('en-KE')}, confirmed by{' '}
+                    <strong>{order.deliveryConfirmedBy || 'unknown'}</strong>
+                  </p>
+                )}
+                {order.disputeWindowExpiresAt && (
+                  <p style={{ fontSize: '0.82rem', margin: '2px 0', color: '#5c5c5c' }}>
+                    Dispute window {new Date(order.disputeWindowExpiresAt) <= new Date() ? 'closed' : 'open until'}{' '}
+                    {new Date(order.disputeWindowExpiresAt).toLocaleString('en-KE')}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
         </div>

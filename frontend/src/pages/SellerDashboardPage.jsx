@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Container, Row, Col, Card, Spinner, Alert, Badge, Table, Modal } from 'react-bootstrap';
+import { useSearchParams } from 'react-router-dom';
 import { FaStore, FaBox, FaClipboardList, FaMoneyBillWave, FaTruck, FaPen } from 'react-icons/fa';
 import axios from 'axios';
 import './SellerDashboardPage.css';
@@ -40,9 +41,11 @@ const SellerDashboardPage = () => {
   }, [userInfo, navigate]);
 
   // ── State ─────────────────────────────────────────────────
+  const [searchParams, setSearchParams] = useSearchParams();
   // 'profile' is now the landing tab — sellers see their business
-  // info first, matching the left-sidebar layout below.
-const [activeTab,       setActiveTab]       = useState('profile');
+  // info first. Reads ?tab= from the URL so a refresh doesn't bounce
+  // back to the default tab.
+const [activeTab,       setActiveTab]       = useState(searchParams.get('tab') || 'profile');
   const [stats,           setStats]           = useState(null);
   const [products,        setProducts]        = useState([]);
   const [orders,          setOrders]          = useState([]);
@@ -366,9 +369,9 @@ const handleProductFieldChange = (e) => {
       await axios.put(
         `/api/orders/${orderId}/seller-quote/submit`,
         {
-          amount:       Number(quoteAmount[orderId]),
-          courier:      quoteCourier[orderId],
-          estimatedDays:Number(quoteEtaDays[orderId]),
+          amount:        Number(quoteAmount[orderId]),
+          courier:       quoteCourier[orderId],
+          estimatedDays: quoteEtaDays[orderId],
         },
         config
       );
@@ -445,6 +448,13 @@ const handleProductFieldChange = (e) => {
     }
   };
 
+  // Keeps activeTab in sync with the URL if it changes without this
+  // component unmounting.
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') || 'profile';
+    setActiveTab(prev => (prev === tabFromUrl ? prev : tabFromUrl));
+  }, [searchParams]);
+
   // ── Fetch orders when tab is active ───────────────────────
   // Also fires for 'payments' — the payout timeline reads from the
   // same order list, just rendered with a different focus.
@@ -517,7 +527,7 @@ const handleProductFieldChange = (e) => {
               <button
                 key={key}
                 className={`seller-sidebar-tab${activeTab === key ? ' seller-sidebar-tab--active' : ''}`}
-                onClick={() => setActiveTab(key)}
+                onClick={() => setSearchParams({ tab: key })}
                 aria-pressed={activeTab === key}
               >
                 {label}
@@ -1254,15 +1264,21 @@ const handleProductFieldChange = (e) => {
                                       <option value='Other'>Other</option>
                                     </select>
                                   </div>
+                                  {/* Estimated days — must match the schema's string enum,
+                                      not a raw number, so this is a dropdown not a number input */}
                                   <div className='seller-quote-form__field'>
-                                    <label className='seller-quote-form__label'>Plate / Tracking No. (optional)</label>
-                                    <input
+                                    <label className='seller-quote-form__label'>Estimated Days</label>
+                                    <select
                                       className='seller-quote-form__input'
-                                      type='text'
-                                      placeholder='e.g. KAB 123X'
-                                      value={handoffTracking[order._id] || ''}
-                                      onChange={(e) => setHandoffTracking((prev) => ({ ...prev, [order._id]: e.target.value }))}
-                                    />
+                                      value={quoteEtaDays[order._id] || ''}
+                                      onChange={(e) => setQuoteEtaDays((prev) => ({ ...prev, [order._id]: e.target.value }))}
+                                    >
+                                      <option value=''>Select estimate</option>
+                                      <option value='1-2 days'>1-2 days</option>
+                                      <option value='2-3 days'>2-3 days</option>
+                                      <option value='3-5 days'>3-5 days</option>
+                                      <option value='5-7 days'>5-7 days</option>
+                                    </select>
                                   </div>
                                 </div>
                                 <button

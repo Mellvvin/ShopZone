@@ -5,10 +5,11 @@
 // SpecialOffersPage) manage their own max-width internally.
 // Pages that need a container import it themselves.
 // ─────────────────────────────────────────────────────────────
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 import SkipLink from './components/SkipLink/SkipLink';
+import { setNavigator } from './utils/navigationService';
 
 // ── Components ───────────────────────────────────────────────
 import Header from './components/Header/Header';
@@ -51,9 +52,27 @@ import AdminUserDetailPage from './pages/AdminUserDetailPage';
 
 
 
+// ── NavigatorSetter ───────────────────────────────────────────
+// Hands react-router's navigate() function to the global
+// navigationService module, once, on mount. This is what lets
+// axiosSessionInterceptor.js (which runs completely outside the
+// React component tree, so it has no access to hooks at all)
+// perform a real react-router navigation — including passing
+// state.from — instead of a hard window.location redirect that
+// would reload the whole app and lose that state.
+//
+// Renders nothing. Must be mounted INSIDE <Router> so useNavigate()
+// has a router context to attach to.
+const NavigatorSetter = () => {
+  const navigate = useNavigate();
+  setNavigator(navigate);
+  return null;
+};
+
 const App = () => {
   return (
     <Router>
+      <NavigatorSetter />
       {/* Skip link — first focusable element on every page for keyboard users */}
       <SkipLink />
       <ScrollToTop />

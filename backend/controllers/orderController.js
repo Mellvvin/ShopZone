@@ -1065,7 +1065,7 @@ const submitSellerQuote = async (req, res) => {
     };
 
     const baseRate = ZONE_BASE_RATES[order.shippingZone] || 800;
-    const maxAllowed = baseRate * 3;
+    const maxAllowed = baseRate * 6; // 6× the base rate
 
     if (Number(amount) > maxAllowed) {
       return res.status(400).json({
