@@ -16,11 +16,32 @@ const jwt = require('jsonwebtoken');
 
 // ── JWT generator ─────────────────────────────────────────────
 // Creates a signed token with the user's ID as payload.
-// Expires in 30 days.
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
-  });
+//
+// Expiry is now role-based instead of a flat 30 days for everyone.
+// A stolen/leaked token stays usable until it expires on its own —
+// there is no per-user revoke mechanism — so higher-privilege
+// accounts get shorter windows since they're the more damaging
+// accounts to have compromised:
+//   admin  → 1 day  (can approve sellers, confirm payments, release payouts)
+//   seller → 3 days (can manage their own products/payout details)
+//   buyer  → 7 days (default — everyone else)
+//
+// Admin is checked first so an account that is somehow both admin
+// and seller gets the shorter, safer admin expiry.
+//
+// `user` is optional so any old call site that only passes an id
+// still works and falls back to the buyer default rather than
+// throwing.
+const generateToken = (id, user) => {
+  let expiresIn = '7d'; // buyer default
+
+  if (user?.isAdmin) {
+    expiresIn = '1d';
+  } else if (user?.isSeller) {
+    expiresIn = '3d';
+  }
+
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn });
 };
 
 // @desc    Register a new user
@@ -239,7 +260,7 @@ const updateUserProfile = async (req, res) => {
         isAdmin:      updatedUser.isAdmin,
         isSeller:     updatedUser.isSeller,
         sellerStatus: updatedUser.sellerStatus,
-        token:        generateToken(updatedUser._id),
+        token:        generateToken(updatedUser._id, updatedUser),
       });
     } else {
       res.status(404).json({ message: 'User not found' });
