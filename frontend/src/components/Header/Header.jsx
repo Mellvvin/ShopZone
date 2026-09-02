@@ -37,6 +37,27 @@ import NotificationBell from '../NotificationBell/NotificationBell';
 
 import './Header.css';
 
+// ── Mobile identity helpers ─────────────────────────────────────
+// getInitials — first + last name initial, single initial if only
+// one name is on file. Deliberately never touches a photo — avatar
+// uploads were scrapped so a shop's storefront or contact details
+// can never end up inside ShopZone's UI chrome.
+const getInitials = (name) => {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
+// getGreeting — based on the visitor's local device time, not server
+// time, so it always matches what's actually on their clock.
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -59,8 +80,15 @@ const Header = () => {
 
   // Ref for desktop dropdown outside-click detection
   const dropdownRef = useRef(null);
+
   // Ref for hamburger button — focus returns here when dropdown closes
   const hamburgerRef = useRef(null);
+
+    // Tracks the previous scroll position between frames, purely to work
+  // out scroll direction for the hide/reveal behavior below. A ref,
+  // not state, for the same reason headerRef is a ref — no re-renders.
+  const lastScrollYRef = useRef(0);
+
   // Ref on the <header> element itself — used for scroll-condensed class
   // toggling without triggering a React re-render on every scroll event
   const headerRef = useRef(null);
@@ -104,7 +132,7 @@ const Header = () => {
       const isCondensed = header.classList.contains('header--condensed');
       const y = window.scrollY;
 
-      if (!isCondensed && y > CONDENSE_AT) {
+          if (!isCondensed && y > CONDENSE_AT) {
         header.classList.add('header--condensed');
       } else if (isCondensed && y < EXPAND_BELOW) {
         header.classList.remove('header--condensed');
@@ -112,6 +140,25 @@ const Header = () => {
       // Anything between EXPAND_BELOW and CONDENSE_AT: no change,
       // whichever state it's already in stays — this is what kills
       // the flicker.
+
+      // ── Hide on scroll down, reveal on scroll up ──────────────
+      // Stays visible near the top of the page regardless of
+      // direction (HIDE_AFTER), and ignores tiny sub-pixel scroll
+      // jitter (DELTA_THRESHOLD) so it doesn't flicker the same
+      // way the condensed toggle used to before the fix above.
+      const HIDE_AFTER = 120;
+      const DELTA_THRESHOLD = 6;
+      const lastY = lastScrollYRef.current;
+      const delta = y - lastY;
+
+      if (y < HIDE_AFTER) {
+        header.classList.remove('header--hidden');
+      } else if (delta > DELTA_THRESHOLD) {
+        header.classList.add('header--hidden');
+      } else if (delta < -DELTA_THRESHOLD) {
+        header.classList.remove('header--hidden');
+      }
+      lastScrollYRef.current = y;
     };
 
     // Run once on mount in case page loads mid-scroll
@@ -211,9 +258,32 @@ const Header = () => {
       <div className='header-top-bar'>
         <div className='header-container'>
 
-          {/* ── Logo ───────────────────────────────────────── */}
+                    {/* ── Logo — desktop only ──────────────────────────── */}
           {/* dark=true — Tan colours on Oxford Blue background */}
-          <ShopZoneLogo dark={true} size='medium' />
+          <div className='header-desktop-logo'>
+            <ShopZoneLogo dark={true} size='medium' />
+          </div>
+
+          {/* ── Identity block — mobile only ─────────────────── */}
+          {/* Signed in: initials avatar + time-based greeting.
+              Signed out: compact logo mark — no wordmark needed
+              since the icon row already carries the brand weight. */}
+          <div className='header-mobile-identity'>
+            {userInfo ? (
+              <>
+                <div className='header-mobile-avatar' aria-hidden='true'>
+                  {getInitials(userInfo.name)}
+                </div>
+                   <div className='header-mobile-greeting'>
+                  <span className='header-mobile-greeting__line'>
+                    {getGreeting()}, <span className='header-mobile-greeting__name'>{userInfo.name.split(' ')[0]}</span>
+                  </span>
+                </div>
+              </>
+            ) : (
+              <ShopZoneLogo dark={true} size='small' />
+            )}
+          </div>
 
           {/* ── Desktop search bar (hidden on mobile) ──────── */}
           <div className='header-desktop-search'>

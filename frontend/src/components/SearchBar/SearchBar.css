@@ -98,3 +98,39 @@
     border-color: var(--tan-dark);
     color: var(--white);
 }
+
+/* ── Mobile fit ──────────────────────────────────────────── */
+/* This bar lives inside the edge-to-edge slide-down panel on
+   mobile, so it needs its own sizing instead of inheriting the
+   desktop version's fixed 2rem side margins, which were pushing
+   it past the visible width of the screen. */
+@media (max-width: 991px) {
+    .searchbar-wrapper {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    .searchbar-submit-btn {
+        padding: 0 12px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 420px) {
+
+    /* Text label drops to an icon-only button so the input itself
+       keeps enough room to actually type into on a small phone. */
+    .searchbar-submit-btn {
+        padding: 0 10px;
+        font-size: 0;
+    }
+
+    .searchbar-submit-btn::after {
+        content: '\2192';
+        font-size: 1rem;
+    }
+
+    .searchbar-icon-left {
+        padding: 0 0.5rem;
+    }
+}

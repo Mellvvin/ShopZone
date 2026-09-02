@@ -272,16 +272,25 @@
         border: 1.5px solid var(--oxford-blue);
     }
 
-    /* Panel drops full width on narrow screens */
+    /* Pinned to the viewport instead of the bell's own wrapper —
+       the wrapper isn't flush against the screen edge since the
+       hamburger sits further right of it, which is what was
+       dragging the panel left off-screen. */
     .notif-panel {
-        width: 300px;
-        right: -60px;
+        position: fixed;
+        top: 72px;
+        right: 1rem;
+        width: min(340px, calc(100vw - 2rem));
+    }
+
+    .site-header.header--condensed .notif-panel {
+        top: 54px;
     }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 480px) {
     .notif-panel {
-        width: 280px;
-        right: -80px;
+        right: 0.75rem;
+        width: min(340px, calc(100vw - 1.5rem));
     }
 }
