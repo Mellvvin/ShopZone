@@ -261,7 +261,7 @@ const Header = () => {
                     {/* ── Logo — desktop only ──────────────────────────── */}
           {/* dark=true — Tan colours on Oxford Blue background */}
           <div className='header-desktop-logo'>
-            <ShopZoneLogo dark={true} size='medium' />
+            <ShopZoneLogo dark={false} size='medium' />
           </div>
 
           {/* ── Identity block — mobile only ─────────────────── */}
@@ -281,7 +281,7 @@ const Header = () => {
                 </div>
               </>
             ) : (
-              <ShopZoneLogo dark={true} size='small' />
+              <ShopZoneLogo dark={false} size='small' />
             )}
           </div>
 

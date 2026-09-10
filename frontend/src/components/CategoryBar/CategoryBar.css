@@ -5,10 +5,13 @@
    ──────────────────────────────────────────── */
 
 /* ── Bar wrapper ────────────────────────────────── */
+/* No longer a full-width strip — just breathing room so the pill
+   below it has visible page background around it, top and bottom,
+   which is what actually makes it read as floating. */
 .category-bar {
-    background-color: var(--oxford-blue);
-    border-top: 1px solid rgba(210, 180, 140, 0.15);
-    border-bottom: 1px solid rgba(210, 180, 140, 0.15);
+    background: transparent;
+    border: none;
+    padding: 0.65rem 2.5rem 0.85rem;
 }
 
 /* Hidden on mobile — drawer handles categories there */
@@ -18,11 +21,27 @@
     }
 }
 
-/* ── Inner container ────────────────────────────── */
+/* ── Inner container — this is the pill itself now ─ */
 .category-bar-container {
-    max-width: 1280px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 0 1.25rem;
+    padding: 0 0.5rem;
+    background: var(--oxford-blue);
+    border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0, 33, 71, 0.18);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Genuinely translucent — you should be able to see shapes and
+   color through it — but with a visible tan edge so the pill's
+   outline stays readable even at low fill opacity, rather than
+   opacity alone deciding whether it looks present or gone. */
+.header--condensed .category-bar-container {
+    background: rgba(0, 33, 71, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(210, 180, 140, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 33, 71, 0.16);
 }
 
 /* ── Flex nav row ───────────────────────────────── */
@@ -56,6 +75,21 @@
     color: var(--tan);
     border-bottom-color: var(--tan);
     background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Current-page indicator — a filled tan pill, distinct from the
+   trigger's open-dropdown underline above, since "on this page"
+   and "this dropdown is open" are two different states. */
+.catbar-link.active {
+    color: var(--oxford-blue);
+    background-color: var(--tan);
+    border-radius: 999px;
+    border-bottom-color: transparent;
+}
+
+.catbar-link.active:hover {
+    color: var(--oxford-blue);
+    background-color: var(--tan);
 }
 
 /* Become a Seller — same layout as other nav links but Tan-accented at rest */
@@ -200,6 +234,14 @@
     background-color: #f7f4ef;
     color: #003a7a;
 }
+
+.simple-dropdown-item.active {
+    background-color: #f7f4ef;
+    color: #003a7a;
+    font-weight: 700;
+    border-left: 3px solid var(--tan);
+    padding-left: calc(1rem - 3px);
+}   
 
 .simple-dropdown-icon {
     width: 26px;

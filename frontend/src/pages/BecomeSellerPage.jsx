@@ -488,7 +488,7 @@ const [formData, setFormData] = useState({
                     <div className='bs-hero__text-col'>
                     <div className='bs-hero__eyebrow'>
                         <FaBolt aria-hidden='true' />
-                        Seller Programme
+                        Seller Program
                     </div>
 
                     <h1 className='bs-hero__title'>

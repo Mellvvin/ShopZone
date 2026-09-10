@@ -13,8 +13,11 @@ const ShopZoneLogo = ({ dark = false, size = 'medium' }) => {
     const navigate = useNavigate();
 
     // ── Colour tokens ──────────────────────────────────────────
-    const primary = dark ? '#D2B48C' : '#002147';
-    const secondary = dark ? '#C4A47C' : '#003066';
+    // "Zone" stays tan regardless of mode — the one true brand
+    // constant. "Shop" adapts for contrast: off-white on dark
+    // backgrounds, Oxford Blue on light ones.
+    const primary = dark ? '#FAF8F5' : '#002147';
+    const secondary = '#D2B48C';
     const boxFull = dark ? '#D2B48C' : '#002147';
     const boxMid = dark ? 'rgba(210,180,140,0.60)' : 'rgba(0,33,71,0.55)';
     const boxLight = dark ? 'rgba(210,180,140,0.30)' : 'rgba(0,33,71,0.25)';

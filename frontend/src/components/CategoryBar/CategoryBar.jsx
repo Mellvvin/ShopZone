@@ -13,7 +13,7 @@
 //   - Clicking the trigger again OR clicking outside unlocks and closes
 // ─────────────────────────────────────────────────────────────
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
     FaChevronDown, FaThList, FaStore,
     FaMobileAlt, FaTshirt, FaScroll, FaHome, FaShoppingBasket,
@@ -51,6 +51,12 @@ const MORE_LINKS = [
 
 const CategoryBar = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Home should only read as "active" when truly on the bare
+    // homepage — not when a category selection has redirected here
+    // with a ?category= query string still pointing at '/'.
+    const isHomeActive = location.pathname === '/' && !location.search;
 
     // ── State ─────────────────────────────────────────────────
     // open   — whether the menu is visible (hover OR locked)
@@ -155,11 +161,21 @@ const CategoryBar = () => {
             <div className='category-bar-container'>
                 <nav className='category-bar-nav'>
 
-                    {/* ── Home ───────────────────────────────────────── */}
-                    <Link to='/' className='catbar-link'>Home</Link>
+                     {/* ── Home ───────────────────────────────────────── */}
+                    <Link
+                        to='/'
+                        className={`catbar-link${isHomeActive ? ' active' : ''}`}
+                    >
+                        Home
+                    </Link>
 
                     {/* ── Deals ──────────────────────────────────────── */}
-                    <Link to='/offers' className='catbar-link'>Deals</Link>
+                    <NavLink
+                        to='/offers'
+                        className={({ isActive }) => `catbar-link${isActive ? ' active' : ''}`}
+                    >
+                        Deals
+                    </NavLink>
 
                     {/* ── Categories ─────────────────────────────────── */}
                     <div
@@ -215,14 +231,29 @@ const CategoryBar = () => {
                         )}
                     </div>
 
-                    {/* ── Brands ─────────────────────────────────────── */}
-                    <Link to='/brands' className='catbar-link'>Brands</Link>
+                                        {/* ── Brands ─────────────────────────────────────── */}
+                    <NavLink
+                        to='/brands'
+                        className={({ isActive }) => `catbar-link${isActive ? ' active' : ''}`}
+                    >
+                        Brands
+                    </NavLink>
 
                     {/* ── Bulk Orders ────────────────────────────────── */}
-                    <Link to='/bulk-orders' className='catbar-link'>Bulk Orders</Link>
+                    <NavLink
+                        to='/bulk-orders'
+                        className={({ isActive }) => `catbar-link${isActive ? ' active' : ''}`}
+                    >
+                        Bulk Orders
+                    </NavLink>
 
                     {/* ── Become a Seller — promoted out of More dropdown */}
-                    <Link to='/become-seller' className='catbar-link catbar-link--seller'>Become a Seller</Link>
+                    <NavLink
+                        to='/become-seller'
+                        className={({ isActive }) => `catbar-link catbar-link--seller${isActive ? ' active' : ''}`}
+                    >
+                        Become a Seller
+                    </NavLink>
 
                     {/* ── More ───────────────────────────────────────── */}
                     <div
@@ -248,11 +279,11 @@ const CategoryBar = () => {
                                 onMouseEnter={handleMoreEnter}
                                 onMouseLeave={handleMoreLeave}
                             >
-                                {MORE_LINKS.map((link) => (
-                                    <Link
+                                    {MORE_LINKS.map((link) => (
+                                    <NavLink
                                         key={link.to}
                                         to={link.to}
-                                        className='simple-dropdown-item'
+                                        className={({ isActive }) => `simple-dropdown-item${isActive ? ' active' : ''}`}
                                         role='menuitem'
                                         onClick={() => {
                                             setMoreOpen(false);
@@ -261,7 +292,7 @@ const CategoryBar = () => {
                                     >
                                         <span className='simple-dropdown-icon'>{link.icon}</span>
                                         {link.label}
-                                    </Link>
+                                    </NavLink>
                                 ))}
                             </div>
                         )}
