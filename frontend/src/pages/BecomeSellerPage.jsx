@@ -490,7 +490,7 @@ const [formData, setFormData] = useState({
                         <FaBolt aria-hidden='true' />
                         Seller Program
                     </div>
-
+ 
                     <h1 className='bs-hero__title'>
                         Stop Selling Alone.<br />
                         <span className='bs-hero__title--accent'>
