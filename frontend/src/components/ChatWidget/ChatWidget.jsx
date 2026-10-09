@@ -1,22 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaComments, FaTimes, FaPaperPlane, FaHandPaper } from 'react-icons/fa';
+import { useLocation } from 'react-router-dom';
 import { getBotReply } from './chatBrain';
-import './ChatWidget.css';
+import './chatWidget.css';
 
 const ChatWidget = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [showBubble, setShowBubble] = useState(false);
 
+  const { pathname } = useLocation();
+
   useEffect(() => {
-    // Show bubble after 2s delay, hide after 6s
-    const showTimer = setTimeout(() => setShowBubble(true), 2000);
-    const hideTimer = setTimeout(() => setShowBubble(false), 8000);
+    // Runs on every page load AND every route change, because this
+    // widget sits outside <Routes> and never remounts on navigation.
+    setShowBubble(false);
+    const showTimer = setTimeout(() => setShowBubble(true), 1200);
+    const hideTimer = setTimeout(() => setShowBubble(false), 6500);
     return () => {
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
     };
-  }, []);
+  }, [pathname]);
+
 
   const [message, setMessage] = useState('');
   const [context, setContext] = useState({

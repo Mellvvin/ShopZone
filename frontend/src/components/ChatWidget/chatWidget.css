@@ -359,8 +359,10 @@
     bottom: 62px;
   }
 
+  /* Bubble stays on phones, just more compact */
   .cw-bubble {
-    display: none;
+    padding: 8px 14px;
+    font-size: 12px;
   }
 }
 

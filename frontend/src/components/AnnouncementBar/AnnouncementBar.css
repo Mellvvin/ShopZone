@@ -1,0 +1,78 @@
+.announce-bar {
+    position: relative;
+    background: var(--oxford-blue, #002147);
+    color: #FAF8F5;
+    text-align: center;
+    padding: 0.5rem 2.5rem;
+    font-size: 0.82rem;
+    line-height: 1.3;
+}
+
+.announce-bar__msg {
+    margin: 0;
+    animation: announceIn 0.45s ease both;
+}
+
+.announce-bar__link {
+    color: var(--tan, #D2B48C);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+}
+
+.announce-bar__link:hover {
+    color: #fff;
+}
+
+.announce-bar__dots {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 6px;
+}
+
+.announce-bar__dot {
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(250, 248, 245, 0.35);
+    cursor: pointer;
+}
+
+.announce-bar__dot--active {
+    background: var(--tan, #D2B48C);
+}
+
+@keyframes announceIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 480px) {
+    .announce-bar {
+        padding: 0.45rem 1rem;
+        font-size: 0.74rem;
+    }
+
+    .announce-bar__dots {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .announce-bar__msg {
+        animation: none;
+    }
+}

@@ -376,3 +376,82 @@
     color: #c0392b;
 }
 
+/* ── Orders: stacked cards on phones and small tablets ─────── */
+@media (max-width: 768px) {
+    .profile-orders-table thead {
+        display: none;
+    }
+
+    .profile-orders-table,
+    .profile-orders-table tbody,
+    .profile-orders-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .profile-orders-table tbody tr {
+        border: 1px solid rgba(0, 33, 71, 0.1);
+        border-radius: 12px;
+        padding: 0.7rem 0.9rem;
+        margin-bottom: 0.75rem;
+        background: #fff;
+    }
+
+    .profile-orders-table tbody tr td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.35rem 0;
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+        text-align: right;
+    }
+
+    .profile-orders-table tbody tr td::before {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #767676;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    .profile-orders-table td:nth-child(1)::before {
+        content: 'Order';
+    }
+
+    .profile-orders-table td:nth-child(2)::before {
+        content: 'Date';
+    }
+
+    .profile-orders-table td:nth-child(3)::before {
+        content: 'Total';
+    }
+
+    .profile-orders-table td:nth-child(4)::before {
+        content: 'Paid';
+    }
+
+    .profile-orders-table td:nth-child(5)::before {
+        content: 'Delivered';
+    }
+
+    .profile-orders-table td:nth-child(6) {
+        justify-content: flex-start;
+        margin-top: 0.35rem;
+        padding-top: 0.6rem;
+        border-top: 1px solid rgba(0, 33, 71, 0.08);
+    }
+
+    .profile-id-cell {
+        word-break: break-all;
+        font-size: 0.66rem;
+    }
+
+    .profile-order-tab {
+        padding: 10px 12px;
+    }
+}

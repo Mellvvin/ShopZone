@@ -3,7 +3,7 @@
 // Registration page — all inline styles removed.
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Form, Button, Row, Col, Container } from 'react-bootstrap';
 import { register } from '../redux/slices/authSlice';
@@ -20,9 +20,22 @@ const KENYA_COUNTIES = [
   'Uasin Gishu','Vihiga','Wajir','West Pokot',
 ];
 
+// Where to send the visitor after registering. Reads ?redirect=/cart or
+// location.state.from. Internal paths only, never another site.
+const getRedirectTarget = (location) => {
+  const params = new URLSearchParams(location.search);
+  const from = location.state?.from;
+  const candidate =
+    params.get('redirect') ||
+    (typeof from === 'string' ? from : from ? `${from.pathname || ''}${from.search || ''}` : '');
+  return candidate.startsWith('/') && !candidate.startsWith('//') ? candidate : '/';
+};
+
 const RegisterPage = () => {
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
+  const location  = useLocation();
+  const redirectTo = getRedirectTarget(location);
   const { userInfo, loading, error } = useSelector((state) => state.auth);
 
   useEffect(() => { document.title = 'Register — ShopZone'; }, []);
@@ -43,10 +56,10 @@ const RegisterPage = () => {
   useEffect(() => {
     if (userInfo) {
       showToast(`Welcome to ShopZone, ${userInfo.name.split(' ')[0]}!`, 'success');
-      const timer = setTimeout(() => navigate('/'), 500);
+            const timer = setTimeout(() => navigate(redirectTo), 500);
       return () => clearTimeout(timer);
     }
-  }, [userInfo, navigate]);
+  }, [userInfo, navigate, redirectTo]);
 
   useEffect(() => {
     if (error) { setFormError(error); showToast(error, 'error'); }

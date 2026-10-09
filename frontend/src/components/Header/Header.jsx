@@ -51,11 +51,20 @@ const getInitials = (name) => {
 
 // getGreeting — based on the visitor's local device time, not server
 // time, so it always matches what's actually on their clock.
+// Picked once per page load so the greeting doesn't change between renders.
+const GREETING_PICK = Math.random();
+
+const GREETINGS = {
+  morning:   ['Good morning', 'Rise and shine', 'Habari za asubuhi', 'Top of the morning', 'Hope you slept well'],
+  afternoon: ['Good afternoon', "Hope you're well", 'Habari za mchana', 'pretty good afternoon', 'Good day'],
+  evening:   ['Good evening', 'Welcome back', 'Habari za jioni', 'Hope you had a good day', 'Goodnight'],
+};
+
 const getGreeting = () => {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
+  const bucket = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+  const options = GREETINGS[bucket];
+  return options[Math.floor(GREETING_PICK * options.length)];
 };
 
 const Header = () => {

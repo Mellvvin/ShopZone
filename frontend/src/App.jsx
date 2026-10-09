@@ -12,6 +12,7 @@ import SkipLink from './components/SkipLink/SkipLink';
 import { setNavigator } from './utils/navigationService';
 
 // ── Components ───────────────────────────────────────────────
+import AnnouncementBar from './components/AnnouncementBar/AnnouncementBar';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import ChatWidget from './components/ChatWidget/ChatWidget';
@@ -76,6 +77,7 @@ const App = () => {
       {/* Skip link — first focusable element on every page for keyboard users */}
       <SkipLink />
       <ScrollToTop />
+      <AnnouncementBar />
       <Header />
 
       {/* id="main-content" is the target for the skip link */}
