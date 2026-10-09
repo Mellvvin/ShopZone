@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FaComments, FaTimes, FaPaperPlane, FaHandPaper } from 'react-icons/fa';
 import { useLocation } from 'react-router-dom';
 import { getBotReply } from './chatBrain';
-import './chatWidget.css';
+import './ChatWidget.css';
 
 const ChatWidget = () => {
   const location = useLocation();
