@@ -6,33 +6,9 @@
   z-index: 9999;
 }
 
-/* On mobile push up above the bottom of the screen so it
-   doesn't overlap sticky footers or checkout buttons */
-@media (max-width: 768px) {
-  .cw-wrapper {
-    bottom: 20px;
-    right: 16px;
-  }
-
-  /* Smaller open button on mobile */
-  .cw-open-btn {
-    width: 54px;
-    height: 54px;
-  }
-
-  /* Chat window fills more of the screen on mobile */
-  .cw-window {
-    width: calc(100vw - 32px);
-    height: min(480px, 75vh);
-    right: 0;
-    bottom: 65px;
-  }
-
-  /* Hide bubble on mobile — too cramped */
-  .cw-bubble {
-    display: none;
-  }
-}
+/* Responsive overrides live at the END of this file. They used to
+   sit here, above the base .cw-open-btn / .cw-window / .cw-bubble
+   rules, which meant the later base rules silently overrode them. */
 
 /* ── Closed state — floating button + bubble ─────────────── */
 .cw-float-row {
@@ -347,6 +323,59 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Responsive overrides — must stay below the base rules ─── */
+@media (max-width: 768px) {
+  .cw-wrapper {
+    bottom: 20px;
+    right: 16px;
+  }
+
+  .cw-open-btn {
+    width: 50px;
+    height: 50px;
+  }
+
+  /* The icon size is a fixed prop in ChatWidget.jsx; CSS on the
+     <svg> overrides it. */
+  .cw-open-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .cw-window {
+    width: calc(100vw - 32px);
+    height: min(480px, 75vh);
+    bottom: 62px;
+  }
+
+  .cw-bubble {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .cw-open-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .cw-open-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cw-window {
+    bottom: 56px;
+  }
 }

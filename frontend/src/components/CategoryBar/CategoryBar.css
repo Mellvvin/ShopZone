@@ -32,16 +32,17 @@
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Genuinely translucent — you should be able to see shapes and
-   color through it — but with a visible tan edge so the pill's
-   outline stays readable even at low fill opacity, rather than
-   opacity alone deciding whether it looks present or gone. */
+/* Fill raised from 0.6 to 0.92 — at 0.6, the mostly-white page
+   bleeding through the blur was what actually washed the whole
+   pill pale, not the blur itself. The border is now a soft white
+   glass-edge highlight instead of tan — tan here read as a stray
+   accent color rather than part of the glass effect itself. */
 .header--condensed .category-bar-container {
-    background: rgba(0, 33, 71, 0.6);
+    background: rgba(0, 33, 71, 0.92);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(210, 180, 140, 0.4);
-    box-shadow: 0 6px 20px rgba(0, 33, 71, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 6px 20px rgba(0, 33, 71, 0.22);
 }
 
 /* ── Flex nav row ───────────────────────────────── */
@@ -77,19 +78,23 @@
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Current-page indicator — a filled tan pill, distinct from the
-   trigger's open-dropdown underline above, since "on this page"
-   and "this dropdown is open" are two different states. */
+/* Current-page indicator — a very faint translucent pill, distinct
+   from the trigger's open-dropdown underline above, since "on this
+   page" and "this dropdown is open" are two different states. The
+   inset shadow draws the hairline edge without changing the box
+   size, so nothing shifts when a link becomes active. */
 .catbar-link.active {
-    color: var(--oxford-blue);
-    background-color: var(--tan);
+    color: var(--tan);
+    background-color: rgba(255, 255, 255, 0.09);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     border-radius: 999px;
     border-bottom-color: transparent;
 }
 
 .catbar-link.active:hover {
-    color: var(--oxford-blue);
-    background-color: var(--tan);
+    color: var(--tan);
+    background-color: rgba(255, 255, 255, 0.13);
+    border-bottom-color: transparent;
 }
 
 /* Become a Seller — same layout as other nav links but Tan-accented at rest */

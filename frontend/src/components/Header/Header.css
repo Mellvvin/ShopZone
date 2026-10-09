@@ -45,11 +45,16 @@
     padding: 0;
 }
 
-/* Slides fully off-screen on scroll-down, back in on scroll-up —
-   applied via the same ref-based JS toggle as header--condensed,
-   never through React state, so it never triggers a re-render. */
-.site-header.header--hidden {
-    transform: translateY(-100%);
+/* ── Unified icon vertical rhythm ─────────────────────────── */
+/* Every header icon — cart, profile, the bell, both hamburgers,
+   the mobile search toggle — shares this line-height so none of
+   them sits a few pixels off the others' baseline. Previously only
+   some of these got line-height: 1 through their own individual
+   rule, which is exactly how .header-icon-profile, and the mobile
+   cart/profile links (which never had .header-mobile-btn applied
+   to them at all), ended up sitting lower than the rest. */
+.site-header .nav-icon-link {
+    line-height: 1;
 }
 
 /* ── Condensed state — applied via JS ref on scroll > 80px ── */
@@ -321,7 +326,40 @@
     }
 
     .header-mobile-icons {
-        gap: 0.75rem;
+        gap: 0.6rem;
+    }
+
+    /* Icons render at a fixed pixel size via a `size` prop in
+       Header.jsx, which never responds to viewport width on its own.
+       CSS width/height on the actual <svg> overrides that fixed
+       attribute — this is what actually lets them shrink here. */
+    .header-mobile-icons svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .header-mobile-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.65rem;
+    }
+
+    .header-mobile-greeting__line {
+        font-size: 0.7rem;
+    }
+}
+
+/* Budget and older Android phones commonly sit at 360px, narrower
+   than the 375px iPhone baseline — one more notch down here so
+   nothing feels cramped on the smallest real devices people use. */
+@media (max-width: 360px) {
+    .header-mobile-icons svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .header-mobile-greeting__line {
+        font-size: 0.66rem;
     }
 }
 
