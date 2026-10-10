@@ -56,7 +56,7 @@ const RegisterPage = () => {
   useEffect(() => {
     if (userInfo) {
       showToast(`Welcome to ShopZone, ${userInfo.name.split(' ')[0]}!`, 'success');
-            const timer = setTimeout(() => navigate(redirectTo), 500);
+      const timer = setTimeout(() => navigate(redirectTo, { replace: true }), 500);
       return () => clearTimeout(timer);
     }
   }, [userInfo, navigate, redirectTo]);
@@ -206,7 +206,13 @@ const RegisterPage = () => {
               <Col className='text-center'>
                 <span className='reg-signin-prompt'>
                   Already have an account?{' '}
-                  <Link to='/login' className='reg-link'>Sign in</Link>
+                  <Link
+                    to='/login'
+                    state={redirectTo !== '/' ? { from: redirectTo } : undefined}
+                    className='reg-link'
+                  >
+                    Sign in
+                  </Link>
                 </span>
               </Col>
             </Row>

@@ -5,7 +5,7 @@
 // Right panel: clean form on off-white.
 // All inline styles removed and moved to LoginPage.css.
 // ─────────────────────────────────────────────────────────────
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
@@ -39,10 +39,19 @@ const [email, setEmail]             = useState('');
   // and the legacy ?redirect= query param for backwards compat
   const redirect = location.state?.from || (location.search ? location.search.split('=')[1] : '/');
 
+  // Guards against the effect re-running (navigate changes identity on
+  // every route change) and firing the welcome toast a second time.
+  const welcomedRef = useRef(false);
+
   useEffect(() => {
     if (userInfo) {
-      showToast(`Welcome back, ${userInfo.name.split(' ')[0]}!`, 'success');
-      navigate(redirect);
+      if (!welcomedRef.current) {
+        welcomedRef.current = true;
+        showToast(`Welcome back, ${userInfo.name.split(' ')[0]}!`, 'success');
+      }
+      // replace: true so Back doesn't return to a login page that
+      // would immediately redirect forward again.
+      navigate(redirect, { replace: true });
     }
   }, [userInfo, navigate, redirect]);
 

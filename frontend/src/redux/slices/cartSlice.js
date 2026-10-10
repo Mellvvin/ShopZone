@@ -1,6 +1,48 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+// ── Single source of truth for "what does this unit cost right now" ──
+// Mirrors the rule in orderController.createOrder exactly.
+const effectivePricing = (data) => {
+  const onSale = Boolean(
+    (data.isOnSale || data.isClearance) &&
+    data.salePrice > 0 &&
+    data.salePrice < data.price
+  );
+  return {
+    price: onSale ? data.salePrice : data.price,
+    regularPrice: data.price,
+    onSale,
+  };
+};
+
+// Cart items are a snapshot from the moment they were added. This
+// re-checks them against live product data (sales starting or ending,
+// admin price edits) and patches only the pricing and stock fields, so
+// an item the buyer removes mid-refresh is never resurrected.
+export const refreshCartPrices = createAsyncThunk(
+  'cart/refreshCartPrices',
+  async (_, { getState }) => {
+    const { cart } = getState();
+    const results = await Promise.allSettled(
+      cart.cartItems.map((x) => axios.get(`/api/products/${x.product}`))
+    );
+    const patches = [];
+    results.forEach((r, i) => {
+      if (r.status !== 'fulfilled') return; // keep the item as-is
+      const data = r.value.data;
+      patches.push({
+        product: cart.cartItems[i].product,
+        ...effectivePricing(data),
+        countInStock: data.countInStock,
+        unitType: data.unitType || data.unit || 'Per Unit',
+        itemsPerUnit: data.itemsPerUnit || null,
+      });
+    });
+    return patches;
+  }
+);
+
 // ── ASYNC ACTIONS ──────────────────────────────────────────
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
@@ -11,7 +53,10 @@ export const addToCart = createAsyncThunk(
         product:      data._id,
         name:         data.name,
         image:        data.image,
-        price:        data.price,
+        // Charged unit price: the sale price while a sale is active,
+        // otherwise the regular price (regularPrice/onSale drive the
+        // strike-through in the cart).
+        ...effectivePricing(data),
         countInStock: data.countInStock,
         // ── Category snapshot (bug fix) ──────────────────────────────
         // Without this, ShippingPage.jsx and PlaceOrderPage.jsx's
@@ -138,6 +183,14 @@ const cartSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(refreshCartPrices.fulfilled, (state, action) => {
+        const byId = {};
+        action.payload.forEach((p) => { byId[p.product] = p; });
+        state.cartItems = state.cartItems.map((x) =>
+          byId[x.product] ? { ...x, ...byId[x.product] } : x
+        );
+        updateCartPrices(state);
+      })
       .addCase(addToCart.pending, (state) => {
         state.loading = true;
         state.error   = null;

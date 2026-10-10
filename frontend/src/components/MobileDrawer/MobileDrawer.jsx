@@ -156,6 +156,7 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
         ════════════════════════════════════════════════ */}
                <p className='drawer-section-title'>Browse</p>
                 <nav className='drawer-nav'>
+                    <button className='drawer-nav-link' onClick={() => go('/')}>Home</button>
                     <button className='drawer-nav-link' onClick={() => go('/offers')}>Deals</button>
                     <button className='drawer-nav-link' onClick={() => go('/brands')}>Brands</button>
                     <button className='drawer-nav-link' onClick={() => go('/bulk-orders')}>Bulk Orders</button>

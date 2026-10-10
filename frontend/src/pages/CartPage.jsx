@@ -9,7 +9,7 @@ import {
   Row, Col, ListGroup, Image,
   Button, Card, Alert,
 } from 'react-bootstrap';
-import { updateCartQty, removeFromCart, clearCartItems } from '../redux/slices/cartSlice';
+import { updateCartQty, removeFromCart, clearCartItems, refreshCartPrices } from '../redux/slices/cartSlice';
 import { showToast } from '../components/Toast/Toast';
 import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import './CartPage.css';
@@ -21,6 +21,10 @@ const CartPage = () => {
   const { userInfo }  = useSelector((state) => state.auth);
 
   useEffect(() => { document.title = 'Your Cart — ShopZone'; }, []);
+
+  // Re-check every item against live product data so sale changes and
+  // admin price edits show up before checkout.
+  useEffect(() => { dispatch(refreshCartPrices()); }, [dispatch]);
 
   const [showClearCartModal, setShowClearCartModal] = useState(false);
 
@@ -94,6 +98,12 @@ const checkoutHandler = () => {
                       <span className='product-card-price'>
                         KES {Number(item.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}
                       </span>
+                      {item.onSale && item.regularPrice > item.price && (
+                      <span className='cart-item-was-price'>
+                        KES {Number(item.regularPrice).toLocaleString('en-KE', { minimumFractionDigits: 2 })}
+                      </span>
+                      )}
+                      
                       {/* ── Compact wholesale unit sanity check (DEC-041) ──
                           Last checkpoint before checkout. Falls back to
                           'Per Unit' for cart items added before this

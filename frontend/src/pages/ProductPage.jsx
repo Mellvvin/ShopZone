@@ -132,10 +132,20 @@ const submitReviewHandler = (e) => {
   // The per-piece value is computed fresh here only — never stored,
   // never sent to the backend. price always represents the full unit
   // (e.g. one carton), never a single piece.
-  const unitLabel = product?.unitType || product?.unit || 'Per Unit';
+    const unitLabel = product?.unitType || product?.unit || 'Per Unit';
+
+  // Same rule as the cart and the server: sale price only while active
+  // and actually cheaper than the regular price.
+  const onSale = Boolean(
+    product &&
+    (product.isOnSale || product.isClearance) &&
+    product.salePrice > 0 &&
+    product.salePrice < product.price
+  );
+  const unitPrice = onSale ? product.salePrice : product?.price;
   const hasPerPieceBreakdown = product?.itemsPerUnit && product.itemsPerUnit > 1;
   const perPieceValue = hasPerPieceBreakdown
-    ? product.price / product.itemsPerUnit
+    ? unitPrice / product.itemsPerUnit
     : null;
 
   return (
@@ -176,9 +186,15 @@ const submitReviewHandler = (e) => {
                   <span className='product-card-reviews'> ({product.numReviews} reviews)</span>
                 </ListGroup.Item>
                 <ListGroup.Item>
-                  <span className='product-card-price'>
+                   <span className='product-card-price'>
+                    {`KES ${Number(unitPrice).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
+                  </span>
+                  {onSale && (
+                  <span className='pp-was-price'>
                     {`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
                   </span>
+                  )}
+
                 </ListGroup.Item>
                 <ListGroup.Item>
                   <strong>Description:</strong>
@@ -193,8 +209,10 @@ const submitReviewHandler = (e) => {
                 <ListGroup.Item>
                   <Row>
                     <Col>Price:</Col>
-                    <Col>
-                      <strong className='product-card-price'>{`KES ${Number(product.price).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}</strong>
+                    <Col>                      
+                    <strong className='product-card-price'>
+                      {`KES ${Number(unitPrice).toLocaleString('en-KE', { minimumFractionDigits: 2 })}`}
+                    </strong>
                       <span className='pp-unit-suffix'> / {unitLabel}</span>
                     </Col>
                   </Row>
