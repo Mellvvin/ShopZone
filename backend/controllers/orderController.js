@@ -310,10 +310,12 @@ const createOrder = async (req, res) => {
       const product = await Product.findById(item.product);
       if (!product) continue;
 
-      // Use salePrice if product is on sale, otherwise regular price
-      const unitPrice = (product.isOnSale && product.salePrice)
-        ? product.salePrice
-        : product.price;
+      // A sale/clearance price applies only while it is genuinely active
+      // and actually cheaper. MUST stay identical to effectivePricing()
+      // in the frontend cartSlice so what the buyer sees is what they pay.
+      const onSale = (product.isOnSale || product.isClearance) &&
+      product.salePrice > 0 && product.salePrice < product.price;
+      const unitPrice = onSale ? product.salePrice : product.price;
 
       serverItemsPrice += unitPrice * item.qty;
 
