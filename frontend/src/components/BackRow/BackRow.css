@@ -1,0 +1,29 @@
+.back-row {
+    margin-bottom: 0.75rem;
+}
+
+.back-row__btn {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--oxford-blue);
+    background: rgba(0, 33, 71, 0.05);
+    transition: background 0.15s ease;
+}
+
+.back-row__btn:hover {
+    background: rgba(0, 33, 71, 0.09);
+}
+
+.back-row__btn:focus-visible {
+    outline: 2px solid var(--tan);
+    outline-offset: 2px;
+}

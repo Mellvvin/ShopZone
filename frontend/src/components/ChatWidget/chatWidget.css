@@ -381,3 +381,10 @@
     bottom: 56px;
   }
 }
+
+/* Lift the chat button above the bottom tab bar (shown at 991px and below) */
+@media (max-width: 991px) {
+  .cw-wrapper {
+    bottom: calc(var(--bottom-nav-height, 62px) + 14px + env(safe-area-inset-bottom, 0px));
+  }
+}

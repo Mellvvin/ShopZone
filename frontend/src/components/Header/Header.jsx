@@ -91,7 +91,15 @@ const Header = () => {
   const dropdownRef = useRef(null);
 
   // Ref for hamburger button — focus returns here when dropdown closes
-  const hamburgerRef = useRef(null);
+    const hamburgerRef = useRef(null);
+
+  // The bottom tab bar's "More" tab lives outside Header, so it asks for
+  // the drawer through a window event instead of shared state.
+  useEffect(() => {
+    const openDrawer = () => setShowDrawer(true);
+    window.addEventListener('shopzone:open-drawer', openDrawer);
+    return () => window.removeEventListener('shopzone:open-drawer', openDrawer);
+  }, []);
 
 
   // Ref on the <header> element itself — used for scroll-condensed class
@@ -353,34 +361,14 @@ const Header = () => {
               <FaSearch size={20} />
             </button>
 
-            {/* Mobile cart with badge */}
-            <Link to='/cart' className='nav-icon-link header-icon-cart' aria-label='Cart'>
-              <FaShoppingCart size={20} />
-              {totalItems > 0 && (
-                <Badge bg='' className='header-cart-badge'>{totalItems}</Badge>
-              )}
-            </Link>
-
-            {/* Mobile profile */}
-            <Link
-              to={userInfo ? '/profile' : '/login'}
-              className='nav-icon-link'
-              aria-label='Profile'
-            >
-              <FaUser size={20} />
-            </Link>
+           {/* Cart and profile now live in the bottom tab bar on mobile/tablet */}
 
             {/* Notification bell — only shown when logged in */}
             <NotificationBell />
 
-            {/* Mobile hamburger — opens drawer */}
-            <button
-              className='nav-icon-link header-mobile-btn'
-              onClick={() => setShowDrawer(true)}
-            aria-label='Open drawer'
-            >
-              <FaBars size={20} />
-            </button>
+            
+          {/* The drawer is opened by the bottom bar's "More" tab */}
+          
           </div>
 
         </div>{/* /header-container */}

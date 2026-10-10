@@ -16,10 +16,13 @@ import AnnouncementBar from './components/AnnouncementBar/AnnouncementBar';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import ChatWidget from './components/ChatWidget/ChatWidget';
+import BottomNav from './components/BottomNav/BottomNav';
+import BackRow from './components/BackRow/BackRow';
 import Toast from './components/Toast/Toast';
 
 // ── Pages ────────────────────────────────────────────────────
 import HomePage from './pages/HomePage';
+import CategoriesPage from './pages/CategoriesPage';
 import ProductPage from './pages/ProductPage';
 import CartPage from './pages/CartPage';
 import LoginPage from './pages/LoginPage';
@@ -84,11 +87,13 @@ const App = () => {
       {/* Container restored — full-width pages manage their own width internally */}
     <main id='main-content' className='py-3'>
         <Container>
+        <BackRow />
           <Routes>
           {/* ── Public Routes ── */}
           <Route path='/' element={<HomePage />} />
           <Route path='/product/:id' element={<ProductPage />} />
           <Route path='/cart' element={<CartPage />} />
+          <Route path='/categories' element={<CategoriesPage />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/register' element={<RegisterPage />} />
           <Route path='/offers' element={<SpecialOffersPage />} />
@@ -135,6 +140,7 @@ const App = () => {
       </main>
 
       <Footer />
+    <BottomNav />
       <ChatWidget />
       <Toast />
     </Router>
