@@ -19,6 +19,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { CATEGORY_NAMES } from '../data/categories';
 import {
   Form, Button, Card, Alert,
   Spinner, Row, Col, Image,
@@ -30,28 +31,7 @@ import { showToast } from '../components/Toast/Toast';
 import './AdminProductEditPage.css';
 
 // ── Constants ─────────────────────────────────────────────────
-const CATEGORIES = [
-  'Electronics','Fashion & Apparel','Fabric & Textiles','Home & Kitchen',
-  'Food & Grocery','Beauty & Personal Care','Hardware & Tools',
-  'Office & Stationery','Agriculture & Garden','Baby & Kids',
-  'Sports & Outdoors','Health & Wellness','General Merchandise',
-];
-
-const CATEGORY_TAGS = {
-  'Electronics':            ['electronics','gadgets','wholesale','bulk','accessories','cables','tech'],
-  'Fashion & Apparel':      ['fashion','clothing','wholesale','bulk','apparel','garments','uniforms'],
-  'Fabric & Textiles':      ['fabric','textiles','wholesale','bulk','material','cotton','thread'],
-  'Home & Kitchen':         ['home','kitchen','household','wholesale','bulk','utensils','cookware'],
-  'Food & Grocery':         ['food','grocery','wholesale','bulk','packaged','beverages','staples'],
-  'Beauty & Personal Care': ['beauty','cosmetics','wholesale','bulk','skincare','haircare','grooming'],
-  'Hardware & Tools':       ['hardware','tools','wholesale','bulk','industrial','construction','fittings'],
-  'Office & Stationery':    ['office','stationery','wholesale','bulk','school','supplies','paper'],
-  'Agriculture & Garden':   ['agriculture','garden','wholesale','bulk','farming','seeds','fertiliser'],
-  'Baby & Kids':            ['baby','kids','children','wholesale','bulk','toys','feeding'],
-  'Sports & Outdoors':      ['sports','outdoor','wholesale','bulk','fitness','equipment','activewear'],
-  'Health & Wellness':      ['health','wellness','wholesale','bulk','supplements','vitamins','hygiene'],
-  'General Merchandise':    ['general','merchandise','wholesale','bulk','variety','assorted'],
-};
+const CATEGORIES = CATEGORY_NAMES;
 
 const UNIT_HINTS = {
   'Per Unit': 'Single item — e.g. one phone, one chair',

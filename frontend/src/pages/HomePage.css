@@ -387,3 +387,13 @@
     margin: 20px 0;
   }
 }
+
+.hp-deals-banner .hp-deals-banner__cta {
+  box-sizing: border-box;
+  align-self: stretch;
+  width: auto;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  justify-content: center;
+}

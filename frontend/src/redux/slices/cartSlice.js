@@ -5,7 +5,7 @@ import axios from 'axios';
 // Mirrors the rule in orderController.createOrder exactly.
 const effectivePricing = (data) => {
   const onSale = Boolean(
-    (data.isOnSale || data.isClearance) &&
+        data.isOnSale &&
     data.salePrice > 0 &&
     data.salePrice < data.price
   );

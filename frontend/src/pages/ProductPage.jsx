@@ -138,7 +138,7 @@ const submitReviewHandler = (e) => {
   // and actually cheaper than the regular price.
   const onSale = Boolean(
     product &&
-    (product.isOnSale || product.isClearance) &&
+    product.isOnSale &&
     product.salePrice > 0 &&
     product.salePrice < product.price
   );
@@ -150,7 +150,7 @@ const submitReviewHandler = (e) => {
 
   return (
     <>
-      <Link className='btn btn-light my-3' to='/'>Go Back</Link>
+      
 
       {loadingDetails ? (
         <div className='text-center py-5'><Spinner animation='border' className='pp-spinner' /></div>

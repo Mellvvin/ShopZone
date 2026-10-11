@@ -19,3 +19,5 @@ export const CATEGORIES = [
   { label: 'Health & Wellness', icon: <FaHeartbeat />, value: 'Health & Wellness' },
   { label: 'General Merchandise', icon: <FaBoxOpen />, value: 'General Merchandise' },
 ];
+
+export const CATEGORY_NAMES = CATEGORIES.map((c) => c.value);

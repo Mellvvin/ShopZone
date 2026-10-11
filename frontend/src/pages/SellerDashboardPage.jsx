@@ -12,6 +12,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { CATEGORY_NAMES } from '../data/categories';
 import { Container, Row, Col, Card, Spinner, Alert, Badge, Table, Modal } from 'react-bootstrap';
 import { useSearchParams } from 'react-router-dom';
 import { FaStore, FaBox, FaClipboardList, FaMoneyBillWave, FaTruck, FaPen } from 'react-icons/fa';
@@ -168,12 +169,7 @@ const [activeTab,       setActiveTab]       = useState(searchParams.get('tab') |
   const [editSubmitError,    setEditSubmitError]    = useState('');
   const [editSubmitSuccess,  setEditSubmitSuccess]  = useState(false);
 
-  const PRODUCT_CATEGORIES = [
-    'Electronics','Fashion & Apparel','Home & Kitchen','Food & Grocery',
-    'Beauty & Personal Care','Hardware & Tools','Office & Stationery',
-    'Agriculture & Garden','Baby & Kids','Sports & Outdoors',
-    'Health & Wellness','Fabric & Textiles','General Merchandise',
-  ];
+  const PRODUCT_CATEGORIES = CATEGORY_NAMES;
 
   const UNIT_TYPES = [
     'Per Unit','Bale','Carton','Sack','Dozen','Kg',

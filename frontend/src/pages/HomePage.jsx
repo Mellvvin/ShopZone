@@ -269,13 +269,6 @@ useEffect(() => {
       {isBrowsingMode && (
         <div className='homepage__browse-wrapper'>
           <div className='homepage__browse-header'>
-            <button
-              className='homepage__back-btn'
-              onClick={() => navigate('/')}
-              aria-label='Back to homepage'
-            >
-              <FaArrowLeft aria-hidden='true' /> Back to Home
-            </button>
             <h1 className='homepage__browse-title'>{getBrowseHeading()}</h1>
           </div>
 

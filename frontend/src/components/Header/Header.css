@@ -452,3 +452,60 @@
         padding: 0 3px;
     }
 }
+
+/* ── Mobile top row: roomier, easier-to-tap icons ───────────── */
+@media (max-width: 991px) {
+    .header-mobile-icons {
+        gap: 0.5rem;
+        margin-right: -0.4rem;
+        /* the 44px boxes carry their own padding */
+    }
+
+    .header-mobile-icons .nav-icon-link,
+    .header-mobile-icons .header-mobile-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .header-mobile-icons .nav-icon-link svg,
+    .header-mobile-icons .header-mobile-btn svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .header-mobile-icons .notif-bell-badge {
+        top: 4px;
+        right: 3px;
+    }
+}
+
+@media (max-width: 360px) {
+
+    .header-mobile-icons .nav-icon-link,
+    .header-mobile-icons .header-mobile-btn {
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .header-mobile-icons .nav-icon-link svg,
+    .header-mobile-icons .header-mobile-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* ── Stop iPhone Safari zooming the page when an input is focused ──
+   Safari zooms in (and stays zoomed) when a focused field's text is
+   under 16px. This is what was pushing the search panel and the bell
+   off-screen. Touch devices only, so desktop sizing is untouched. */
+@media (max-width: 991px) and (pointer: coarse) {
+
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+    select,
+    textarea {
+        font-size: 16px;
+    }
+}

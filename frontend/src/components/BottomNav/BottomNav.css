@@ -18,7 +18,7 @@
         align-items: stretch;
         height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
         padding-bottom: env(safe-area-inset-bottom, 0px);
-        background: linear-gradient(to top, rgba(210, 180, 140, 0.32), #faf8f5 70%);
+        background: linear-gradient(to top, #ede2d3, #faf8f5 70%);
         border-top: 1px solid rgba(0, 33, 71, 0.08);
     }
 
