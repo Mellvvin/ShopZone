@@ -1,0 +1,63 @@
+/* frontend/src/components/LegalDocument/LegalDocument.css
+   Styles for the shared legal document layout. */
+
+.legal-page {
+    min-height: 100vh;
+    background: var(--off-white);
+}
+
+.legal-hero {
+    background: var(--oxford-blue);
+    padding: 44px 24px 32px;
+    text-align: center;
+}
+
+.legal-hero__title {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+}
+
+.legal-hero__updated {
+    color: var(--tan);
+    font-size: 0.82rem;
+    margin: 0;
+}
+
+.legal-body {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+}
+
+.legal-intro {
+    font-size: 1rem;
+    color: #333;
+    line-height: 1.7;
+    margin: 0 0 28px;
+}
+
+.legal-section {
+    margin-bottom: 26px;
+}
+
+.legal-section__heading {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+    margin: 0 0 8px;
+}
+
+.legal-section__text {
+    font-size: 0.92rem;
+    color: #444;
+    line-height: 1.7;
+    margin: 0 0 8px;
+}
+
+@media (max-width: 480px) {
+    .legal-hero__title {
+        font-size: 1.6rem;
+    }
+}

@@ -26,7 +26,9 @@ const BottomNav = () => {
 
   // "More" opens the existing drawer, which lives inside Header, so it
   // asks for it with a window event rather than shared state.
-  const openDrawer = () => window.dispatchEvent(new Event('shopzone:open-drawer'));
+    const openDrawer = () => window.dispatchEvent(new Event('shopzone:open-drawer'));
+  // Any tab tap dismisses the drawer, even if the route doesn't change
+  const closeDrawer = () => window.dispatchEvent(new Event('shopzone:close-drawer'));
 
   return (
     <nav className='bottom-nav' aria-label='Main navigation'>
@@ -37,6 +39,7 @@ const BottomNav = () => {
           state={tab.state}
           className={`bottom-nav__tab${tab.active ? ' bottom-nav__tab--active' : ''}`}
           aria-current={tab.active ? 'page' : undefined}
+          onClick={closeDrawer}
         >
           <span className='bottom-nav__icon' aria-hidden='true'>
             {tab.icon}

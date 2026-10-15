@@ -19,7 +19,8 @@
 //   onLogout  {function} — dispatches logout
 // ─────────────────────────────────────────────────────────────
 import React, { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
     FaTimes, FaSignOutAlt,
     FaMobileAlt, FaTshirt, FaScroll, FaHome, FaShoppingBasket,
@@ -33,10 +34,32 @@ import './MobileDrawer.css';
 // ── Category list (same source of truth as CategoryBar) ───────
 import { CATEGORIES } from '../../data/categories';
 
-const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
+const MobileDrawerInner = ({ isOpen, onClose, userInfo, onLogout }) => {
     const navigate = useNavigate();
     const drawerRef = useRef(null);
     const previousFocusRef = useRef(null);
+    const location = useLocation();
+
+    // Keep the latest onClose without re-running effects every render
+    const onCloseRef = useRef(onClose);
+    onCloseRef.current = onClose;
+
+    // Close whenever the route changes (any link tap, bottom tab, back)
+    useEffect(() => {
+        onCloseRef.current();
+    }, [location.pathname, location.search]);
+
+    // Close when a bottom tab is tapped (covers tapping the tab you're already on)
+    useEffect(() => {
+        const close = () => onCloseRef.current();
+        window.addEventListener('shopzone:close-drawer', close);
+        return () => {
+            window.removeEventListener('shopzone:close-drawer', close);
+            // Never leave the page scroll-locked if the drawer unmounts open
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+        };
+    }, []);
 
     useEffect(() => {
         if (isOpen) {
@@ -45,9 +68,11 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
             // Focus the drawer panel so keyboard users are inside it
             setTimeout(() => drawerRef.current?.focus(), 50);
             // Prevent background scroll
+            document.documentElement.style.overflow = 'hidden';
             document.body.style.overflow = 'hidden';
         } else {
             // Restore focus to the element that triggered the drawer
+            document.documentElement.style.overflow = '';
             document.body.style.overflow = '';
             setTimeout(() => previousFocusRef.current?.focus(), 50);
         }
@@ -256,5 +281,9 @@ const MobileDrawer = ({ isOpen, onClose, userInfo, onLogout }) => {
         </>
     );
 };
+
+// Rendered on document.body so it escapes the sticky header's stacking
+// context and layers correctly against the bottom bar.
+const MobileDrawer = (props) => createPortal(<MobileDrawerInner {...props} />, document.body);
 
 export default MobileDrawer;

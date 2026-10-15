@@ -8,7 +8,10 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 33, 71, 0.45);
-    z-index: 1199;
+    z-index: 1040;
+    /* just below the bottom bar (1050) so tabs stay tappable */
+    overscroll-behavior: contain;
+    touch-action: none;
     animation: drawerFadeIn 0.2s ease;
 }
 
@@ -27,14 +30,16 @@
     position: fixed;
     top: 0;
     left: 0;
-    height: 100dvh;
+    bottom: 0;
     width: 300px;
     max-width: 85vw;
     background: #fff;
-    z-index: 1200;
+    z-index: 1041;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     /* Start off-screen to the left */
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -251,4 +256,11 @@
 
 .drawer-nav-link--seller:hover {
     background-color: rgba(210, 180, 140, 0.28);
+}
+
+/* Tablet and phone: stop the panel above the bottom bar so Sign Out is reachable */
+@media (max-width: 991px) {
+    .mobile-drawer {
+        bottom: calc(var(--bottom-nav-height, 62px) + env(safe-area-inset-bottom, 0px));
+    }
 }
