@@ -33,7 +33,7 @@ import { clearCartItems } from '../redux/slices/cartSlice';
 import { showToast } from '../components/Toast/Toast';
 import {
   FaShoppingBag, FaTruck, FaCreditCard,
-  FaExclamationTriangle, FaInfoCircle, FaCheckCircle, FaArrowLeft,
+    FaExclamationTriangle, FaInfoCircle, FaCheckCircle,
 } from 'react-icons/fa';
 import CheckoutSteps from '../components/CheckoutSteps/CheckoutSteps';
 import './PlaceOrderPage.css';
@@ -199,16 +199,7 @@ const PlaceOrderPage = () => {
       {/* ── Progress indicator ─────────────────────────────────────────── */}
       <CheckoutSteps currentStep={4} />
 
-      {/* ── Back link ─────────────────────────────────────────────────── */}
-      <div className='place-order-page__back'>
-        <button
-          className='place-order-back-btn'
-          onClick={() => navigate('/payment')}
-          aria-label='Back to payment'
-        >
-          <FaArrowLeft aria-hidden='true' /> Back
-        </button>
-      </div>
+    
 
       <div className='place-order-page__inner'>
 

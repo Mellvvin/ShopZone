@@ -53,6 +53,9 @@ import AboutPage from './pages/AboutPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import AdminSellersPage from './pages/AdminSellersPage';
 import AdminUserDetailPage from './pages/AdminUserDetailPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsPage from './pages/TermsPage';
+import CookiePolicyPage from './pages/CookiePolicyPage';
 
 
 
@@ -102,6 +105,9 @@ const App = () => {
           <Route path='/become-seller' element={<BecomeSellerPage />} />
           <Route path='/shipping-policy' element={<ShippingPolicyPage />} />
           <Route path='/returns-policy' element={<ReturnsPolicyPage />} />
+          <Route path='/privacy-policy' element={<PrivacyPolicyPage />} />
+          <Route path='/terms' element={<TermsPage />} />
+          <Route path='/cookie-policy' element={<CookiePolicyPage />} />
           <Route path='/brands' element={<BrandsPage />} />
           <Route path='/bulk-orders' element={<BulkOrdersPage />} />
           <Route path='/about' element={<AboutPage />} />

@@ -11,6 +11,7 @@ import {
   FaMapMarkerAlt, FaPhone, FaClock
 } from 'react-icons/fa';
 import ShopZoneLogo from '../ShopZoneLogo/ShopZoneLogo';
+import { SITE } from '../../data/siteConfig';
 import './Footer.css';
 
 const Footer = () => {
@@ -111,8 +112,8 @@ const Footer = () => {
           <ul className='footer-contact-list'>
             {[
               { icon: <FaMapMarkerAlt size={14} />, text: 'Nairobi, Kenya' },
-              { icon: <FaPhone size={14} />, text: '+254 700 000 000', href: 'tel:+254700000000' },
-              { icon: <FaEnvelope size={14} />, text: 'support@shopzone.com', href: 'mailto:support@shopzone.com' },
+              { icon: <FaPhone size={14} />, text: SITE.supportPhone, href: `tel:${SITE.supportPhone.replace(/\s/g, '')}` },
+              { icon: <FaEnvelope size={14} />, text: SITE.supportEmail, href: `mailto:${SITE.supportEmail}` },
               { icon: <FaClock size={14} />, text: 'Mon–Fri, 8am–6pm EAT' },
             ].map((item, index) => (
               <li key={index} className='footer-contact-item'>
@@ -151,11 +152,11 @@ const Footer = () => {
       {/* Legal links */}
       <Col md={6} className='text-center text-md-end'>
         <span className='footer-legal'>
-          <span className='footer-legal-link'>Terms of Service</span>
+          <Link to='/terms' className='footer-legal-link'>Terms of Service</Link>
           ·
-          <span className='footer-legal-link'>Privacy Policy</span>
+          <Link to='/privacy-policy' className='footer-legal-link'>Privacy Policy</Link>
           ·
-          <span className='footer-legal-link'>Cookie Policy</span>
+          <Link to='/cookie-policy' className='footer-legal-link'>Cookie Policy</Link>
         </span>
       </Col>
 

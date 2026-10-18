@@ -5,7 +5,7 @@
 // topic cards, split form layout, scroll reveals.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import {
@@ -15,6 +15,7 @@ import {
     FaMapMarkerAlt, FaChevronRight, FaUsers, FaTruck,
     FaPaperclip, FaTimes,
 } from 'react-icons/fa';
+import { SITE } from '../data/siteConfig';
 import './ContactPage.css';
 
 // ── Particle ──────────────────────────────────────────────────────────────────
@@ -140,7 +141,7 @@ const TOPICS = [
 const CONTACT_INFO = [
     { icon: FaWhatsapp, label: 'WhatsApp', value: '+254 700 000 000', sub: 'Fastest response — replies within minutes', href: 'https://wa.me/254700000000', accent: '#25d366' },
     { icon: FaPhone, label: 'Phone', value: '+254 700 000 000', sub: 'Mon–Fri, 8am–6pm EAT', href: 'tel:+254700000000', accent: '#002147' },
-    { icon: FaEnvelope, label: 'Email', value: 'support@shopzone.com', sub: 'We reply within 4 business hours', href: 'mailto:support@shopzone.com', accent: '#D2B48C' },
+    { icon: FaEnvelope, label: 'Email', value: SITE.supportEmail, sub: 'We reply within 4 business hours', href: `mailto:${SITE.supportEmail}`, accent: '#D2B48C' },
     { icon: FaMapMarkerAlt, label: 'Location', value: 'Nairobi, Kenya', sub: 'Online platform — serving all 47 counties', href: null, accent: '#002147' },
 ];
 
@@ -526,7 +527,10 @@ const ContactPage = () => {
                                         <FaPaperPlane aria-hidden='true' />
                                         {submitLoading ? 'Sending…' : 'Send Message'}
                                     </button>
-                                    <p className='contact-form__note'>All communication goes through ShopZone — your details are never shared with third parties.</p>
+                                    <p className='contact-form__note'>
+                                        All communication goes through ShopZone — your details are never shared with third parties.
+                                        See our <Link to='/privacy-policy'>Privacy Policy</Link>.
+                                    </p>
                                 </form>
                             </>
                         )}

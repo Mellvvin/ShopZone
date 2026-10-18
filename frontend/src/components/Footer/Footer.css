@@ -140,13 +140,22 @@
     font-size: 0.8rem;
 }
 
-/* Individual legal link — Terms, Privacy, Cookie */
+/* Individual legal link — Terms, Privacy, Cookie (now real router links) */
 .footer-legal-link {
     margin: 0 0.5rem;
     cursor: pointer;
+    color: inherit;
+    text-decoration: none;
     transition: color 0.2s ease;
 }
 
 .footer-legal-link:hover {
     color: var(--tan);
+}
+
+/* Tablet and phone: keep the last footer rows (legal links) clear of the fixed bottom bar */
+@media (max-width: 991px) {
+    .footer-wrapper {
+        padding-bottom: calc(var(--bottom-nav-height, 62px) + env(safe-area-inset-bottom, 0px) + 8px);
+    }
 }

@@ -15,7 +15,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Spinner, Alert } from 'react-bootstrap';
-import { FaClock, FaArrowLeft } from 'react-icons/fa';
+import { FaClock } from 'react-icons/fa';
 import { listProducts } from '../redux/slices/productSlice';
 import { addToCart } from '../redux/slices/cartSlice';
 import { showToast } from '../components/Toast/Toast';
@@ -57,9 +57,7 @@ const NewArrivalsPage = () => {
                             The latest products added to ShopZone — updated as new stock arrives.
                         </p>
                     </div>
-                    <Link to='/' className='na-back-link'>
-                        <FaArrowLeft aria-hidden='true' /> Back to Shop
-                    </Link>
+                    
                 </div>
             </div>
 

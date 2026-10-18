@@ -25,7 +25,7 @@ import ConfirmModal from '../components/ConfirmModal/ConfirmModal';
 import { formatDateTime as formatNairobiDateTime, formatDateShort } from '../utils/formatDateTime';
 import ScrollableTabBar from '../components/ScrollableTabBar/ScrollableTabBar';
 import {
-    FaArrowLeft, FaUser, FaStore, FaBoxOpen,
+    FaUser, FaStore, FaBoxOpen,
     FaClipboardList, FaEnvelope, FaBell,
     FaCheckCircle, FaTimesCircle, FaClock,
     FaBan, FaExclamationTriangle, FaCalendar,
@@ -239,11 +239,6 @@ const AdminUserDetailPage = () => {
     // ── Loading state ─────────────────────────────────────────
     if (loading) return (
         <div className='aud-page'>
-            <div className='aud-header'>
-                <button className='aud-back-btn' onClick={() => navigate(-1)}>
-                    <FaArrowLeft aria-hidden='true' /> Back
-                </button>
-            </div>
             <div className='aud-state'>
                 <div className='aud-spinner' aria-label='Loading…' />
                 <p>Loading profile…</p>
@@ -254,12 +249,7 @@ const AdminUserDetailPage = () => {
     // ── Error state ───────────────────────────────────────────
     if (error) return (
         <div className='aud-page'>
-            <div className='aud-header'>
-                <button className='aud-back-btn' onClick={() => navigate(-1)}>
-                    <FaArrowLeft aria-hidden='true' /> Back
-                </button>
-            </div>
-            <div className='aud-state aud-state--error'>
+                <div className='aud-state aud-state--error'>
                 <FaExclamationTriangle aria-hidden='true' />
                 <p>{error}</p>
                 <button className='aud-retry-btn' onClick={fetchProfile}>Retry</button>
@@ -310,13 +300,7 @@ const AdminUserDetailPage = () => {
             {/* ── Page header ────────────────────────────── */}
             <div className='aud-header'>
                 <div className='aud-header__left'>
-                    <button
-                        className='aud-back-btn'
-                        onClick={() => navigate(-1)}
-                        aria-label='Go back'
-                    >
-                        <FaArrowLeft aria-hidden='true' /> Back
-                    </button>
+                    
                     <div className='aud-header__avatar'>
                         {user.name.charAt(0).toUpperCase()}
                     </div>

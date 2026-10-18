@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Spinner, Alert } from 'react-bootstrap';
-import { FaStar, FaArrowLeft } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { listProducts } from '../redux/slices/productSlice';
 import { addToCart } from '../redux/slices/cartSlice';
 import { showToast } from '../components/Toast/Toast';
@@ -52,9 +52,7 @@ const FeaturedPage = () => {
                             Handpicked wholesale favourites — verified quality, reliable stock, ready to order.
                         </p>
                     </div>
-                    <Link to='/' className='fp-back-link'>
-                        <FaArrowLeft aria-hidden='true' /> Back to Shop
-                    </Link>
+                    
                 </div>
             </div>
 

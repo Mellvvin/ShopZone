@@ -11,7 +11,16 @@ export const SITE = {
   legalName: 'ShopZone Wholesale',
   // PLACEHOLDER — a free Gmail works until a domain is bought.
   supportEmail: 'support@shopzone.com',
+  // PLACEHOLDER — real number once a business line exists.
+  supportPhone: '+254 700 000 000',
   location: 'Nairobi, Kenya',
+  // PLACEHOLDERS — filled in once registration is complete.
+  registrationNumber: '[Company registration number — to be added]',
+  kraPin: '[KRA PIN — to be added]',
+  odpcRegistration: '[ODPC registration number — to be added]',
   // Shown at the top of every legal document.
-  legalLastUpdated: '15 October 2026',
+  legalLastUpdated: '18 October 2026',
+  // While true, every legal page shows a "draft" notice banner.
+  // Set to false once a lawyer has reviewed and approved the text.
+  isPlaceholder: true,
 };

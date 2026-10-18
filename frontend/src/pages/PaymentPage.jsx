@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { savePaymentMethod } from '../redux/slices/cartSlice';
 import {
   FaCreditCard, FaMobileAlt, FaUniversity,
-  FaArrowLeft, FaCheckCircle, FaShieldAlt,
+    FaCheckCircle, FaShieldAlt,
 } from 'react-icons/fa';
 import CheckoutSteps from '../components/CheckoutSteps/CheckoutSteps';
 import './PaymentPage.css';
@@ -73,14 +73,7 @@ const PaymentPage = () => {
 
       <div className='payment-page__inner'>
 
-        {/* ── Back button ─────────────────────────────────────────── */}
-        <button
-          className='payment-back-btn'
-          onClick={() => navigate('/shipping')}
-          aria-label='Back to shipping'
-        >
-          <FaArrowLeft aria-hidden='true' /> Back
-        </button>
+        
 
         <div className='payment-card'>
           <h1 className='payment-card__title'>Payment Method</h1>
