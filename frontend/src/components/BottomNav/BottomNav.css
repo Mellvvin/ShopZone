@@ -65,6 +65,12 @@
     background: var(--oxford-blue);
 }
 
+/* More tab while the drawer is open: soft filled background so it reads
+   as the "close" trigger, on top of the normal active colour. */
+.bottom-nav__tab--open {
+    background: rgba(0, 33, 71, 0.08);
+}
+
 .bottom-nav__icon {
     position: relative;
     display: inline-flex;

@@ -65,6 +65,7 @@ const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Notification = require('../models/Notification');
+const { TERMS_VERSION } = require('../config/terms');
 const {
   getShippingRate,
   hasAnyTier2Item,
@@ -169,6 +170,16 @@ const createOrder = async (req, res) => {
     } = req.body;
 
     // ── Basic validation ────────────────────────────────────────────────
+    // ── Terms gate (ISS-091) ────────────────────────────────────────────
+    // The frontend prompts first, but this is the real wall (rule 14).
+    // Runs before any stock is touched. 403 (not 401) so the session-expiry
+    // interceptor does not mistake it for a logged-out session.
+    if (req.user.termsVersion !== TERMS_VERSION) {
+      return res.status(403).json({
+        message: 'Please accept the updated Terms of Service and Privacy Policy before placing an order.',
+      });
+    }
+
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ message: 'No order items provided' });
     }

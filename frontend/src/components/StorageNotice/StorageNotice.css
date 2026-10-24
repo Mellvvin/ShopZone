@@ -1,11 +1,9 @@
-/* frontend/src/components/CookieBanner/CookieBanner.css
-   ─────────────────────────────────────────────────────────
-   Fixed bottom-centre consent bar.
-   z-index 1045: above page content, below the bottom tab bar (1050).
-   At 991px and below it lifts above the bottom bar using the shared
-   --bottom-nav-height variable (rule 94). Toast stays bottom-left. */
+/* frontend/src/components/StorageNotice/StorageNotice.css
+   z-index 1045: above content, below the bottom tab bar (1050).
+   Lifts above the bar at 991px and below (rule 94).
+   Text is explicitly white (a global p rule was making it black). */
 
-.cookie-banner {
+.sz-notice {
     position: fixed;
     left: 50%;
     bottom: 16px;
@@ -17,23 +15,19 @@
     gap: 14px;
     padding: 12px 16px;
     background: var(--oxford-blue);
-    color: var(--off-white);
     border: 1px solid rgba(210, 180, 140, 0.35);
     border-radius: 14px;
     box-shadow: 0 8px 28px rgba(0, 33, 71, 0.35);
-    animation: cookie-banner-in 0.35s ease both;
+    animation: sz-notice-in 0.35s ease both;
 }
 
-.cookie-banner__icon {
+.sz-notice__icon {
     flex-shrink: 0;
     font-size: 1.4rem;
     color: var(--tan);
 }
 
-/* Explicit white: a global p/button colour rule was making this black
-   on the Oxford Blue bar. The doubled selector raises specificity so
-   it always wins. */
-.cookie-banner .cookie-banner__text {
+.sz-notice .sz-notice__text {
     flex: 1;
     margin: 0;
     font-size: 0.82rem;
@@ -41,19 +35,19 @@
     color: #ffffff;
 }
 
-.cookie-banner__link {
+.sz-notice .sz-notice__link {
     color: var(--tan);
     text-decoration: underline;
     text-underline-offset: 2px;
 }
 
-.cookie-banner__actions {
+.sz-notice__actions {
     display: flex;
     gap: 8px;
     flex-shrink: 0;
 }
 
-.cookie-banner__btn {
+.sz-notice__btn {
     font-family: inherit;
     font-size: 0.78rem;
     font-weight: 700;
@@ -64,29 +58,28 @@
     transition: opacity 0.15s;
 }
 
-.cookie-banner__btn:hover {
+.sz-notice__btn:hover {
     opacity: 0.88;
 }
 
-.cookie-banner__btn:focus-visible {
+.sz-notice__btn:focus-visible {
     outline: 2px solid var(--tan);
     outline-offset: 2px;
 }
 
-.cookie-banner__btn--primary {
+.sz-notice .sz-notice__btn--primary {
     background: var(--tan);
     color: var(--oxford-blue);
     border: 1px solid var(--tan);
 }
 
-/* Essential only: white text on the dark bar, same specificity fix. */
-.cookie-banner .cookie-banner__btn--ghost {
+.sz-notice .sz-notice__btn--ghost {
     background: transparent;
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
-@keyframes cookie-banner-in {
+@keyframes sz-notice-in {
     from {
         opacity: 0;
         transform: translate(-50%, 12px);
@@ -98,29 +91,28 @@
     }
 }
 
-/* Tablet and phone: clear the fixed bottom tab bar, stack content. */
 @media (max-width: 991px) {
-    .cookie-banner {
+    .sz-notice {
         bottom: calc(var(--bottom-nav-height, 62px) + 10px + env(safe-area-inset-bottom, 0px));
     }
 }
 
 @media (max-width: 600px) {
-    .cookie-banner {
+    .sz-notice {
         flex-wrap: wrap;
         gap: 10px;
         padding: 12px;
     }
 
-    .cookie-banner__text {
+    .sz-notice .sz-notice__text {
         flex-basis: calc(100% - 40px);
     }
 
-    .cookie-banner__actions {
+    .sz-notice__actions {
         width: 100%;
     }
 
-    .cookie-banner__btn {
+    .sz-notice__btn {
         flex: 1;
         padding: 10px 12px;
     }

@@ -49,6 +49,13 @@ const MobileDrawerInner = ({ isOpen, onClose, userInfo, onLogout }) => {
         onCloseRef.current();
     }, [location.pathname, location.search]);
 
+    // Tell the rest of the app whether the drawer is open, so the bottom
+    // bar's More tab can switch between "More" and "Close" without owning
+    // the drawer's state (that lives in Header).
+    useEffect(() => {
+        window.dispatchEvent(new CustomEvent('shopzone:drawer-state', { detail: { open: isOpen } }));
+    }, [isOpen]);
+
     // Close when a bottom tab is tapped (covers tapping the tab you're already on)
     useEffect(() => {
         const close = () => onCloseRef.current();

@@ -5,6 +5,7 @@
 // SpecialOffersPage) manage their own max-width internally.
 // Pages that need a container import it themselves.
 // ─────────────────────────────────────────────────────────────
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
@@ -19,7 +20,12 @@ import ChatWidget from './components/ChatWidget/ChatWidget';
 import BottomNav from './components/BottomNav/BottomNav';
 import BackRow from './components/BackRow/BackRow';
 import Toast from './components/Toast/Toast';
-import CookieBanner from './components/CookieBanner/CookieBanner';
+import OptionalBoundary from './components/OptionalBoundary/OptionalBoundary';
+
+// Lazy + boundary: a blocker killing this file can no longer stop the app mounting
+const StorageNotice = lazy(() => 
+import('./components/StorageNotice/StorageNotice'));
+
 import TermsUpdateModal from './components/TermsUpdateModal/TermsUpdateModal';
 
 // ── Pages ────────────────────────────────────────────────────
@@ -151,8 +157,12 @@ const App = () => {
     <BottomNav />
     <ChatWidget />
       <Toast />
-      {/* Cookie consent bar: fixed overlay, shows once until a choice is saved */}
-            <CookieBanner />
+      {/* Storage notice: optional overlay, isolated so a blocker cannot break the app */}
+      <OptionalBoundary>
+        <Suspense fallback={null}>
+          <StorageNotice />
+        </Suspense>
+      </OptionalBoundary>
       {/* Terms update prompt: shows for accounts that have not accepted the current version */}
             <TermsUpdateModal />
     </Router>

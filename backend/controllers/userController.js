@@ -45,11 +45,9 @@ const generateToken = (id, user) => {
 };
 
 // ── Terms consent (ISS-091) ───────────────────────────────────
-// Bump this string whenever the Terms of Service or Privacy Policy
-// change materially. Every account whose stored termsVersion differs
-// is prompted to accept again. Also update legalLastUpdated in
-// frontend/src/data/siteConfig.js at the same time.
-const TERMS_VERSION = '2026-10-24';
+// Current Terms version lives in backend/config/terms.js (shared with
+// orderController and enquiryController, which enforce it server-side).
+const { TERMS_VERSION } = require('../config/terms');
 
 // Consent fields attached to every user response so the frontend can
 // decide whether to show the prompt. termsUpToDate is computed here,

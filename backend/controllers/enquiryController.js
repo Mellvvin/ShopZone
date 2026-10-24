@@ -20,6 +20,7 @@
 const Enquiry      = require('../models/Enquiry');
 const User         = require('../models/User');
 const leoProfanity = require('leo-profanity');
+const { TERMS_VERSION } = require('../config/terms');
 leoProfanity.loadDictionary('en');
 
 // @desc    Create a new enquiry (from any form on the site)
@@ -43,6 +44,15 @@ const createEnquiry = async (req, res) => {
     if (!type || !name || !email) {
       return res.status(400).json({
         message: 'type, name, and email are required',
+      });
+    }
+
+    // ── Terms gate for seller applications only (ISS-091) ─────
+    // Support, contact and bulk-order forms stay open to everyone, since
+    // blocking someone from asking for help would be wrong.
+    if (type === 'seller_application' && req.user.termsVersion !== TERMS_VERSION) {
+      return res.status(403).json({
+        message: 'Please accept the updated Terms of Service and Privacy Policy before applying to sell.',
       });
     }
 

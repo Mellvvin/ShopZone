@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { FaHome, FaThLarge, FaShoppingCart, FaUser, FaEllipsisH } from 'react-icons/fa';
+import { FaHome, FaThLarge, FaShoppingCart, FaUser, FaEllipsisH, FaTimes } from 'react-icons/fa';
 import './BottomNav.css';
 
 const BottomNav = () => {
@@ -10,6 +11,15 @@ const BottomNav = () => {
   const totalItems = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
   const onCategoryListing = pathname === '/' && search.includes('category=');
+
+  // Mirrors the drawer's open state, announced by MobileDrawer via a
+  // window event. Drives the More / Close toggle below.
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => {
+    const onState = (e) => setDrawerOpen(!!e.detail?.open);
+    window.addEventListener('shopzone:drawer-state', onState);
+    return () => window.removeEventListener('shopzone:drawer-state', onState);
+  }, []);
 
   const tabs = [
     { key: 'home', label: 'Home', icon: <FaHome />, to: '/',
@@ -48,9 +58,20 @@ const BottomNav = () => {
           <span className='bottom-nav__label'>{tab.label}</span>
         </Link>
       ))}
-      <button type='button' className='bottom-nav__tab' onClick={openDrawer} aria-label='More options'>
-        <span className='bottom-nav__icon' aria-hidden='true'><FaEllipsisH /></span>
-        <span className='bottom-nav__label'>More</span>
+      
+      {/* More toggles the drawer: opens it when closed, closes it when open.
+          While open it shows an X, the active highlight and the label "Close". */}
+      <button
+        type='button'
+        className={`bottom-nav__tab${drawerOpen ? ' bottom-nav__tab--active bottom-nav__tab--open' : ''}`}
+        onClick={drawerOpen ? closeDrawer : openDrawer}
+        aria-label={drawerOpen ? 'Close menu' : 'More options'}
+        aria-expanded={drawerOpen}
+      >
+        <span className='bottom-nav__icon' aria-hidden='true'>
+          {drawerOpen ? <FaTimes /> : <FaEllipsisH />}
+        </span>
+        <span className='bottom-nav__label'>{drawerOpen ? 'Close' : 'More'}</span>
       </button>
     </nav>
   );
