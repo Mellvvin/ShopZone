@@ -87,6 +87,10 @@ const AdminUserDetailPage = () => {
 
     useEffect(() => { document.title = 'Admin: User Profile — ShopZone'; }, []);
 
+    // Auth header for the seller-status call below. It was referenced in
+    // confirmAction but never defined, which threw a ReferenceError.
+    const config = { headers: { Authorization: `Bearer ${userInfo?.token}` } };
+
     // ── Data state ────────────────────────────────────────────
     const [data, setData]       = useState(null);
     const [loading, setLoading] = useState(true);
@@ -376,6 +380,16 @@ const AdminUserDetailPage = () => {
                             <FaCalendar aria-hidden='true' />
                             <span className='aud-info-label'>Registered</span>
                             <span className='aud-info-value'>{formatDateTime(user.createdAt)}</span>
+                        </div>
+                        {/* ISS-091: consent record */}
+                        <div className='aud-info-row'>
+                            <FaCheckCircle aria-hidden='true' />
+                            <span className='aud-info-label'>Accepted Terms</span>
+                            <span className='aud-info-value'>
+                                {user.termsAcceptedAt
+                                    ? `${formatDateTime(user.termsAcceptedAt)} (version ${user.termsVersion || 'unknown'})`
+                                    : 'Not yet accepted'}
+                            </span>
                         </div>
                     </div>
                 </div>

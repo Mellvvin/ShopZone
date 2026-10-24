@@ -36,6 +36,7 @@ import {
     FaExclamationTriangle, FaInfoCircle, FaCheckCircle,
 } from 'react-icons/fa';
 import CheckoutSteps from '../components/CheckoutSteps/CheckoutSteps';
+import { requireCurrentTerms } from '../components/TermsUpdateModal/TermsUpdateModal';
 import './PlaceOrderPage.css';
 
 // ── Shipping zone lookup (mirrors backend/data/shippingRates.js) ──────────
@@ -134,6 +135,8 @@ const PlaceOrderPage = () => {
 
   // ── Place order handler ──────────────────────────────────────────────────
   const placeOrderHandler = async () => {
+    // ISS-091: accounts that have not accepted the current Terms must do so first
+    if (!requireCurrentTerms(userInfo)) return;
     try {
       setLoading(true);
       setError(null);
@@ -436,7 +439,10 @@ const PlaceOrderPage = () => {
             {/* Reassurance note */}
             <div className='place-order-summary__terms'>
               <p className='place-order-summary__note'>
-                By placing your order you agree to ShopZone's terms of service.
+               By placing your order you agree to ShopZone's{' '}
+                <Link to='/terms' className='place-order-summary__link'>Terms of Service</Link>
+                {' '}and{' '}
+                <Link to='/privacy-policy' className='place-order-summary__link'>Privacy Policy</Link>.
               </p>
               <ul className='place-order-summary__terms-list'>
                 <li>Payment is made to ShopZone — never directly to a supplier</li>

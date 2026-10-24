@@ -44,6 +44,22 @@ const generateToken = (id, user) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn });
 };
 
+// ── Terms consent (ISS-091) ───────────────────────────────────
+// Bump this string whenever the Terms of Service or Privacy Policy
+// change materially. Every account whose stored termsVersion differs
+// is prompted to accept again. Also update legalLastUpdated in
+// frontend/src/data/siteConfig.js at the same time.
+const TERMS_VERSION = '2026-10-24';
+
+// Consent fields attached to every user response so the frontend can
+// decide whether to show the prompt. termsUpToDate is computed here,
+// so the frontend never needs to know the current version string.
+const termsFields = (user) => ({
+  termsAcceptedAt: user.termsAcceptedAt || null,
+  termsVersion:    user.termsVersion || '',
+  termsUpToDate:   user.termsVersion === TERMS_VERSION,
+});
+
 // @desc    Register a new user
 // @route   POST /api/users
 // @access  Public
@@ -58,7 +74,16 @@ const registerUser = async (req, res) => {
       businessName,
       businessType,
       county,
+      agreedToTerms,
     } = req.body;
+
+    // ── Consent gate (ISS-091) ────────────────────────────────
+    // The API refuses to create an account unless the buyer agreed.
+    if (agreedToTerms !== true) {
+      return res.status(400).json({
+        message: 'You must agree to the Terms of Service and Privacy Policy to create an account.',
+      });
+    }
 
     // ── Password strength validation ──────────────────────────
     // At least 8 characters, one uppercase letter, one number.
@@ -102,6 +127,9 @@ const registerUser = async (req, res) => {
       businessName: accountType === 'business' ? businessName.trim() : '',
       businessType: accountType === 'business' ? businessType || '' : '',
       county: county || '',
+      // Server stamps consent; the client never supplies the date
+      termsAcceptedAt: new Date(),
+      termsVersion:    TERMS_VERSION,
     });
 
     if (user) {
@@ -119,7 +147,8 @@ const registerUser = async (req, res) => {
        isAdmin:      user.isAdmin,
         isSeller:     user.isSeller,
         sellerStatus: user.sellerStatus,
-        token:        generateToken(user._id),
+        ...termsFields(user),
+        token:        generateToken(user._id, user),
       });
     } else {
       res.status(400).json({ message: 'Invalid user data.' });
@@ -155,7 +184,8 @@ const loginUser = async (req, res) => {
         isAdmin:      user.isAdmin,
         isSeller:     user.isSeller,
         sellerStatus: user.sellerStatus,
-        token: generateToken(user._id),
+        ...termsFields(user),
+        token: generateToken(user._id, user),
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password.' });
@@ -192,6 +222,7 @@ const getUserProfile = async (req, res) => {
         shippingAddress: user.shippingAddress || {},
         savedMpesaNumber: user.savedMpesaNumber || '',
         notificationPreferences: user.notificationPreferences,
+        ...termsFields(user),
         createdAt: user.createdAt,
         isAdmin:      user.isAdmin,
         isSeller:     user.isSeller,
@@ -256,6 +287,7 @@ const updateUserProfile = async (req, res) => {
         shippingAddress: updatedUser.shippingAddress || {},
         savedMpesaNumber: updatedUser.savedMpesaNumber || '',
         notificationPreferences: updatedUser.notificationPreferences,
+        ...termsFields(updatedUser),
         createdAt:    updatedUser.createdAt,
         isAdmin:      updatedUser.isAdmin,
         isSeller:     updatedUser.isSeller,
@@ -758,6 +790,44 @@ const updateNotificationPreferences = async (req, res) => {
   }
 };
 
+// @desc    Record the logged-in user's acceptance of the current Terms
+// @route   PUT /api/users/accept-terms
+// @access  Private
+// Stamps date and version server-side, then returns the full fresh user
+// (with token) so the frontend can pass it straight to setCredentials.
+const acceptTerms = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.termsAcceptedAt = new Date();
+    user.termsVersion    = TERMS_VERSION;
+    const updatedUser = await user.save();
+
+    res.json({
+      _id:          updatedUser._id,
+      name:         updatedUser.name,
+      email:        updatedUser.email,
+      phone:        updatedUser.phone,
+      accountType:  updatedUser.accountType,
+      businessName: updatedUser.businessName,
+      businessType: updatedUser.businessType,
+      county:       updatedUser.county,
+      shippingAddress: updatedUser.shippingAddress || {},
+      savedMpesaNumber: updatedUser.savedMpesaNumber || '',
+      notificationPreferences: updatedUser.notificationPreferences,
+      ...termsFields(updatedUser),
+      createdAt:    updatedUser.createdAt,
+      isAdmin:      updatedUser.isAdmin,
+      isSeller:     updatedUser.isSeller,
+      sellerStatus: updatedUser.sellerStatus,
+      token:        generateToken(updatedUser._id, updatedUser),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ── Exports ───────────────────────────────────────────────────
 module.exports = {
   registerUser,
@@ -777,4 +847,5 @@ module.exports = {
   getRecentlyViewed,
   trackRecentlyViewed,
   updateNotificationPreferences,
+  acceptTerms,
 };

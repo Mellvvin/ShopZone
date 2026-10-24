@@ -1360,3 +1360,30 @@
 .bs-apply__upload-preview-remove:hover {
     background: rgba(192, 57, 43, 0.85);
 }
+
+/* ISS-086: Terms and Privacy agreement checkbox (inside the white form card) */
+.bs-apply__terms {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--oxford-blue);
+    cursor: pointer;
+}
+
+.bs-apply__terms input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    padding: 0;
+    accent-color: var(--oxford-blue);
+    cursor: pointer;
+}
+
+.bs-apply__terms a {
+    color: var(--oxford-blue);
+    font-weight: 700;
+    border-bottom: 1.5px solid var(--tan);
+}

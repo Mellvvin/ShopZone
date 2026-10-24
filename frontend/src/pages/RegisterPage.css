@@ -138,3 +138,23 @@
 .reg-submit-btn:hover:not(:disabled) {
     background: #003170 !important;
 }
+
+/* ISS-086: Terms and Privacy agreement checkbox */
+.reg-terms__label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--oxford-blue);
+    cursor: pointer;
+}
+
+.reg-terms__label input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--oxford-blue);
+    cursor: pointer;
+}

@@ -36,6 +36,7 @@ export const PRIVACY_POLICY = {
         'Seller information (sellers only): business address, business description, KRA PIN and the M-Pesa number used for payouts.',
         'Communications: messages and screenshots you send us through contact, bulk-order, support and seller-application forms, and your replies to our notifications.',
         'Usage information: products you view, items you save, searches you make and basic technical data such as browser type, used to keep the platform working and to improve it.',
+        'Consent records: the date and version of the Terms of Service and Privacy Policy you accepted, kept as proof of your agreement.',
       ],
     },
     {

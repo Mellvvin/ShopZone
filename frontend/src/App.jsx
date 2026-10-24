@@ -20,6 +20,7 @@ import BottomNav from './components/BottomNav/BottomNav';
 import BackRow from './components/BackRow/BackRow';
 import Toast from './components/Toast/Toast';
 import CookieBanner from './components/CookieBanner/CookieBanner';
+import TermsUpdateModal from './components/TermsUpdateModal/TermsUpdateModal';
 
 // ── Pages ────────────────────────────────────────────────────
 import HomePage from './pages/HomePage';
@@ -151,7 +152,9 @@ const App = () => {
     <ChatWidget />
       <Toast />
       {/* Cookie consent bar: fixed overlay, shows once until a choice is saved */}
-      <CookieBanner />
+            <CookieBanner />
+      {/* Terms update prompt: shows for accounts that have not accepted the current version */}
+            <TermsUpdateModal />
     </Router>
   );
 };

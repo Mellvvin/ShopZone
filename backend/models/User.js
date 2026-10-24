@@ -53,6 +53,13 @@ const userSchema = mongoose.Schema(
     // payouts are sent. Optional, buyer opts in.
     savedMpesaNumber: { type: String, default: '' },
 
+    // ── Terms consent record (ISS-091) ──────────────────────────
+    // Set by the server only (never trusted from the client).
+    // termsVersion lets us re-prompt everyone when the Terms change.
+    // Older accounts have null/'' here and get the update prompt.
+    termsAcceptedAt: { type: Date, default: null },
+    termsVersion:    { type: String, default: '' },
+
     // ── Notification preferences ────────────────────────────────
     // orderUpdates is not exposed as a toggle in the UI (operational,
     // not marketing) but stored here for consistency. The rest are

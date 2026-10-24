@@ -14,7 +14,7 @@
 //   8. Application CTA — the conversion moment
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import {
@@ -27,6 +27,7 @@ import {
     FaStar, FaRocket, FaClock, FaEye, FaEyeSlash,
     FaPaperclip, FaTimes,
 } from 'react-icons/fa';
+import { requireCurrentTerms } from '../components/TermsUpdateModal/TermsUpdateModal';
 import './BecomeSellerPage.css';
 
 // ── Kenyan counties for the delivery county dropdown ──────────
@@ -346,6 +347,10 @@ const [formData, setFormData] = useState({
     const [attachmentUploading, setAttachmentUploading] = useState(false);
     const [attachmentError, setAttachmentError]         = useState('');
 
+    // ISS-086: seller must accept the Terms (incl. seller commission and
+    // payout terms) and the Privacy Policy before applying
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
+
     useEffect(() => { document.title = 'Become a Seller — ShopZone'; }, []);
 
     // Typewriter effect for hero headline accent
@@ -417,6 +422,13 @@ const [formData, setFormData] = useState({
             navigate('/login', { state: { from: location.pathname } });
             return;
         }
+        // ISS-086 guard (button is also disabled until this is ticked)
+        if (!agreedToTerms) {
+            setSubmitError('Please agree to the Terms of Service and Privacy Policy to apply.');
+            return;
+        }
+        // ISS-091: existing accounts must accept the current Terms version first
+        if (!requireCurrentTerms(userInfo)) return;
         setSubmitLoading(true);
         setSubmitError('');
         try {
@@ -807,6 +819,7 @@ const [formData, setFormData] = useState({
                                             });
                                             setAttachments([]);
                                             setAttachmentError('');
+                                            setAgreedToTerms(false);
                                         }}
                                     >
                                         Submit another application
@@ -1002,6 +1015,21 @@ const [formData, setFormData] = useState({
                                         )}
                                     </div>
 
+                                                                        {/* ISS-086: Terms and Privacy agreement */}
+                                    <label className='bs-apply__terms'>
+                                        <input
+                                            type='checkbox'
+                                            checked={agreedToTerms}
+                                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                                        />
+                                        <span>
+                                            I have read and agree to the{' '}
+                                            <Link to='/terms' target='_blank' rel='noopener noreferrer'>Terms of Service</Link>
+                                            {' '}(including the seller commission and payout terms) and the{' '}
+                                            <Link to='/privacy-policy' target='_blank' rel='noopener noreferrer'>Privacy Policy</Link>.
+                                        </span>
+                                    </label>
+
                                     {/* Inline error if submission fails */}
                                     {submitError && (
                                         <p className='bs-apply__error' role='alert'>
@@ -1015,7 +1043,8 @@ const [formData, setFormData] = useState({
                                         disabled={
                                             !formData.businessName || !formData.contactName ||
                                             !formData.email || !formData.phone || !formData.products ||
-                                            !formData.county || !formData.description || submitLoading
+                                            !formData.county || !formData.description ||
+                                            !agreedToTerms || submitLoading
                                         }
                                     >
                                         <FaRocket aria-hidden='true' />

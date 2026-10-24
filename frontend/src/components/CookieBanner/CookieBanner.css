@@ -30,11 +30,15 @@
     color: var(--tan);
 }
 
-.cookie-banner__text {
+/* Explicit white: a global p/button colour rule was making this black
+   on the Oxford Blue bar. The doubled selector raises specificity so
+   it always wins. */
+.cookie-banner .cookie-banner__text {
     flex: 1;
     margin: 0;
     font-size: 0.82rem;
     line-height: 1.5;
+    color: #ffffff;
 }
 
 .cookie-banner__link {
@@ -75,10 +79,11 @@
     border: 1px solid var(--tan);
 }
 
-.cookie-banner__btn--ghost {
+/* Essential only: white text on the dark bar, same specificity fix. */
+.cookie-banner .cookie-banner__btn--ghost {
     background: transparent;
-    color: var(--off-white);
-    border: 1px solid rgba(250, 248, 245, 0.45);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 @keyframes cookie-banner-in {

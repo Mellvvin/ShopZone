@@ -18,6 +18,7 @@ const {
   getRecentlyViewed,
   trackRecentlyViewed,
   updateNotificationPreferences,
+  acceptTerms,
 } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -40,6 +41,10 @@ router.post('/recently-viewed/:productId', protect, trackRecentlyViewed);
 
 // ── Notification preferences ─────────────────────────────────
 router.put('/notification-preferences', protect, updateNotificationPreferences);
+
+// ── Terms acceptance (ISS-091) ───────────────────────────────
+// Must stay above /:id or "accept-terms" is read as an ObjectId.
+router.put('/accept-terms', protect, acceptTerms);
 
 router.route('/')
   .get(protect, admin, getAllUsers);

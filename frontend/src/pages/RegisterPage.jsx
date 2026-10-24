@@ -50,6 +50,8 @@ const RegisterPage = () => {
   const [password, setPassword]       = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   const [formError, setFormError]     = useState('');
+  // ISS-086: must be ticked before an account can be created
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const showError = (msg) => { setFormError(msg); showToast(msg, 'error'); };
 
@@ -82,12 +84,15 @@ const RegisterPage = () => {
   const submitHandler = (e) => {
     e.preventDefault();
     setFormError('');
+    // Server-independent guard: the button is also disabled, but this keeps
+    // the rule intact if the form is submitted another way (Enter key, etc.)
+    if (!agreedToTerms) return showError('Please agree to the Terms of Service and Privacy Policy to continue.');
     if (password !== confirmPass) return showError('Passwords do not match.');
     if (strength < 2) return showError('Password must be at least 8 characters and include one uppercase letter and one number.');
     const phoneRegex = /^(\+?254|0)[17]\d{8}$/;
     if (phone && !phoneRegex.test(phone.replace(/\s/g, ''))) return showError('Please enter a valid Kenyan phone number (e.g. 0712 345 678).');
     if (accountType === 'business' && !businessName.trim()) return showError('Please enter your business name.');
-    dispatch(register({ name, email, password, phone, accountType, businessName: accountType === 'business' ? businessName : '', businessType: accountType === 'business' ? businessType : '', county }));
+    dispatch(register({ name, email, password, phone, accountType, businessName: accountType === 'business' ? businessName : '', businessType: accountType === 'business' ? businessType : '', county, agreedToTerms }));
   };
 
   return (
@@ -198,7 +203,24 @@ const RegisterPage = () => {
               )}
             </Form.Group>
 
-            <Button type='submit' className='w-100 reg-submit-btn' disabled={loading}>
+            {/* ISS-086: Terms and Privacy agreement */}
+            <Form.Group className='mb-4 reg-terms'>
+              <label className='reg-terms__label'>
+                <input
+                  type='checkbox'
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                />
+                <span>
+                  I agree to the{' '}
+                  <Link to='/terms' target='_blank' rel='noopener noreferrer' className='reg-link'>Terms of Service</Link>
+                  {' '}and{' '}
+                  <Link to='/privacy-policy' target='_blank' rel='noopener noreferrer' className='reg-link'>Privacy Policy</Link>.
+                </span>
+              </label>
+            </Form.Group>
+
+            <Button type='submit' className='w-100 reg-submit-btn' disabled={loading || !agreedToTerms}>
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
 

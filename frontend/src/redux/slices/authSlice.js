@@ -30,7 +30,7 @@ export const login = createAsyncThunk(
 export const register = createAsyncThunk(
   'auth/register',
   async (
-    { name, email, password, phone, accountType, businessName, businessType, county },
+    { name, email, password, phone, accountType, businessName, businessType, county, agreedToTerms },
     { rejectWithValue }
   ) => {
     try {
@@ -43,6 +43,7 @@ export const register = createAsyncThunk(
         businessName,
         businessType,
         county,
+        agreedToTerms,
       });
       // Persist to localStorage so the user stays logged in on refresh
       localStorage.setItem('userInfo', JSON.stringify(data));

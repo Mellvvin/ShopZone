@@ -541,3 +541,15 @@
   }
 
 }
+
+/* ISS-086: legal links in the checkout note */
+.place-order-summary__link {
+  color: var(--oxford-blue);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.place-order-summary__link:hover {
+  color: var(--tan);
+}
