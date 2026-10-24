@@ -19,6 +19,7 @@ import ChatWidget from './components/ChatWidget/ChatWidget';
 import BottomNav from './components/BottomNav/BottomNav';
 import BackRow from './components/BackRow/BackRow';
 import Toast from './components/Toast/Toast';
+import CookieBanner from './components/CookieBanner/CookieBanner';
 
 // ── Pages ────────────────────────────────────────────────────
 import HomePage from './pages/HomePage';
@@ -147,8 +148,10 @@ const App = () => {
 
       <Footer />
     <BottomNav />
-      <ChatWidget />
+    <ChatWidget />
       <Toast />
+      {/* Cookie consent bar: fixed overlay, shows once until a choice is saved */}
+      <CookieBanner />
     </Router>
   );
 };
