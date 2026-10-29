@@ -75,6 +75,16 @@ const registerUser = async (req, res) => {
       agreedToTerms,
     } = req.body;
 
+    // ── Input type check (ISS-093) ────────────────────────────
+    // Required fields must be strings; optional ones may be missing but
+    // never objects or arrays.
+    const isText = (v) => typeof v === 'string';
+    const optionalOk = [phone, accountType, businessName, businessType, county]
+      .every((v) => v === undefined || isText(v));
+    if (!isText(name) || !isText(email) || !isText(password) || !optionalOk) {
+      return res.status(400).json({ message: 'Invalid registration details.' });
+    }
+
     // ── Consent gate (ISS-091) ────────────────────────────────
     // The API refuses to create an account unless the buyer agreed.
     if (agreedToTerms !== true) {
@@ -94,7 +104,7 @@ const registerUser = async (req, res) => {
     }
 
     // ── Check for duplicate email ─────────────────────────────
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email }).setOptions({ sanitizeFilter: true });
     if (userExists) {
       return res.status(400).json({
         message: 'An account with this email already exists.',
@@ -163,8 +173,15 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // ISS-093: both must be plain strings. Anything else (an object such
+    // as {"$ne": null}) is rejected before it can reach the database.
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ message: 'Invalid email or password.' });
+    }
+
+    // Find user by email. sanitizeFilter makes Mongo treat the value as
+    // plain text even if an operator slipped through.
+    const user = await User.findOne({ email }).setOptions({ sanitizeFilter: true });
 
     // Check user exists and password matches the stored hash
     if (user && (await user.matchPassword(password))) {

@@ -50,10 +50,16 @@ const getProducts = async (req, res) => {
     //   description — full product description
     //   tags        — array of keyword strings e.g. ["bulk","wholesale"]
     if (req.query.keyword) {
+      // ISS-093: force to string and escape regex symbols so a crafted
+      // keyword (e.g. "(a+)+$") cannot freeze the query or inject operators.
+      const safeKeyword = String(req.query.keyword)
+        .slice(0, 100)
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = {
-        $regex:   req.query.keyword,
+        $regex:   safeKeyword,
         $options: 'i',              // i = case insensitive
       };
+
       filter.$or = [
         { name:        regex },
         { category:    regex },
@@ -66,7 +72,7 @@ const getProducts = async (req, res) => {
     // Exact match on the category field.
     // Example: GET /api/products?category=Electronics
     if (req.query.category) {
-      filter.category = req.query.category;
+      filter.category = String(req.query.category); // ISS-093: never an object
     }
 
     // ── Featured filter ───────────────────────────────────────
@@ -103,7 +109,7 @@ const getProducts = async (req, res) => {
     // tags array. Stored and matched in lowercase.
     // Example: GET /api/products?tag=bulk
     if (req.query.tag) {
-      filter.tags = { $in: [req.query.tag.toLowerCase()] };
+    filter.tags = { $in: [String(req.query.tag).toLowerCase()] }; // ISS-093
     }
 
     // ── Brand filter ──────────────────────────────────────────
@@ -112,8 +118,9 @@ const getProducts = async (req, res) => {
     // Used by BrandsPage when a buyer clicks a brand card.
     // Example: GET /api/products?brand=Unilever
     if (req.query.brand) {
+      // ISS-093: string + escaped, same reason as the keyword filter
       filter.brand = {
-        $regex:   req.query.brand,
+        $regex:   String(req.query.brand).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
         $options: 'i',
       };
     }
@@ -130,7 +137,7 @@ const getProducts = async (req, res) => {
     // Limits results for homepage sections so only the needed
     // number of products are fetched instead of the full catalogue.
     // No limit param = return all matching products (browse mode).
-    const limit = req.query.limit ? parseInt(req.query.limit) : 0;
+    const limit = parseInt(req.query.limit, 10) || 0; // ISS-093: NaN falls back to no limit
 
     // ── Fetch matching products from MongoDB ──────────────────
     const products = await Product.find(filter)

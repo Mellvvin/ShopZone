@@ -8,8 +8,41 @@ dotenv.config();
 
 const app = express();
 
+// ── Security hardening (ISS-093) ─────────────────────────────
+const helmet = require('helmet');
+const { rateLimit } = require('express-rate-limit');
+const { sanitizeInput } = require('./middleware/sanitizeMiddleware');
+
+// Standard security headers. crossOriginResourcePolicy is relaxed so the
+// product images served from /uploads still load on the frontend origin.
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
 app.use(cors());
-app.use(express.json());
+
+// Cap request bodies so nobody can post a huge JSON payload.
+app.use(express.json({ limit: '1mb' }));
+
+// Remove "$" operator keys from req.body / req.params (NoSQL injection).
+app.use(sanitizeInput);
+
+// Brute-force protection on login: 20 attempts per 15 minutes per IP.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many login attempts. Please try again in 15 minutes.' },
+});
+// Slower limit on account creation: 20 per hour per IP.
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many sign-ups from this connection. Please try again later.' },
+});
+app.use('/api/users/login', loginLimiter);
+app.post('/api/users', registerLimiter); // only POST to exactly /api/users
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
