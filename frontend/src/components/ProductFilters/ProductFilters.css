@@ -1,0 +1,264 @@
+/* frontend/src/components/ProductFilters/ProductFilters.css
+   Sort + filter bar and the filter sheet (ISS-074).
+   Sheet z-index 1060 / backdrop 1059: a modal, above the bottom bar (1050). */
+
+.pf-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.pf-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #5c5c5c;
+}
+
+.pf-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.pf-sort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pf-sort__label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--oxford-blue);
+}
+
+.pf-sort select {
+    height: 40px;
+    padding: 0 10px;
+    border: 1.5px solid rgba(0, 33, 71, 0.15);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--oxford-blue);
+    font-size: 0.85rem;
+    font-family: inherit;
+}
+
+.pf-filter-btn {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 8px;
+    background: var(--oxford-blue);
+    color: var(--tan);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.pf-filter-btn:focus-visible {
+    outline: 2px solid var(--tan);
+    outline-offset: 2px;
+}
+
+.pf-filter-btn__badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--tan);
+    color: var(--oxford-blue);
+    font-size: 0.68rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Sheet ──────────────────────────────────────────────── */
+.pf-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1059;
+    background: rgba(0, 33, 71, 0.45);
+}
+
+.pf-sheet {
+    position: fixed;
+    z-index: 1060;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(420px, calc(100vw - 24px));
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 16px 48px rgba(0, 33, 71, 0.3);
+    overflow: hidden;
+}
+
+.pf-sheet__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0ece5;
+}
+
+.pf-sheet__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--oxford-blue);
+}
+
+.pf-sheet__close {
+    all: unset;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f0ece5;
+    color: var(--oxford-blue);
+}
+
+.pf-sheet__body {
+    padding: 14px 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.pf-group-title {
+    margin: 14px 0 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5c5c5c;
+}
+
+.pf-group-title:first-child {
+    margin-top: 0;
+}
+
+.pf-price-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #5c5c5c;
+}
+
+.pf-price-row input {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+    padding: 0 10px;
+    border: 1.5px solid rgba(0, 33, 71, 0.15);
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--oxford-blue);
+}
+
+.pf-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    color: var(--oxford-blue);
+    cursor: pointer;
+}
+
+.pf-check input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--oxford-blue);
+}
+
+.pf-error {
+    margin: 12px 0 0;
+    font-size: 0.8rem;
+    color: #c0392b;
+}
+
+.pf-sheet__foot {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid #f0ece5;
+}
+
+.pf-btn {
+    all: unset;
+    box-sizing: border-box;
+    flex: 1;
+    cursor: pointer;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.pf-btn--primary {
+    background: var(--oxford-blue);
+    color: var(--tan);
+}
+
+.pf-btn--ghost {
+    border: 1.5px solid rgba(0, 33, 71, 0.2);
+    color: var(--oxford-blue);
+}
+
+.pf-btn:focus-visible {
+    outline: 2px solid var(--tan);
+    outline-offset: 2px;
+}
+
+/* Phone: bottom sheet instead of centred card */
+@media (max-width: 600px) {
+    .pf-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pf-controls {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .pf-sort {
+        flex: 1;
+    }
+
+    .pf-sort select {
+        flex: 1;
+        min-width: 0;
+        font-size: 16px;
+    }
+
+    .pf-sheet {
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 0;
+        transform: none;
+        width: 100%;
+        border-radius: 16px 16px 0 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+}

@@ -120,6 +120,11 @@ export const listProducts = createAsyncThunk(
       if (filters.tag)      params.append('tag',       filters.tag);
       if (filters.brand)    params.append('brand',     filters.brand);
       if (filters.sort)     params.append('sort',      filters.sort);
+      // ISS-074 filters
+      if (filters.minPrice) params.append('minPrice',  filters.minPrice);
+      if (filters.maxPrice) params.append('maxPrice',  filters.maxPrice);
+      if (filters.inStock)  params.append('inStock',   'true');
+      if (filters.onSale)   params.append('onSale',    'true');
 
       // ── Fetch from backend ─────────────────────────────────
       const queryString = params.toString();

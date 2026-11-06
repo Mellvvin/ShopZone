@@ -17,6 +17,7 @@ import ProductCard from '../components/ProductCard/ProductCard';
 import SkeletonCard from '../components/ProductCard/SkeletonCard';
 import OfferCard from '../components/OfferCard/OfferCard';
 import CategoryCards from '../components/CategoryCards/CategoryCards';
+import ProductFilters from '../components/ProductFilters/ProductFilters';
 import {
   FaArrowLeft,
   FaFire,
@@ -122,6 +123,12 @@ const HomePage = () => {
   const tag      = searchParams.get('tag')      || '';
   // Brand filter — used by BrandsPage and ProductPage brand link
   const brand    = searchParams.get('brand')    || '';
+  // ISS-074: sort and filters, all URL-persisted (see ProductFilters)
+  const sort     = searchParams.get('sort')     || '';
+  const minPrice = searchParams.get('minPrice') || '';
+  const maxPrice = searchParams.get('maxPrice') || '';
+  const inStock  = searchParams.get('inStock')  || '';
+  const onSale   = searchParams.get('onSale')   || '';
 
   const isBrowsingMode = !!(keyword || category || deals || featured || clearance || tag || brand);
 
@@ -155,6 +162,11 @@ useEffect(() => {
       if (clearance) filters.clearance = clearance;
       if (tag)       filters.tag      = tag;
       if (brand)     filters.brand    = brand;
+      if (sort)      filters.sort     = sort;
+      if (minPrice)  filters.minPrice = minPrice;
+      if (maxPrice)  filters.maxPrice = maxPrice;
+      if (inStock)   filters.inStock  = inStock;
+      if (onSale)    filters.onSale   = onSale;
       dispatch(listProducts(filters));
     } else {
       // Home state — two dedicated fetches, each hitting their own endpoint
@@ -171,7 +183,7 @@ useEffect(() => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [keyword, category, deals, featured, clearance, tag, brand]);
+}, [keyword, category, deals, featured, clearance, tag, brand, sort, minPrice, maxPrice, inStock, onSale]);
 
  const getBrowseHeading = () => {
     if (keyword)  return `Search results for "${keyword}"`;
@@ -271,6 +283,9 @@ useEffect(() => {
           <div className='homepage__browse-header'>
             <h1 className='homepage__browse-title'>{getBrowseHeading()}</h1>
           </div>
+
+          {/* ISS-074: sort + filter bar */}
+          <ProductFilters count={loadingList ? null : (products ? products.length : 0)} />
 
           {loadingList ? (
             <div className='hp-product-grid'>

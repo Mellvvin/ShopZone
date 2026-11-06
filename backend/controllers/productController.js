@@ -90,9 +90,10 @@ const getProducts = async (req, res) => {
     if (req.query.deals === 'true') {
       // Return products that are on sale OR clearance
       // This ensures both tabs on the Special Offers page are populated
-      filter.$or = [
-        { isOnSale: true },
-        { isClearance: true },
+      // ISS-074: pushed into $and so it never overwrites the keyword $or
+      filter.$and = [
+        ...(filter.$and || []),
+        { $or: [{ isOnSale: true }, { isClearance: true }] },
       ];
     }
 
@@ -137,11 +138,63 @@ const getProducts = async (req, res) => {
     // Limits results for homepage sections so only the needed
     // number of products are fetched instead of the full catalogue.
     // No limit param = return all matching products (browse mode).
-    const limit = parseInt(req.query.limit, 10) || 0; // ISS-093: NaN falls back to no limit
+        const limit = parseInt(req.query.limit, 10) || 0; // ISS-093: NaN falls back to no limit
+
+    // ── ISS-074: price range, in-stock and on-sale filters ────
+    // Every value is coerced with Number()/=== 'true', so an object or
+    // operator sent in the query string can never reach MongoDB.
+    // "Effective price" follows the single sale-price rule: a sale price
+    // applies only when isOnSale is true and 0 < salePrice < price.
+    const effectivePriceExpr = {
+      $cond: [
+        {
+          $and: [
+            { $eq: ['$isOnSale', true] },
+            { $gt: [{ $ifNull: ['$salePrice', 0] }, 0] },
+            { $lt: [{ $ifNull: ['$salePrice', 0] }, '$price'] },
+          ],
+        },
+        '$salePrice',
+        '$price',
+      ],
+    };
+
+    const minPrice = Number(req.query.minPrice);
+    const maxPrice = Number(req.query.maxPrice);
+    const priceClauses = [];
+    if (req.query.minPrice && Number.isFinite(minPrice) && minPrice >= 0) {
+      priceClauses.push({ $gte: [effectivePriceExpr, minPrice] });
+    }
+    if (req.query.maxPrice && Number.isFinite(maxPrice) && maxPrice > 0) {
+      priceClauses.push({ $lte: [effectivePriceExpr, maxPrice] });
+    }
+    if (priceClauses.length > 0) {
+      filter.$and = [...(filter.$and || []), { $expr: { $and: priceClauses } }];
+    }
+
+    // In stock only
+    if (req.query.inStock === 'true') {
+      filter.countInStock = { $gt: 0 };
+    }
+
+    // On sale only (sale, not clearance; clearance has its own mechanics)
+    if (req.query.onSale === 'true') {
+      filter.isOnSale = true;
+    }
+
+    // ── ISS-074: extra sort options ───────────────────────────
+    // Whitelisted keys only. Anything else keeps the existing sort.
+    const SORT_MAP = {
+      price_asc:  { price: 1 },
+      price_desc: { price: -1 },
+      rating:     { rating: -1, numReviews: -1 },
+      name_asc:   { name: 1 },
+    };
+    const finalSort = SORT_MAP[String(req.query.sort)] || sortOption;
 
     // ── Fetch matching products from MongoDB ──────────────────
     const products = await Product.find(filter)
-      .sort(sortOption)
+      .sort(finalSort)
       .limit(limit);
 
     res.json(products);
