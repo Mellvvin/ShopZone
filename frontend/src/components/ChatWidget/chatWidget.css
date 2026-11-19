@@ -388,3 +388,12 @@
     bottom: calc(var(--bottom-nav-height, 62px) + 14px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* Cart page only: the checkout bar (~64px) sits where the bubble would,
+   so lift the bubble one more bar height. Must stay AFTER the earlier
+   991px rule so it wins. */
+@media (max-width: 991px) {
+  body.cart-bar-open .cw-wrapper {
+    bottom: calc(var(--bottom-nav-height, 62px) + 14px + 72px + env(safe-area-inset-bottom, 0px));
+  }
+}

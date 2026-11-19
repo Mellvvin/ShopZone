@@ -98,7 +98,9 @@ const Toast = () => {
        const handler = (e) => {
             const { message, type, action } = e.detail;
             const id = Date.now() + Math.random();
-            setToasts((prev) => [...prev, { id, message, type, action: action || null }]);
+            // Replace, never append: only the newest toast is ever on screen.
+            // A new id forces React to remount it, restarting the 5s timer and bar.
+            setToasts([{ id, message, type, action: action || null }]);
         };
         window.addEventListener('shopzone-toast', handler);
         return () => window.removeEventListener('shopzone-toast', handler);

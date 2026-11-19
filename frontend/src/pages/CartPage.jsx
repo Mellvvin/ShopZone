@@ -43,6 +43,15 @@ const CartPage = () => {
 
   useEffect(() => { document.title = 'Your Cart — ShopZone'; }, []);
 
+  // While the mobile checkout bar is on screen, tell the page so the chat
+  // bubble (ChatWidget.css) can lift itself clear of it. Cleanup runs when
+  // the cart empties or the buyer leaves, so other pages are unaffected.
+  useEffect(() => {
+    if (cartItems.length === 0) return undefined;
+    document.body.classList.add('cart-bar-open');
+    return () => document.body.classList.remove('cart-bar-open');
+  }, [cartItems.length]);
+
   // Re-check every item against live product data (sales, price edits)
   useEffect(() => { dispatch(refreshCartPrices()); }, [dispatch]);
 
